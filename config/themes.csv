@@ -14,7 +14,6 @@ default,color_benchmarks,"#8a6d3b,#5e7a5a,#7a6a9a,#8c8c8c,#a0522d","Benchmarks i
 default,palette_categories,"#1f5aa6,#e69f00,#009e73,#cc79a7,#56b4e9,#d55e00,#6b6b6b","Categories (age groups, race and ethnicity); colorblind-safe (Okabe-Ito based)"
 default,palette_sequential,"#eff3ff,#c6dbef,#9ecae1,#6baed6,#3182bd,#08519c",Choropleth maps (low to high)
 default,color_missing,#e6e6e6,Map areas with no data
-default,color_unreliable,#b5b5b5,Map areas whose estimate is unreliable or suppressed
 default,color_shading,#eeeeee,Shaded periods such as recessions
 default,figure_width,7,Figure width (inches)
 default,figure_height,3.8,Figure height (inches)

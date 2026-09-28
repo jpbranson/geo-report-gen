@@ -30,7 +30,7 @@ poverty-map,income_poverty_hardship,map,poverty_rate_acs,within,map,,Poverty rat
 income-map,income_poverty_hardship,map,median_household_income_acs,within,map,,Median household income by census tract within the study area
 availability,appendix,availability,,none,table,,Measures not shown and why
 sources,appendix,sources,,none,list,,"Geography, benchmarks and sources"
-pop-long-history,demographics,metric,pop_hist_census;pop_total_dec;pop_estimate_pep,time,line,history_start=1900,Population across the longest available record: census counts 1900-2020 and annual estimates 2000-2025
+pop-long-history,demographics,metric,pop_total_dec;pop_hist_census;pop_estimate_pep,time,line,history_start=1900,Population across the longest available record: census counts 1900-2020 and annual estimates 2000-2025
 pop-estimates,demographics,metric,pop_estimate_pep,time+parents,line,index=first; history_start=2000,"Annual population estimates indexed to 2000, by estimate series (not spliced)"
 unemployment-trend,employment_labor,metric,unemployment_rate_laus,time+parents,line,history_start=1990,Annual unemployment rate since 1990 with recessions shaded
 pcpi-trend,income_poverty_hardship,metric,per_capita_personal_income_bea,time+parents,line,index=relative; history_start=1969,Per capita personal income since 1969 (county context for places)

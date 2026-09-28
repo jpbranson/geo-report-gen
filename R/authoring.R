@@ -77,22 +77,32 @@ chunk_fields <- function(opt_lines) {
 
 # ---- Canonical records -------------------------------------------------------------------
 
-# The text currently in effect for a field of a report (same resolution as compose).
-current_field_text <- function(records, field, kind, report_id, profile, events = NULL, ref = NULL) {
-  t <- resolve_text(records, field, kind, report_id, profile, ref)
-  if (identical(t$scope, "none") && grepl("^event\\.", field) && !is.null(events)) {
+# The text currently in effect for a field of a report: the same resolution compose uses
+# (resolve_block_texts), with block kinds and library references from the report snapshot.
+current_field_text <- function(records, field, report_id, profile, snap, events) {
+  resolve <- function(f, kind = NULL, ref = NULL) resolve_text(records, f, kind, report_id, profile, ref)
+  if (grepl("^event\\.", field)) {
+    t <- resolve(field)
+    if (!identical(t$scope, "none")) return(t$text)
     ev <- events[paste0("event.", events$event_id) == field, , drop = FALSE]
-    if (nrow(ev)) return(ev$statement[1])
+    return(if (nrow(ev)) ev$statement[1] else "")
   }
-  if (identical(t$scope, "none") && grepl("\\.label\\.", field)) {
+  if (grepl("\\.label\\.", field)) {
     m <- sub("^.*\\.label\\.", "", field)
-    g <- resolve_text(records, paste0("label.", m), NULL, report_id, profile)
-    if (!identical(g$scope, "none")) return(g$text)
+    for (f in c(field, paste0("label.", m))) {
+      t <- resolve(f)
+      if (!identical(t$scope, "none")) return(t$text)
+    }
     rec <- recipes()
     if (m %in% rec$metric_id && nzchar(rec$category[rec$metric_id == m])) return(rec$category[rec$metric_id == m])
     return(tryCatch(metric_doc(m)$label, error = function(e) ""))
   }
-  t$text
+  block <- sub("\\..*$", "", field)
+  row <- snap$rows[snap$rows$id == block, , drop = FALSE]
+  kind <- if (block == "report") "report" else if (!nrow(row)) NULL else
+    if (row$type[1] %in% c("section", "subsection")) "section" else
+      if (identical(snap$blocks[[block]]$kind, "error")) "error" else row$kind[1]
+  resolve(field, kind, if (nrow(row)) row$ref[1])$text
 }
 
 # Insert or update one record (field + scope). Markdown-backed records are updated in their file.
@@ -121,12 +131,6 @@ save_text_records <- function(records) {
   on.exit(filelock::unlock(lock))
   records <- records[order(records$field_id, records$scope), , drop = FALSE]
   write_table(records, text_path())
-  memo_clear("catalog_")
-}
-
-memo_clear <- function(prefix) {
-  keys <- ls(memo)
-  rm(list = keys[startsWith(keys, prefix)], envir = memo)
 }
 
 # Numbers typed into text that equal a current value are "fixed facts": remember which value
@@ -153,7 +157,7 @@ stale_fact_warnings <- function(texts, values) {
     if (!nzchar(ff)) next
     facts <- jsonlite::fromJSON(ff)
     for (lit in names(facts)) {
-      now <- flat[[facts[[lit]]]] %||% NA
+      now <- if (facts[[lit]] %in% names(flat)) flat[[facts[[lit]]]] else "no longer available"
       if (!identical(now, lit)) {
         out <- c(out, paste0(field, ": the text states \"", lit, "\", which matched {", sub("^[^.]*\\.", "", facts[[lit]]),
                              "} when written; the current value is \"", now, "\". Update the text or use the placeholder."))
@@ -184,18 +188,13 @@ harvest_report <- function(report_id) {
   if (!length(changed)) return(list(status = "no inline edits", applied = list()))
   cfg <- report_config(report_id)
   records <- load_text_records()
-  kinds <- stats::setNames(snap$rows$kind, snap$rows$id)
-  refs <- stats::setNames(snap$rows$ref, snap$rows$id)
-  events_path <- root_path("content", "history_events.csv")
-  events <- if (file.exists(events_path)) read_table(events_path) else NULL
+  events <- history_events()
   applied <- list()
   conflicts <- list()
   for (f in changed) {
-    block <- sub("\\..*$", "", f)
-    kind <- if (block == "report") "report" else if (f == paste0(block, ".title") && kinds[[block]] %in% c("section", "subsection")) "section" else unname(kinds[block])
-    current <- current_field_text(records, f, if (is.na(kind %||% NA)) NULL else kind, report_id, cfg$profile, events, refs[block])
+    current <- current_field_text(records, f, report_id, cfg$profile, snap, events)
     if (identical(current, base[[f]])) {
-      vals <- c(snap$values["report"], snap$values[block])
+      vals <- c(snap$values["report"], snap$values[sub("\\..*$", "", f)])
       facts <- detect_fixed_facts(now[[f]], vals)
       records <- upsert_record(records, f, paste0("report:", report_id), now[[f]], facts, "inline edit")
       applied[[f]] <- now[[f]]
@@ -250,24 +249,21 @@ text_import <- function(path) {
   bad_scope <- x$edit_scope[!grepl("^(default|profile:[a-z0-9-]+|report:[a-z0-9-]+)$", x$edit_scope)]
   if (length(bad_scope)) stop("Invalid edit_scope value(s): ", paste(unique(bad_scope), collapse = ", "), call. = FALSE)
   records <- load_text_records()
-  events_path <- root_path("content", "history_events.csv")
-  events <- if (file.exists(events_path)) read_table(events_path) else NULL
+  events <- history_events()
+  snaps <- list()
   conflicts <- list()
   for (i in seq_len(nrow(x))) {
     r <- x[i, ]
     cfg <- report_config(r$report_id)
-    snap <- readRDS(file.path(snapshot_dir(r$report_id), "report.rds"))
-    kinds <- stats::setNames(snap$rows$kind, snap$rows$id)
-  refs <- stats::setNames(snap$rows$ref, snap$rows$id)
-    block <- sub("\\..*$", "", r$field_id)
-    kind <- if (block == "report") "report" else if (grepl("\\.title$", r$field_id) && isTRUE(kinds[block] %in% c("section", "subsection"))) "section" else unname(kinds[block])
-    current <- current_field_text(records, r$field_id, if (is.na(kind %||% NA)) NULL else kind, r$report_id, cfg$profile, events, refs[block])
+    if (is.null(snaps[[r$report_id]])) snaps[[r$report_id]] <- readRDS(file.path(snapshot_dir(r$report_id), "report.rds"))
+    snap <- snaps[[r$report_id]]
+    current <- current_field_text(records, r$field_id, r$report_id, cfg$profile, snap, events)
     if (hash_text(current) != r$base_hash) {
       conflicts[[length(conflicts) + 1]] <- data.frame(report_id = r$report_id, field_id = r$field_id,
                                                         imported = r$text, canonical_now = current, stringsAsFactors = FALSE)
       next
     }
-    vals <- c(snap$values["report"], snap$values[block])
+    vals <- c(snap$values["report"], snap$values[sub("\\..*$", "", r$field_id)])
     records <- upsert_record(records, r$field_id, r$edit_scope, r$text, detect_fixed_facts(r$text, vals), "bulk import")
   }
   if (length(conflicts)) {

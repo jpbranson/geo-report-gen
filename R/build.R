@@ -130,7 +130,9 @@ build_manifest <- function(report_id, composed, harvest, status, err, result, re
     harvest = harvest,
     sources = source_versions(),
     dependencies = list(R = R.version.string,
-                        packages = as.list(vapply(pkgs, function(p) as.character(utils::packageVersion(p)), "")),
+                        packages = as.list(vapply(pkgs, function(p) tryCatch(as.character(utils::packageVersion(p)),
+                                                                             error = function(e) NA_character_), "")),
+                        renv_lock = hash_files(root_path("renv.lock")),
                         quarto = trimws(quarto_version)),
     warnings = as.list(run$warnings),
     timings = c(lapply(run$timings, round, 2), list(total = round(as.numeric(difftime(Sys.time(), started, units = "secs")), 2))),
@@ -139,12 +141,15 @@ build_manifest <- function(report_id, composed, harvest, status, err, result, re
     cache = as.list(run$cache))
 }
 
-# Raw files used, with retrieval times (from the cache metadata written at download time).
+# Raw files and API responses this build read, with the time each entered the cache and, for
+# downloads, the URL (from the metadata written at download time).
 source_versions <- function() {
-  metas <- list.files(cache_path("raw"), pattern = "\\.meta\\.json$", recursive = TRUE, full.names = TRUE)
-  lapply(metas, function(m) {
-    x <- jsonlite::fromJSON(m)
-    list(file = sub(paste0("^", cache_path("raw"), "/"), "", sub("\\.meta\\.json$", "", m)),
-         url = x$url, retrieved = x$retrieved, md5 = x$md5)
+  paths <- sort(unique(run$used))
+  paths <- paths[file.exists(paths)]
+  lapply(paths, function(p) {
+    meta <- paste0(p, ".meta.json")
+    list(file = sub(paste0("^", cache_root(), "/"), "", p),
+         cached = format(file.mtime(p), "%Y-%m-%dT%H:%M:%S"),
+         url = if (file.exists(meta)) jsonlite::fromJSON(meta)$url else NA)
   })
 }

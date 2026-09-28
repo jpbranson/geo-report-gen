@@ -50,7 +50,8 @@ batch_build <- function(ids = NULL, workers = 4, offline = FALSE, refresh = char
                error = substr(m$error %||% "", 1, 160), stringsAsFactors = FALSE)
   }))
   total <- as.numeric(difftime(Sys.time(), started, units = "secs"))
-  log <- list(started = format(started, "%Y-%m-%dT%H:%M:%S%z"), reports = length(ids), rendered = length(todo),
+  log <- list(started = format(started, "%Y-%m-%dT%H:%M:%S%z"), reports = length(ids),
+              rendered = sum(summary$action == "rendered"),
               workers = workers, seconds = list(total = round(total, 1), compose_phase = round(compose_secs, 1),
                                                 render_phase = round(render_secs, 1)),
               requests = sum(summary$requests), cache_hits = sum(summary$cache_hits),

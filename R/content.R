@@ -84,6 +84,78 @@ report_config <- function(report_id) {
   as.list(row[1, ])
 }
 
+# `gr.R new <id> --geo <spec> ...` adds a report to config/reports.csv. With --subjects and/or
+# --metrics it also writes config/manifests/<id>.csv (see subject_manifest). The geography is
+# resolved first, so a bad spec or an invalid union is reported before anything is written.
+new_report <- function(report_id, flags) {
+  if (is_blank(report_id) || !grepl("^[a-z0-9][a-z0-9-]*$", report_id)) {
+    stop("new: give a report id made of lowercase letters, digits and hyphens.", call. = FALSE)
+  }
+  reports <- report_table()
+  if (report_id %in% reports$report_id) stop("Report '", report_id, "' already exists in config/reports.csv.", call. = FALSE)
+  if (is_blank(flags$geo)) stop("new: give the geography, e.g. --geo place:1827000", call. = FALSE)
+  row <- data.frame(report_id = report_id, geography = flags$geo, mode = flags$mode %||% "single",
+                    label = flags$label %||% "", profile = flags$profile %||% "general", manifest = "",
+                    vintage = "", enabled = "TRUE", note = "", stringsAsFactors = FALSE)
+  vintage <- as.integer(resolve_settings()$boundary_vintage)
+  members <- parse_geo_list(row$geography, vintage)
+  if (row$mode == "separate") {
+    for (i in seq_len(nrow(members))) resolve_area(members[i, ], "single", vintage)
+  } else resolve_area(members, row$mode, vintage, row$label)
+  subjects <- split_list(flags$subjects, ",")
+  metrics <- split_list(flags$metrics, ",")
+  if (length(subjects) || length(metrics)) {
+    row$manifest <- file.path("config", "manifests", paste0(report_id, ".csv"))
+    write_table(subject_manifest(subjects, metrics), root_path(row$manifest))
+  }
+  write_table(rbind(reports, row[, names(reports)]), root_path("config", "reports.csv"))
+  note("Added ", report_id, " to config/reports.csv", if (nzchar(row$manifest)) paste0(" (manifest ", row$manifest, ")"),
+       ". Build it with: Rscript gr.R build ", report_id)
+  invisible(row)
+}
+
+# Manifest for chosen subjects and metrics: the overview, one section per subject holding its
+# library blocks (catalog/blocks.csv), a section of individual metrics, and the appendix.
+# Section titles default to the subject names and are ordinary editable text records.
+subject_manifest <- function(subjects, metrics) {
+  subj <- subjects()
+  bad <- c(setdiff(subjects, subj$subject_id), setdiff(metrics, recipes()$metric_id))
+  if (length(bad)) {
+    stop("Unknown subject or non-operational metric: ", paste(bad, collapse = ", "),
+         " (see catalog/subjects.csv and catalog/recipes.csv).", call. = FALSE)
+  }
+  lib <- block_library()
+  row <- function(id, type, ref = "") {
+    data.frame(id = id, type = type, ref = ref, enabled = "TRUE", compare = "", viz = "", options = "", stringsAsFactors = FALSE)
+  }
+  rows <- list(row("overview", "section"), row("intro", "text", "intro"), row("locator", "block", "locator"),
+               row("key-facts", "block", "key-facts"))
+  titles <- c()
+  for (s in subjects) {
+    blocks <- lib$block_id[lib$subject_id == s]
+    if (!length(blocks)) {
+      warn("The block library has no blocks for subject '", s, "'; add its metrics with --metrics.")
+      next
+    }
+    id <- gsub("_", "-", s)
+    titles[id] <- subj$subject[subj$subject_id == s][1]
+    rows <- c(rows, list(row(id, "section")), lapply(blocks, function(b) row(b, "block", b)))
+  }
+  if (length(metrics)) {
+    titles["selected-measures"] <- "Selected measures"
+    rows <- c(rows, list(row("selected-measures", "section")), lapply(metrics, function(m) row(gsub("_", "-", m), "metric", m)))
+  }
+  rows <- c(rows, list(row("appendix", "section"), row("availability", "block", "availability"),
+                       row("sources", "block", "sources")))
+  records <- load_text_records()
+  for (id in names(titles)) {
+    field <- paste0(id, ".title")
+    if (!any(records$field_id == field)) records <- upsert_record(records, field, "default", titles[[id]], note = "added by gr.R new")
+  }
+  save_text_records(records)
+  do.call(rbind, rows)
+}
+
 # ---- Block library and manifests --------------------------------------------------------
 
 block_library <- function() memoize("block_library", function() read_table(root_path("catalog", "blocks.csv")))
@@ -173,6 +245,12 @@ validate_manifest <- function(m) {
 # ---- Text records -------------------------------------------------------------------------
 
 text_path <- function() root_path("content", "text.csv")
+
+# Cited historical context (content/history_events.csv), or NULL when there is none.
+history_events <- function() {
+  path <- root_path("content", "history_events.csv")
+  if (file.exists(path)) read_table(path) else NULL
+}
 
 load_text_records <- function() {
   t <- read_table(text_path())

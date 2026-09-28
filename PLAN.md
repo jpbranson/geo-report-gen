@@ -2,8 +2,9 @@
 
 Environment found: empty directory; R 4.6.1 (project library via renv), Quarto 1.9.38 (bundled with
 RStudio), no git history. The Census Data API now **requires a key** for every request (verified
-2026-09-28: keyless calls redirect to `missing_key.html`); the key is read from `census_key.txt`
-(git-ignored) or `CENSUS_API_KEY`.
+2026-09-28: keyless calls redirect to `missing_key.html`). Machine-specific settings live in the
+git-ignored `.env` (read at startup by R/load.R): `CENSUS_API_KEY`, and `GR_HTTP_CONTACT` (the
+user's email, sent only to BLS, which rejects automated requests without a contact).
 
 ## Architecture (one path: config -> data -> analysis -> report)
 
@@ -33,22 +34,29 @@ Key decisions
 
 ## Checklist
 
-- [ ] Environment: renv library, Quarto discovery, key handling (never logged)
-- [ ] Fetch/cache layer: keys, atomic writes, locks, retries, throttling, offline/refresh, request log
-- [ ] Geography: spec parsing (type:GEOID@vintage), name lookup w/ ambiguity, gazetteer index,
-      relationship graph (contains/intersects/coterminous), unions, overlap/parent-child detection,
-      decomposition into non-overlapping published pieces, benchmark policy, national scope, support matrix
-- [ ] Statistics: counts, shares, ratios, medians from distributions, weighted means, MOE propagation,
-      significance tests incl. overlap + part-whole dependence, status codes, CPI adjustment
-- [ ] Providers: ACS 5-yr (2009-2024), decennial 2000/2010/2020, PEP, LAUS, BEA CAINC1, CPI,
-      building permits, FHFA HPI, NDCP childcare prices, CBP child care establishments, state licensing
-- [ ] Catalog: subjects, sources, metrics, coverage; verification status/evidence; browsable HTML page
-- [ ] Content: manifest (row order = document order), block library, profiles, scoped text precedence,
-      templates, Markdown prose, cited history events, stale-fact warnings
-- [ ] Authoring: inline (.qmd) harvest, bulk CSV export/import, conflict detection, round-trip demo
-- [ ] Rendering: theme (fonts/colors/spacing/formats/figure sizes/print), charts, maps, tables, labels
-- [ ] Custom module example inserted via manifest without engine changes
-- [ ] Batch: planning, prefetch dedup, parallel workers, isolated failures, resume, build manifest, timings
-- [ ] Demos (acceptance 1-11) rendered and inspected; PDF (Typst) status checked
-- [ ] Tests (deterministic fixtures) + live verification command; benchmarks cold/warm/resume
+Status as of 2026-09-28 16:45 (session 3; details in FLIGHT_LOG.md). `[x]` done and exercised by the
+sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
+
+- [x] Environment: renv library + `renv.lock`, Quarto discovery, `.env` for key/contact (never logged)
+- [x] Fetch/cache layer: keys, atomic writes, locks, retries, throttling, offline/refresh, request log
+- [x] Geography: spec parsing (type:GEOID@vintage), name lookup w/ ambiguity, relationship graph
+      (contains/intersects/coterminous), unions, overlap/parent-child detection, decomposition into
+      published pieces, benchmark policy, national scope, support matrix (catalog/geo_support.csv)
+- [x] Statistics: counts, shares, ratios, medians from distributions, MOE propagation, significance tests
+      incl. overlap + part-whole dependence, status codes, constant dollars (R-CPI-U-RS)
+- [x] Providers: ACS 5-yr (2009-2024), decennial 2000/2010/2020 (1990 is not in the API), PEP, 1900-1990
+      county counts, LAUS, BEA CAINC1, CPI, building permits, FHFA HPI, NDCP, CBP 624410, Texas HHSC
+- [~] Catalog: tables (17 subjects / 82 subtopics, 120 sources, 398 metrics, 48 operational) and the
+      browsable page (`gr.R catalog --html`) with scope and gaps. To do: run `gr.R verify`
+- [x] Content: manifests, block library, 3 profiles, scoped text, templates, cited history events,
+      stale-fact warnings, `gr.R new` (subject/metric selection)
+- [~] Authoring: inline harvest, bulk CSV export/import and conflict detection, covered by tests; to do:
+      demonstrate on a real report through regeneration
+- [x] Rendering: theme, charts, maps, tables; reviewed and fixed (see FLIGHT_LOG.md)
+- [x] Custom module example (modules/childcare_gap.R, inserted via profiles/early-childhood.csv)
+- [~] Batch: two phases (compose, parallel render), isolated failures, logs, build manifests. To do:
+      cold/warm/resume benchmark and invalidation demo
+- [~] Demos: acceptance 1-5 configured and rendering (config/reports.csv); 6-11 to do; PDF (Typst) unchecked
+- [~] Tests: 110 expectations pass offline with fixtures (`gr.R test`). To do: live verification run;
+      benchmarks cold/warm/resume
 - [ ] Docs: README (setup, commands, authoring guide, maintainer walkthrough), limitations; lean review

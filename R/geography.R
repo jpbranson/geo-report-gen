@@ -652,7 +652,8 @@ choose_benchmarks <- function(area, settings) {
       if (nrow(skip)) {
         notes <- c(notes, paste0("Also intersecting at the ", lvl, " level but holding under ",
                                  fmt_share(min_share), " of residents: ",
-                                 paste(skip$parent, " (", vapply(skip$share, fmt_share, ""), ")", sep = "", collapse = ", "), "."))
+                                 paste0(geo_info(skip$parent, vintage)$name, " (", vapply(skip$share, fmt_share, ""), ")",
+                                        collapse = ", "), "."))
       }
       if (lvl == "county" && as_flag(settings$benchmark_parent_union) && nrow(at) > 1) {
         out[[length(out) + 1]] <- list(key = at$parent, level = "county_union", contains = TRUE, share = 1,
@@ -718,6 +719,7 @@ same_population_area <- function(a, b) {
 
 fmt_share <- function(x) {
   if (is.na(x)) return("an unknown share")
-  if (x > 0 && x < 0.001) return("<0.1%")
+  if (x == 0) return("0%")
+  if (x < 0.001) return("<0.1%")
   paste0(formatC(100 * x, format = "f", digits = if (x < 0.1) 1 else 0), "%")
 }

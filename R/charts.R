@@ -10,12 +10,6 @@ block_entity_colors <- function(d, th) {
   entity_colors(th, ents$label, ents$role)
 }
 
-# x positions: multiyear periods are drawn as spans (start to end) with the point at the
-# midpoint, so 5-year estimates are never shown as single-year observations.
-period_x <- function(d, period_kind) {
-  if (identical(period_kind, "multiyear")) (d$period_start + d$period_end) / 2 else d$period_end
-}
-
 render_block_metric <- function(b, txt, th) {
   if (b$compare %in% c("parents", "none")) return(plot_compare(b, txt, th))
   plot_trend(b, txt, th)
@@ -28,11 +22,17 @@ plot_trend <- function(b, txt, th) {
   d$y <- if (indexed) d$index_value else d$value
   kinds <- b$data$period_kind
   d$kind <- kinds[match(d$metric_id, names(kinds))]
+  # Multiyear (ACS) periods are drawn at their midpoint with a bar spanning the period, so
+  # 5-year estimates are never shown as single-year observations.
   d$x <- ifelse(d$kind == "multiyear", (d$period_start + d$period_end) / 2, d$period_end)
-  d$series <- d$series %||% "series"
   # Lines connect only points of the same area and series: separate estimate vintages or
-  # sources are drawn as separate lines, never spliced.
+  # sources are separate lines, never spliced (a gap marks the change). When census counts
+  # share a chart with annual estimates, the counts are drawn as points and the estimates as
+  # lines, so the two kinds of observation stay distinguishable.
   d$group <- paste(d$label, d$series, sep = " | ")
+  mixed <- any(d$kind == "point") && any(d$kind != "point")
+  d$line <- !(mixed & d$kind == "point")
+  d$dot <- !mixed | d$kind == "point"
   d$flagged <- d$status %in% c("unreliable", "imputed")
   cols <- block_entity_colors(d, th)
   fam <- chart_font(th)
@@ -40,13 +40,13 @@ plot_trend <- function(b, txt, th) {
   p <- ggplot(shown, aes(x = x, y = y, color = label, group = group))
   ev <- b$data$events
   if (!is.null(ev) && nrow(ev)) {
-    # Recessions (national business-cycle dates) as light shading; they mark timing only.
-    rec <- ev[grepl("^nber_recession", ev$event_id), , drop = FALSE]
-    if (nrow(rec)) {
-      p <- p + geom_rect(data = rec, aes(xmin = year, xmax = end_year + 1, ymin = -Inf, ymax = Inf),
+    # National periods such as recessions are light shading; they mark timing only.
+    shade <- ev[ev$draw == "shade", , drop = FALSE]
+    if (nrow(shade)) {
+      p <- p + geom_rect(data = shade, aes(xmin = year, xmax = end_year + 1, ymin = -Inf, ymax = Inf),
                          inherit.aes = FALSE, fill = th$color_shading, alpha = 0.8)
     }
-    breaks <- ev[ev$evidence_type %in% c("definitional_change", "boundary_change"), , drop = FALSE]
+    breaks <- ev[ev$draw == "break", , drop = FALSE]
     if (nrow(breaks)) {
       p <- p + geom_vline(data = breaks, aes(xintercept = year), inherit.aes = FALSE,
                           linetype = "22", color = th$color_muted, linewidth = 0.35) +
@@ -62,17 +62,16 @@ plot_trend <- function(b, txt, th) {
     p <- p + geom_segment(data = spans, aes(x = period_start, xend = period_end + 0.98, y = y, yend = y),
                           linewidth = 1.6, alpha = 0.35, lineend = "butt")
   }
-  multi_series <- length(unique(shown$series)) > 1
-  p <- p + geom_line(data = shown[!focus, , drop = FALSE], aes(linetype = series), linewidth = 0.45, alpha = 0.85) +
-    geom_line(data = shown[focus, , drop = FALSE], aes(linetype = series), linewidth = 1.05)
+  p <- p + geom_line(data = shown[!focus & shown$line, , drop = FALSE], linewidth = 0.45, alpha = 0.85) +
+    geom_line(data = shown[focus & shown$line, , drop = FALSE], linewidth = 1.05)
   has_moe <- !indexed & !is.na(shown$moe) & shown$moe > 0 & focus
   if (any(has_moe)) {
     p <- p + geom_errorbar(data = shown[has_moe, , drop = FALSE], aes(ymin = y - moe, ymax = y + moe),
                            width = 0.6, linewidth = 0.4, alpha = 0.9)
   }
-  small <- nrow(shown) > 60
-  p <- p + geom_point(data = shown[!focus, , drop = FALSE], aes(shape = flagged), size = if (small) 0.6 else 1.2, fill = th$color_background) +
-    geom_point(data = shown[focus, , drop = FALSE], aes(shape = flagged), size = if (small) 1.1 else 2, fill = th$color_background)
+  small <- nrow(shown) > 60 && !mixed
+  p <- p + geom_point(data = shown[!focus & shown$dot, , drop = FALSE], aes(shape = flagged), size = if (small) 0.6 else 1.2, fill = th$color_background) +
+    geom_point(data = shown[focus & shown$dot, , drop = FALSE], aes(shape = flagged), size = if (small) 1.1 else 2, fill = th$color_background)
   # Direct labels at each area's last point (collision-avoiding); a legend is the fallback
   # when there are too many areas to label cleanly.
   last <- shown |> group_by(label) |> filter(x == max(x)) |> slice(1) |> ungroup() |> as.data.frame()
@@ -86,27 +85,22 @@ plot_trend <- function(b, txt, th) {
   xr <- range(c(shown$period_start, shown$x), na.rm = TRUE)
   p <- p + scale_color_manual(values = cols, guide = if (direct) "none" else "legend", name = txt$legend_title) +
     scale_shape_manual(values = c(`FALSE` = 19, `TRUE` = 21), guide = "none") +
-    scale_linetype_discrete(name = NULL, guide = if (multi_series) guide_legend(ncol = 2, override.aes = list(color = th$color_muted)) else "none") +
     scale_x_continuous(breaks = pretty_years(xr), expand = expansion(mult = c(0.02, if (direct) 0.22 else 0.04))) +
     scale_y_continuous(labels = if (indexed) scales::label_number(accuracy = 1) else axis_labeller(units)) +
     labs(x = txt$x_label, y = txt$y_label) +
     gr_ggtheme(th)
-  if (indexed) p <- p + geom_hline(yintercept = 100, color = th$color_rule, linewidth = 0.4)
-  if (multi_series) p <- p + theme(legend.position = "bottom", legend.justification = "left")
+  if (indexed) p <- p + geom_hline(yintercept = 100, color = th$color_muted, linewidth = 0.5)
   # Counts and dollars start at zero so growth is not exaggerated; rates may use a closer range.
   if (!indexed && unit_kind(units) %in% c("count", "dollars")) p <- p + expand_limits(y = 0)
   p
 }
 
+# Year axis breaks at round intervals, inside the plotted range only.
 pretty_years <- function(r) {
   span <- diff(r)
   by <- if (span > 60) 10 else if (span > 25) 5 else if (span > 10) 2 else 1
-  seq(floor(r[1] / by) * by, ceiling(r[2] / by) * by, by = by)
-}
-
-metric_short_labels <- function(metric_id, txt) {
-  labs <- txt$labels %||% list()
-  vapply(metric_id, function(m) labs[[m]] %||% metric_doc(m)$label, "")
+  breaks <- seq(ceiling(r[1] / by) * by, floor(r[2] / by) * by, by = by)
+  if (length(breaks) < 2) round(r) else breaks
 }
 
 event_label <- function(label, txt, event_id) {
@@ -165,7 +159,7 @@ render_block_composition <- function(b, txt, th) {
     scale_fill_manual(values = cols, name = txt$legend_title) +
     scale_x_continuous(labels = function(x) paste0(x, "%"), expand = expansion(mult = c(0, 0.01))) +
     labs(x = txt$y_label, y = NULL) +
-    guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
+    guides(fill = guide_legend(ncol = if (max(nchar(shown_cats)) > 18) 2 else 3, byrow = TRUE)) +
     gr_ggtheme(th) + theme(panel.grid.major.y = element_blank())
 }
 

@@ -147,12 +147,6 @@ verify_sources <- function() {
       paste0("HTTP ", httr2::resp_status(resp), ", ", httr2::resp_header(resp, "content-length") %||% "?", " bytes: ", basename(url))
     }
   }
-  bls_check <- function(url, source) {
-    function() {
-      require_http_contact("BLS")
-      head_check(url, source)()
-    }
-  }
   checks <- list(
     census_acs5 = census_check("2024/acs/acs5", list(get = "NAME,B01003_001E", `for` = "us:1"), "2020-2024 ACS U.S. population", "B01003_001E"),
     census_dec = census_check("2020/dec/dhc", list(get = "NAME,P1_001N", `for` = "us:1"), "2020 Census U.S. population", "P1_001N"),
@@ -169,8 +163,8 @@ verify_sources <- function() {
     census_bps = head_check("https://www2.census.gov/econ/bps/County/co2025a.txt", "census_bps"),
     dol_ndcp = head_check("https://www.dol.gov/sites/dolgov/files/WB/NDCP2022.xlsx", "dol_ndcp"),
     census_geo = head_check("https://www2.census.gov/geo/tiger/GENZ2024/shp/cb_2024_us_county_500k.zip", "census_geo"),
-    bls_laus = bls_check("https://download.bls.gov/pub/time.series/la/la.area", "bls"),
-    bls_r_cpi_u_rs = bls_check("https://www.bls.gov/cpi/research-series/r-cpi-u-rs-allitems.xlsx", "bls"))
+    bls_laus = head_check("https://download.bls.gov/pub/time.series/la/la.area", "bls"),
+    bls_r_cpi_u_rs = head_check("https://www.bls.gov/cpi/research-series/r-cpi-u-rs-allitems.xlsx", "bls"))
   rows <- lapply(names(checks), function(id) {
     ev <- tryCatch(list(result = "ok", evidence = checks[[id]]()),
                    error = function(e) list(result = "failed", evidence = substr(conditionMessage(e), 1, 200)))
@@ -178,6 +172,15 @@ verify_sources <- function() {
     data.frame(date = format(Sys.time(), "%Y-%m-%d %H:%M"), source_id = id, result = ev$result,
                evidence = ev$evidence, stringsAsFactors = FALSE)
   })
+  # Every ACS variable a recipe uses exists in each release used for trends (from the variable
+  # lists the API publishes per release). Releases before a table existed show up as expected gaps.
+  acs <- verify_acs_recipes(acs_releases(resolve_settings()))
+  gaps <- acs[nzchar(acs$variables_missing), , drop = FALSE]
+  rows[[length(rows) + 1]] <- data.frame(
+    date = format(Sys.time(), "%Y-%m-%d %H:%M"), source_id = "census_acs5_recipes", result = "checked",
+    evidence = paste0(nrow(acs), " recipe x release checks; releases lacking a recipe's variables: ",
+                      if (nrow(gaps)) paste(unique(paste(gaps$metric_id, gaps$release)), collapse = ", ") else "none"),
+    stringsAsFactors = FALSE)
   log <- do.call(rbind, rows)
   path <- root_path("catalog", "verification_log.csv")
   if (file.exists(path)) log <- rbind(read_table(path), log)

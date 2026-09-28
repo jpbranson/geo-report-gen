@@ -8,11 +8,15 @@ Read this file, `PLAN.md` (checklist) and `docs/REQUIREMENTS.md` (the full brief
 1. Environment: R 4.6.1 at `C:\Program Files\R\R-4.6.1\bin\Rscript.exe`; project library via renv
    (`renv/`, activated by `.Rprofile` when R starts in the project root). Quarto 1.9.38 at
    `C:\Program Files\RStudio\resources\app\bin\quarto\bin\quarto.exe` (also Positron's 1.10.18).
-2. Census API key: `census_key.txt` (git-ignored, `CENSUS_API_KEY=...`). Never print or log it.
+2. Local settings: `.env` (git-ignored; read by R/load.R): `CENSUS_API_KEY=...` (never print or log
+   it) and `GR_HTTP_CONTACT=<user's email>` (approved by the user 2026-09-28; sent only to BLS).
 3. Run things from the project root with R 4.6.1 explicitly:
    `& "C:\Program Files\R\R-4.6.1\bin\Rscript.exe" gr.R <command>` (PowerShell). The `Rscript` on PATH
    is a rig shim for R 4.3.2, which has no project library and fails (`no package called 'dplyr'`).
-4. Check the latest entry below for "Next steps".
+4. Check the latest entry below for "Next steps". PLAN.md holds the checklist with current status.
+5. Git: first commit 85db1c0 (2026-09-28). Commit at milestones; reports/, cache/, .env are ignored.
+6. Visual review: `.claude/launch.json` "reports" serves the repo on port 8765 (node script in the
+   session scratchpad; recreate if missing). Figures can be extracted from report.html (base64 PNGs).
 
 ## Standing facts (verified 2026-09-28)
 
@@ -103,3 +107,36 @@ Read this file, `PLAN.md` (checklist) and `docs/REQUIREMENTS.md` (the full brief
 - `gr.R new` is in the usage text but `new_report()` does not exist ("could not find function");
   until it is written, add reports by editing config/reports.csv. Add to next steps: implement it.
 - PATH `Rscript` = R 4.3.2 (rig default); `rig default 4.6.1` would fix it machine-wide (user's call).
+
+### 2026-09-28 ~16:00- (session 3)
+User direction: use their email as BLS contact; first commit; continue; keep the project as lean and
+human-legible as possible (complexity/verbosity is not better). Keep PLAN.md and this log current.
+- Done: `.env` replaces census_key.txt (same key) + GR_HTTP_CONTACT; the contact is sent only in BLS
+  requests (fetch.R user_agent_string(source)); BLS downloads verified (R-CPI-U-RS 1978-2025, CPI-U
+  1913-2025, LAUS). renv.lock written. .gitignore: reports/, .env, .claude/. Stray acs_5yr_dir.html
+  moved to the scratchpad. First commit 85db1c0 (69 files).
+- Done: batch 16:09: 11/12 rendered (austin-78704 is the intended rejection); 8 requests; 95 s.
+  Fixed batch log `rendered` count; verify_sources no longer calls the removed require_http_contact.
+- Checked: the Census API has no 1990 decennial data (404), so place histories start in 2000.
+- Review of rendered gary-in / austin-tx / tx-cities / kc-core; all found problems fixed (16:00-16:45):
+  placeholder filter filled text twice (one pass now); shares/ratios without a published estimate
+  rebuilt from components (LAUS U.S., BEA regions); unavailable values carry a reason; relative-index
+  blocks use nominal dollars (pcpi 1969+); multi-metric blocks describe the first metric with data;
+  captions name the whole plotted span; index=first uses one base period ({index_base}); indexes are
+  compared by growth, not level; relation sentence only against a containing benchmark; compare mode
+  summaries per area; "about the same" for untested equal values; survey estimates without a MOE
+  (union medians) are described as untested; events link to charts by catalog subtopic
+  (history_events `subtopics`; event_concept() removed); charts: in-range year breaks, no series
+  legend (census counts as points next to estimates), wrapped legends, no flat 100 line series;
+  benchmark notes use names; stale-fact warnings wired; `gr.R new` implemented (new_report +
+  subject_manifest); build.json lists the raw files a build read (run$used); dead code and unused
+  settings removed; harvest/import share current_field_text().
+- MAJOR BUG FIXED: interpolated medians used bins in API order (unsorted) -> union medians wildly high
+  (KC core income $175,983). acs_bins() now sorts; median_from_bins() stops on unsorted bins.
+  Check: Johnson County KS interpolated $109,643 vs published $109,208.
+- Catalog page: catalog/catalog.qmd (scope and gaps folded in from the research notes) ->
+  `gr.R catalog --html` -> catalog/catalog.html (git-ignored). catalog/_incoming removed (in history).
+- Tests: tests/testthat (stats, metrics, geography, content, cache, authoring round trip) with real
+  API fixtures in tests/fixtures/cache (240 KB); `Rscript gr.R test`: 110 passed, 0 failed.
+- Next: commit; gr.R verify; demos 6-11 (edit round trip on a real report, theme change, cold/warm/
+  resume benchmark + invalidation, PDF check); README; lean review; renv snapshot (testthat).

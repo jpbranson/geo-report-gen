@@ -43,6 +43,7 @@ write_cache_file <- function(value, path) {
 # lock (so parallel reports never compute or write the same entry twice), and return it.
 # `source` marks raw data that `--refresh <source>` should re-download.
 cached <- function(path, compute, source = NA_character_) {
+  if (!is.na(source)) run$used <- c(run$used, path)
   if (file.exists(path) && !wants_refresh(path, source)) {
     run$cache["hit"] <- run$cache["hit"] + 1L
     return(read_cache_file(path))
@@ -143,6 +144,7 @@ check_status <- function(resp, what) {
 
 # Download a file into the cache once (atomic rename; locked against parallel downloads).
 cached_download <- function(url, path, source) {
+  run$used <- c(run$used, path)
   if (file.exists(path) && !wants_refresh(path, source)) {
     run$cache["hit"] <- run$cache["hit"] + 1L
     return(path)

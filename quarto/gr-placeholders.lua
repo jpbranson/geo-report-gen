@@ -3,6 +3,8 @@
 -- Only names are looked up; nothing is evaluated. Scope: text inside a block (a div with
 -- gr-block, a heading with id blk-<id>, or a figure/table fig-<id>/tbl-<id>) sees that
 -- block's values first, then report-wide values; all other text sees report values.
+-- Every piece of text is filled exactly once, so braces inside a value (e.g. catalog text)
+-- are never treated as placeholders.
 
 local values = {}
 
@@ -57,6 +59,11 @@ local function scoped(scope)
   }
 end
 
+local function fill_meta(value)
+  if value == nil then return nil end
+  return pandoc.walk_inline(pandoc.Span(value), scoped("report")).content
+end
+
 local function block_scope(el)
   local b = el.attributes and el.attributes["gr-block"]
   if b then return b end
@@ -64,38 +71,34 @@ local function block_scope(el)
   return id:match("^blk%-(.+)$") or id:match("^fig%-(.+)$") or id:match("^tbl%-(.+)$")
 end
 
+local function fill_block(el)
+  local scope = block_scope(el)
+  if scope then return pandoc.walk_block(el, scoped(scope)), false end
+end
+
 return {
-  { Meta = function(meta) load_values(meta); return meta end },
   {
-    traverse = "topdown",
-    Div = function(el)
-      local scope = block_scope(el)
-      if scope then return pandoc.walk_block(el, scoped(scope)), false end
-    end,
-    Figure = function(el)
-      local scope = block_scope(el)
-      if scope then return pandoc.walk_block(el, scoped(scope)), false end
-    end,
-    Header = function(el)
-      local scope = block_scope(el)
-      if scope then return pandoc.walk_block(el, scoped(scope)), false end
-    end,
-    -- knitr figures arrive as an image carrying the fig-<id> label, caption and fig-alt.
-    Image = function(el)
-      local scope = block_scope(el)
-      if scope then
-        for k, v in pairs(el.attributes) do el.attributes[k] = fill(v, scope) end
-        el.caption = pandoc.walk_inline(pandoc.Span(el.caption), scoped(scope)).content
-        return el, false
-      end
+    Meta = function(meta)
+      load_values(meta)
+      meta.title = fill_meta(meta.title)
+      meta.subtitle = fill_meta(meta.subtitle)
+      return meta
     end
   },
-  -- Everything else, including the title and subtitle in the metadata, uses report values.
+  -- One top-down pass: a scoped block is filled with its own values and not descended
+  -- into again; any other text is filled with report values.
   {
-    Str = function(el) return pandoc.Str(fill(el.text, "report")) end,
+    traverse = "topdown",
+    Div = fill_block,
+    Figure = fill_block,
+    Header = fill_block,
+    -- knitr figures arrive as an image carrying the fig-<id> label, caption and fig-alt.
     Image = function(el)
-      for k, v in pairs(el.attributes) do el.attributes[k] = fill(v, "report") end
-      return el
-    end
+      local scope = block_scope(el) or "report"
+      for k, v in pairs(el.attributes) do el.attributes[k] = fill(v, scope) end
+      el.caption = pandoc.walk_inline(pandoc.Span(el.caption), scoped(scope)).content
+      return el, false
+    end,
+    Str = function(el) return pandoc.Str(fill(el.text, "report")), false end
   }
 }

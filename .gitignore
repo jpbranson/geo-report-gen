@@ -3,8 +3,8 @@
 .Renviron
 
 # Shared data cache and generated reports (rebuild with: Rscript gr.R batch)
-cache/
-reports/
+/cache/
+/reports/
 
 # R / renv
 .Rhistory
@@ -17,3 +17,4 @@ renv/staging/
 # Tools
 .quarto/
 .claude/
+catalog/catalog.html

@@ -26,8 +26,6 @@ moe_prop <- function(x, y, moe_x, moe_y) {
 # [H8 eq.7] Ratio R = X/Y where X is not a subset of Y (means, per capita values, change ratios).
 moe_ratio <- function(x, y, moe_x, moe_y) sqrt(moe_x^2 + (x / y)^2 * moe_y^2) / y
 
-# [H8 eq.9] Product of two estimates.
-moe_product <- function(a, b, moe_a, moe_b) sqrt(a^2 * moe_b^2 + b^2 * moe_a^2)
 
 # Coefficient of variation in percent (SE / estimate * 100).
 cv_percent <- function(est, moe) ifelse(is.na(est) | est == 0, NA_real_, 100 * moe_to_se(moe) / abs(est))
@@ -73,6 +71,7 @@ period_overlap <- function(start1, end1, start2, end2) {
 # "open_interval" when the median falls in an open-ended top or bottom bin (value is then
 # the bin bound), "invalid_denominator" when the distribution is empty.
 median_from_bins <- function(counts, lower, upper) {
+  if (is.unsorted(lower)) stop("median_from_bins(): bins must be ordered from low to high.")
   ok <- !is.na(counts)
   if (!all(ok)) return(list(value = NA_real_, status = "missing", bound = NA_character_))
   total <- sum(counts)

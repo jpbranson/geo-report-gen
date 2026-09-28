@@ -1,0 +1,146 @@
+---
+title: "Subject and data catalog"
+subtitle: "What geo-report-gen can report, from which sources, and how far each claim is verified"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    page-layout: full
+    embed-resources: true
+execute:
+  echo: false
+  warning: false
+---
+
+```{r}
+#| include: false
+# Built by `Rscript gr.R catalog --html` from the tables in this folder; do not edit the HTML.
+source(file.path(Sys.getenv("GR_ROOT", unset = normalizePath("..", winslash = "/")), "R", "load.R"))
+subj <- subjects()
+st <- metric_status()
+doc <- metrics_doc()
+src <- source_status()
+geo <- geo_support()
+lists <- function(x) gsub(";", ", ", x, fixed = TRUE)
+table_md <- function(df) knitr::kable(df, format = "pipe", row.names = FALSE)
+```
+
+This catalog lists `r nrow(doc)` metrics in `r length(unique(subj$subject_id))` subjects and
+`r nrow(subj)` subtopics, drawn from `r nrow(src)` public data sources. Each metric has one of
+three statuses, kept separate on purpose:
+
+- **Operational** (`r sum(st$status == "operational")` metrics): a recipe (`recipes.csv`) and a
+  data adapter exist, so the metric can be used in reports and is computed from the source.
+- **Documented** (`r sum(st$status == "documented")`): the source's documentation was read and
+  verified (date and evidence below), but the project has no adapter for it yet. These metrics
+  cannot be selected in a report.
+- **Candidate** (`r sum(st$status == "candidate")`): the documentation is not yet verified.
+
+Whether a sample of the data was actually retrieved is tracked separately for each source
+(`sample_status`), and `gr.R verify` appends live checks of the operational sources to
+`verification_log.csv`. A source existing does not mean it covers every place or year: the
+geography levels and years listed are those the source publishes, and each report lists the
+values it could not show for its own areas and periods.
+
+## Scope and known gaps
+
+The inventory covers the subjects in the project brief, from federal statistical programs
+(Census Bureau, BLS, BEA, HHS, HUD, USDA, EPA, FCC, NCES, FBI and others), a few state
+administrative sources for child care, and national nonprofit compilations. It is a declared
+inventory, not a claim to cover every public dataset. Documentation was checked on 2026-09-28.
+
+Known gaps and cautions:
+
+- **Child care.** No open national file of licensed facilities and capacity was found; capacity
+  comes from state licensing systems (Texas is implemented; Indiana, New York, California,
+  Colorado, Washington and Missouri are documented). There are no county data on child care
+  enrollment or use. Capacity is a regulatory maximum that includes school-age slots, not
+  enrollment, and state rules differ, so ratios should not be compared across states. NDCP
+  prices have no data for Indiana or New Mexico and gaps in other states. Preschool enrollment
+  is not a measure of child care availability.
+- **Access limits.** Some sources need registration or agreements (e.g. FBI and ICPSR crime
+  files, election returns behind a guestbook, the FCC broadband API); several agency sites
+  reject scripted requests. These are cataloged with their access requirements.
+- **Discontinued or changed products.** EPA EJScreen was withdrawn in 2025 (archived copies
+  only); FEMA's National Risk Index changed its inputs; NFIRS ends in 2026; FCC broadband
+  data broke between Form 477 and the Broadband Data Collection; USDA ended its household
+  food security reports in 2025.
+- **Breaks to respect in trends.** Connecticut's planning regions replaced counties in 2022
+  (sources switch in different years); race and ethnicity coding changed in 2020; LAUS
+  substate series break between 2009 and 2010; County Business Patterns moved from SIC to
+  NAICS in 1998; October 2025 is missing from LAUS, CPS and CPI because of the federal shutdown.
+- **Not yet cataloged or verified.** CPS ASEC and the Supplemental Poverty Measure, SNAP
+  administrative data, WIC and school meals, Medicaid enrollment, HRSA UDS patient counts, a
+  crosswalk from homelessness Continuums of Care to counties, and 1990s county intercensal
+  estimates. The Census Data API has no 1990 census tables, so city population histories
+  start in 2000 unless a report adds cited historical figures as context.
+
+## Subjects
+
+```{r}
+#| results: asis
+x <- merge(st, doc[, c("metric_id", "subtopic_id")], by = "metric_id")
+counts <- aggregate(cbind(metrics = 1, operational = x$status == "operational"),
+                    by = list(subject_id = x$subject_id, subtopic_id = x$subtopic_id), FUN = sum)
+by_sub <- merge(subj, counts, by = c("subject_id", "subtopic_id"), all.x = TRUE)
+by_sub$metrics[is.na(by_sub$metrics)] <- 0
+by_sub$operational[is.na(by_sub$operational)] <- 0
+by_sub <- by_sub[order(by_sub$subject, by_sub$subtopic), ]
+table_md(data.frame(Subject = by_sub$subject, Subtopic = by_sub$subtopic, Metrics = by_sub$metrics,
+                    Operational = by_sub$operational, Description = by_sub$description))
+```
+
+## Metrics
+
+```{r}
+#| results: asis
+m <- merge(doc, st[, c("metric_id", "status")], by = "metric_id")
+m <- merge(m, unique(subj[, c("subject_id", "subject", "subtopic_id", "subtopic")]), by = c("subject_id", "subtopic_id"))
+m$source <- src$name[match(m$source_id, src$source_id)]
+for (s in sort(unique(m$subject))) {
+  x <- m[m$subject == s, , drop = FALSE]
+  x <- x[order(x$subtopic, x$status != "operational", x$label), ]
+  cat("\n### ", s, "\n\n", sep = "")
+  cat(table_md(data.frame(Subtopic = x$subtopic, Metric = x$label, Status = x$status, Source = x$source,
+                          Geographies = lists(x$geo_levels), Periods = x$periods,
+                          `Comparable span` = x$comparable_span, Breaks = x$breaks,
+                          Limitations = x$limitations, check.names = FALSE)), sep = "\n")
+  cat("\n")
+}
+```
+
+## Sources
+
+```{r}
+#| results: asis
+src <- src[order(src$agency, src$name), ]
+table_md(data.frame(Source = paste0("[", src$name, "](", src$doc_url, ")"), Agency = src$agency,
+                    Access = src$access_requirements,
+                    Documentation = paste(src$doc_status, src$doc_checked),
+                    `Sample retrieval` = paste(src$sample_status, src$sample_checked),
+                    Adapter = src$adapter, `Time coverage` = src$time_coverage, check.names = FALSE))
+```
+
+## Geography support
+
+```{r}
+#| results: asis
+table_md(data.frame(Type = geo$label, ID = geo$geoid_format, `Study area` = geo$study_area,
+                    `Union member` = geo$union_member, Benchmark = geo$benchmark, Status = geo$status,
+                    Relationships = geo$relationships, Notes = geo$notes, check.names = FALSE))
+```
+
+## Verification log
+
+```{r}
+#| results: asis
+log_path <- root_path("catalog", "verification_log.csv")
+if (file.exists(log_path)) {
+  log <- read_table(log_path)
+  log <- log[order(log$date, decreasing = TRUE), ]
+  log <- log[!duplicated(log$source_id), ]
+  table_md(data.frame(Source = log$source_id, Checked = log$date, Result = log$result, Evidence = log$evidence))
+} else {
+  cat("No live checks recorded yet. Run `Rscript gr.R verify`.")
+}
+```

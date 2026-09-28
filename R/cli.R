@@ -21,6 +21,7 @@ Geography and catalog
   find \"<name>\"               look up geography IDs by name (ambiguous names list all matches)
   catalog [--check] [--html]  validate the catalog / write catalog/catalog.html
   verify                      live checks of operational sources (writes catalog/verification_log.csv)
+  test                        run the automated tests (offline, with fixtures in tests/fixtures)
 
 Options
   --offline                   use the cache only; never touch the network
@@ -80,6 +81,7 @@ gr_main <- function(args) {
     },
     catalog = catalog_command(f),
     verify = verify_sources(),
+    test = testthat::test_dir(root_path("tests", "testthat")),
     help = cat(gr_usage),
     { cat("Unknown command '", cmd, "'\n", sep = ""); cat(gr_usage); quit(status = 2) })
   invisible(TRUE)

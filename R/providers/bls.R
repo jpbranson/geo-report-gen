@@ -27,7 +27,7 @@ price_index_table <- function(index = "r_cpi_u_rs") {
     }
     if (index == "r_cpi_u_rs") {
       f <- bls_download("https://www.bls.gov/cpi/research-series/r-cpi-u-rs-allitems.xlsx", "r-cpi-u-rs-allitems.xlsx")
-      x <- readxl::read_excel(f, col_names = FALSE, col_types = "text")
+      x <- readxl::read_excel(f, col_names = FALSE, col_types = "text", .name_repair = "minimal")
       head_row <- which(toupper(trimws(x[[1]])) == "YEAR")[1]
       if (is.na(head_row)) stop("Unexpected layout in the R-CPI-U-RS file (no YEAR header row).")
       hdr <- toupper(trimws(unlist(x[head_row, ])))

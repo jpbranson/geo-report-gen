@@ -30,9 +30,8 @@ report_context <- function(report_id) {
 
 # Cited history events that apply to the study area, its members, or its benchmarks.
 area_events <- function(area, benchmarks) {
-  path <- root_path("content", "history_events.csv")
-  if (!file.exists(path)) return(NULL)
-  ev <- read_table(path)
+  ev <- history_events()
+  if (is.null(ev)) return(NULL)
   keys <- unique(c("nation", area$members$key, area$pieces$key,
                    unlist(lapply(benchmarks, function(b) b$pieces$key))))
   keys <- unique(c(keys, sub("^nation:US$", "nation", keys)))
@@ -75,6 +74,7 @@ compose_report <- function(report_id) {
   texts <- resolve_block_texts(rows, blocks, ctx)
   values <- c(list(report = report_values(ctx)), lapply(blocks, `[[`, "values"))
   check_placeholders(texts, values)
+  for (w in stale_fact_warnings(texts, values)) warn(w)
   write_snapshot(report_id, ctx, rows, blocks, texts, values)
   write_qmd(report_id, ctx, rows, blocks, texts)
   invisible(list(ctx = ctx, blocks = blocks, texts = texts))
@@ -106,22 +106,22 @@ sources_markdown <- function(srcs, ctx) {
     detail <- paste(unique(srcs$detail[srcs$source_id == id]), collapse = "; ")
     row <- cat_src[cat_src$source_id == id, , drop = FALSE]
     if (!nrow(row)) return(paste0("- ", id, ": ", detail))
-    retrieved <- source_retrieval_note(id)
-    paste0("- **", row$name, "** (", row$agency, "). ", detail, ". ",
-           "Documentation: <", row$doc_url, ">. ", retrieved)
+    paste0("- **", row$name, "** (", row$agency, "). ", detail, ". Documentation: <", row$doc_url, ">.")
   }, "")
+  # When the data entered the local cache (downloaded or retrieved from an API).
+  times <- file.mtime(unique(run$used))
+  if (length(times)) {
+    span <- unique(format(range(times), "%B %d, %Y"))
+    lines <- c(lines, paste0("- **Retrieval**: data files and API responses were retrieved ",
+                             if (length(span) == 1) paste("on", span) else paste("between", span[1], "and", span[2]),
+                             " and reused from the local cache; build.json lists each file."))
+  }
   geo_note <- paste0("- **Geography**: ", ctx$area$label, " (", paste(ctx$area$members$key, collapse = ", "),
                      "; ", ctx$area$vintage, " boundaries). ",
                      if (length(ctx$area$notes)) paste(ctx$area$notes, collapse = " ") else "",
                      if (length(ctx$benchmark_notes)) paste0(" ", paste(ctx$benchmark_notes, collapse = " ")) else "")
   bm_lines <- vapply(ctx$benchmarks, function(b) paste0("- **Benchmark** ", b$label, ": ", b$relation, "."), "")
   paste(c(geo_note, bm_lines, lines), collapse = "\n")
-}
-
-source_retrieval_note <- function(source_id) {
-  reqs <- run$requests
-  n <- sum(vapply(reqs, function(r) identical(r$source, source_id) || (source_id %in% c("census_acs5", "census_dec") && identical(r$source, "census_api")), TRUE))
-  paste0("Retrieved or reused from the local cache on ", format(Sys.Date(), "%Y-%m-%d"), ".")
 }
 
 availability_markdown <- function(unav, blocks, ctx) {

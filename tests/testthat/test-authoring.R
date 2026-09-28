@@ -1,0 +1,92 @@
+# Inline and bulk editing, run against a throwaway copy of the project's configuration and
+# content with a small hand-made report (no data needed). Both workflows must update the same
+# canonical records (content/text.csv) and refuse to overwrite conflicting edits.
+
+temp_project <- function() {
+  tmp <- tempfile("gr-authoring-")
+  dir.create(tmp)
+  for (d in c("config", "content", "catalog", "profiles")) file.copy(root_path(d), tmp, recursive = TRUE)
+  tmp
+}
+
+# A generated report as compose would leave it: report.qmd, its base texts and a snapshot.
+fake_report <- function(id) {
+  dir.create(snapshot_dir(id), recursive = TRUE)
+  rows <- data.frame(id = c("overview", "key-facts"), type = c("section", "block"), ref = c("", "key-facts"),
+                     kind = c("section", "facts"), stringsAsFactors = FALSE)
+  snap <- list(rows = rows, blocks = list(`key-facts` = list(kind = "facts")),
+               values = list(report = list(area = "Gary city, Indiana", area_population = "68,113"),
+                             `key-facts` = list(latest_period = "2020–2024")))
+  records <- load_text_records()
+  fields <- c("report.title", "overview.title", "key-facts.title", "key-facts.prose", "key-facts.caption")
+  snap$texts <- stats::setNames(lapply(fields, function(f) current_field_text(records, f, id, "general", snap, NULL)), fields)
+  saveRDS(snap, file.path(snapshot_dir(id), "report.rds"))
+  write_json_file(snap$texts, file.path(snapshot_dir(id), "qmd_base.json"))
+  tx <- snap$texts
+  write_text_file(c("---", paste0("title: ", yaml_str(tx[["report.title"]])), "---", "",
+                    paste0("# ", tx[["overview.title"]], " {#sec-overview}"), "",
+                    paste0("## ", tx[["key-facts.title"]], " {#blk-key-facts}"), "",
+                    text_div("key-facts.prose", tx[["key-facts.prose"]], "key-facts"),
+                    "```{r}", "#| label: tbl-key-facts", chunk_option("tbl-cap", tx[["key-facts.caption"]]),
+                    "gr_block(gr, \"key-facts\")", "```"),
+                  file.path(report_dir(id), "report.qmd"))
+}
+
+edit_qmd <- function(id, pattern, replacement) {
+  path <- file.path(report_dir(id), "report.qmd")
+  write_text_file(sub(pattern, replacement, readLines(path, encoding = "UTF-8")), path)
+}
+
+report_record <- function(field) {
+  r <- load_text_records()
+  r$text[r$field_id == field & r$scope == "report:gary-in"]
+}
+
+test_that("inline edits to a heading, prose and a caption become report-scope records", {
+  withr::local_envvar(GR_ROOT = temp_project())
+  fake_report("gary-in")
+  edit_qmd("gary-in", "^## Key facts", "## Headline numbers")
+  edit_qmd("gary-in", "^The table compares.*", "Gary has 68,113 residents; see {benchmark_list}.")
+  edit_qmd("gary-in", "tbl-cap: .*", "tbl-cap: \"Selected indicators, edited inline\"")
+  h <- harvest_report("gary-in")
+  expect_setequal(names(h$applied), c("key-facts.title", "key-facts.prose", "key-facts.caption"))
+  expect_equal(report_record("key-facts.title"), "Headline numbers")
+  expect_equal(report_record("key-facts.caption"), "Selected indicators, edited inline")
+  # The next build resolves the edited text (so it survives regeneration)...
+  snap <- readRDS(file.path(snapshot_dir("gary-in"), "report.rds"))
+  expect_equal(current_field_text(load_text_records(), "key-facts.title", "gary-in", "general", snap, NULL),
+               "Headline numbers")
+  # ...and the typed-in number is remembered, so a later build warns when the data move.
+  r <- load_text_records()
+  facts <- r$fixed_facts[r$field_id == "key-facts.prose" & r$scope == "report:gary-in"]
+  w <- stale_fact_warnings(list(`key-facts.prose` = list(fixed_facts = facts)),
+                           list(report = list(area_population = "67,450")))
+  expect_match(w, "68,113")
+})
+
+test_that("an inline edit that conflicts with a newer canonical edit is not saved", {
+  withr::local_envvar(GR_ROOT = temp_project())
+  fake_report("gary-in")
+  save_text_records(upsert_record(load_text_records(), "key-facts.title", "report:gary-in", "Changed in the CSV"))
+  edit_qmd("gary-in", "^## Key facts", "## Changed inline")
+  expect_error(harvest_report("gary-in"), "also changed")
+  expect_true(file.exists(file.path(report_dir("gary-in"), "conflicts.csv")))
+  expect_equal(report_record("key-facts.title"), "Changed in the CSV")
+})
+
+test_that("bulk export and import update the same records and reject stale exports", {
+  withr::local_envvar(GR_ROOT = temp_project())
+  fake_report("gary-in")
+  path <- tempfile(fileext = ".csv")
+  x <- text_export("gary-in", path)
+  edited <- "Selected indicators, with \"quotes\", a comma\nand a second line"
+  x$text[x$field_id == "key-facts.caption"] <- edited
+  write_table(x, path)
+  text_import(path)
+  expect_equal(report_record("key-facts.caption"), edited)
+  # The same export edited again is stale: the canonical text changed since it was written.
+  x$text[x$field_id == "key-facts.caption"] <- "Another edit"
+  write_table(x, path)
+  expect_error(text_import(path), "changed in content since export")
+  expect_equal(report_record("key-facts.caption"), edited)
+})

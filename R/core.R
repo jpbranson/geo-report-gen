@@ -44,6 +44,7 @@ run_reset <- function(offline = FALSE, refresh = character()) {
   run$refresh <- refresh           # source ids the user asked to re-download
   run$refreshed <- character()     # cache files already re-downloaded in this run
   run$requests <- list()           # one entry per HTTP request (never includes secrets)
+  run$used <- character()          # raw cache files (downloads, API responses) this run read
   run$cache <- c(hit = 0L, miss = 0L)
   run$warnings <- character()
   run$timings <- list()
@@ -134,7 +135,7 @@ write_text_file <- function(text, path) {
   dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
   tmp <- paste0(path, ".tmp-", Sys.getpid())
   con <- file(tmp, open = "wb")
-  writeBin(charToRaw(enc2utf8(paste(text, collapse = "\n"))), con)
+  writeBin(charToRaw(enc2utf8(paste0(paste(text, collapse = "\n"), "\n"))), con)
   close(con)
   replace_file(tmp, path)
 }
