@@ -1,0 +1,3 @@
+# LF line endings everywhere: text edits are detected by hashing file content, so a checkout
+# must not change line endings.
+* text=auto eol=lf

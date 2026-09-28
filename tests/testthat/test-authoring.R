@@ -74,6 +74,17 @@ test_that("an inline edit that conflicts with a newer canonical edit is not save
   expect_equal(report_record("key-facts.title"), "Changed in the CSV")
 })
 
+test_that("gr.R new adds a report whose manifest comes from chosen subjects and metrics", {
+  withr::local_envvar(GR_ROOT = temp_project())
+  new_report("travis-housing", list(geo = "county:48453", subjects = "housing", metrics = "median_age_acs"))
+  expect_true("travis-housing" %in% report_table()$report_id)
+  m <- load_manifest(root_path("config", "manifests", "travis-housing.csv"))
+  expect_true(all(c("housing", "tenure-trend", "selected-measures", "median-age-acs", "sources") %in% m$id))
+  expect_true(any(load_text_records()$field_id == "selected-measures.title"))
+  expect_error(new_report("travis-housing", list(geo = "county:48453")), "already exists")
+  expect_error(new_report("bad-union", list(geo = "zcta:78704 + place:4805000", mode = "union")), "overlap")
+})
+
 test_that("bulk export and import update the same records and reject stale exports", {
   withr::local_envvar(GR_ROOT = temp_project())
   fake_report("gary-in")

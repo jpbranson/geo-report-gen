@@ -58,10 +58,11 @@ cached <- function(path, compute, source = NA_character_) {
     return(read_cache_file(path))
   }
   run$cache["miss"] <- run$cache["miss"] + 1L
-  value <- compute()
-  write_cache_file(value, path)
+  write_cache_file(compute(), path)
   if (!is.na(source)) run$refreshed <- c(run$refreshed, path)
-  value
+  # Return the stored copy, so a value is identical (row names, types) whether it was just
+  # computed or read from the cache; otherwise hashes of it change once after a download.
+  read_cache_file(path)
 }
 
 # Derived tables built from raw downloads carry the version of the provider code that built

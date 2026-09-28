@@ -10,7 +10,7 @@ housing.title,default,Housing,2026-09-28T00:00:00,,
 children.title,default,Young children and child care,2026-09-28T00:00:00,,
 appendix.title,default,Data notes,2026-09-28T00:00:00,,
 @section.title,default,Section,2026-09-28T00:00:00,,Fallback when a section id has no title record
-intro.body,default,This profile describes {area} with public data from federal statistical agencies. It compares the area with {benchmark_list} where a comparison is meaningful and shows how conditions changed over time where comparable data exist. Survey values are 5-year period estimates with 90 percent margins of error; a value is called higher or lower than another only when the difference is statistically significant.,2026-09-28T00:00:00,,
+intro.body,default,@prose/intro.md,2026-09-28T00:00:00,,Long prose lives in content/prose/intro.md
 intro.body,profile:early-childhood,"This early childhood profile brings together data on young children, their families and child care in {area}. It separates different kinds of evidence: how many children may need care (estimated from parents' work), what care costs, and how much licensed care exists. These are different measures and should not be read as one another.",2026-09-28T00:00:00,,
 intro.body,profile:economic-development,"This economic profile summarizes the economy of {area}: jobs and labor force, income, and housing, compared with {benchmark_list} and over time. Dollar values are adjusted for inflation where history is shown.",2026-09-28T00:00:00,,
 locator.title,default,Location,2026-09-28T00:00:00,,

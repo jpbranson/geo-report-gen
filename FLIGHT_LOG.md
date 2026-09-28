@@ -138,5 +138,20 @@ human-legible as possible (complexity/verbosity is not better). Keep PLAN.md and
   `gr.R catalog --html` -> catalog/catalog.html (git-ignored). catalog/_incoming removed (in history).
 - Tests: tests/testthat (stats, metrics, geography, content, cache, authoring round trip) with real
   API fixtures in tests/fixtures/cache (240 KB); `Rscript gr.R test`: 110 passed, 0 failed.
-- Next: commit; gr.R verify; demos 6-11 (edit round trip on a real report, theme change, cold/warm/
-  resume benchmark + invalidation, PDF check); README; lean review; renv snapshot (testthat).
+- Committed 3193005. Then (16:45-17:00): .gitattributes (LF); renv snapshot.type "all" (lockfile now
+  has ragg, rmarkdown, testthat; renv status clean); `gr.R verify` all 13 sources ok (evidence in
+  catalog/verification_log.csv); batch records each render as it finishes (resumable);
+  report:ct-capitol uses the civic theme (theme demo); README.md written; content/prose/intro.md
+  (long prose example); demos/benchmark.R and demos/round_trip.R written; test for `gr.R new`.
+- Running (16:49): demos/benchmark.R in a temp copy with an empty cache (Rtmp*/gr-benchmark);
+  cold gary-in compose 435 s, 344 requests. Results go to docs/benchmark.csv.
+- Benchmark done (results in docs/benchmark.csv and README): cold 690 s / 536 requests; warm 86 s,
+  0 requests; resume, theme, geography and data-refresh invalidation behaved as intended. Found:
+  the first warm run re-rendered everything (fresh values differed in row names from cached
+  copies). Fixed: cached() returns the stored copy; verified (rebuild after a fresh computation
+  is "up to date", 0 misses).
+- 17:12: tests 115 pass; full batch 78 s, 0 requests, 11/12 (the rejection is intended).
+- WRAP-UP at the user's request (17:15). Next steps when resuming: run demos/round_trip.R (written,
+  never run); visual review of lake-in maps, kc-core/tx-cities/ct-capitol (civic theme) and the
+  custom module chart; restructure R/blocks.R with a before/after diff of every report's
+  _snapshot/values.json and report.qmd; PDF (typst) check; final lean review; commit.

@@ -144,7 +144,7 @@ verify_sources <- function() {
     function() {
       resp <- http_perform(httr2::req_method(http_request(url, source), "HEAD"))
       check_status(resp, source)
-      paste0("HTTP ", httr2::resp_status(resp), ", ", httr2::resp_header(resp, "content-length") %||% "?", " bytes: ", basename(url))
+      paste0("reachable (HTTP ", httr2::resp_status(resp), "): ", basename(url))
     }
   }
   checks <- list(

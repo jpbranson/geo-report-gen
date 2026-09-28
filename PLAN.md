@@ -34,7 +34,7 @@ Key decisions
 
 ## Checklist
 
-Status as of 2026-09-28 16:45 (session 3; details in FLIGHT_LOG.md). `[x]` done and exercised by the
+Status as of 2026-09-28 17:15 (session 3; details in FLIGHT_LOG.md). `[x]` done and exercised by the
 sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
 
 - [x] Environment: renv library + `renv.lock`, Quarto discovery, `.env` for key/contact (never logged)
@@ -46,17 +46,18 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
       incl. overlap + part-whole dependence, status codes, constant dollars (R-CPI-U-RS)
 - [x] Providers: ACS 5-yr (2009-2024), decennial 2000/2010/2020 (1990 is not in the API), PEP, 1900-1990
       county counts, LAUS, BEA CAINC1, CPI, building permits, FHFA HPI, NDCP, CBP 624410, Texas HHSC
-- [~] Catalog: tables (17 subjects / 82 subtopics, 120 sources, 398 metrics, 48 operational) and the
-      browsable page (`gr.R catalog --html`) with scope and gaps. To do: run `gr.R verify`
+- [x] Catalog: tables (17 subjects / 82 subtopics, 120 sources, 398 metrics, 48 operational), the
+      browsable page (`gr.R catalog --html`) with scope and gaps, live `gr.R verify` (13 of 13 ok)
 - [x] Content: manifests, block library, 3 profiles, scoped text, templates, cited history events,
       stale-fact warnings, `gr.R new` (subject/metric selection)
 - [~] Authoring: inline harvest, bulk CSV export/import and conflict detection, covered by tests; to do:
       demonstrate on a real report through regeneration
 - [x] Rendering: theme, charts, maps, tables; reviewed and fixed (see FLIGHT_LOG.md)
 - [x] Custom module example (modules/childcare_gap.R, inserted via profiles/early-childhood.csv)
-- [~] Batch: two phases (compose, parallel render), isolated failures, logs, build manifests. To do:
-      cold/warm/resume benchmark and invalidation demo
-- [~] Demos: acceptance 1-5 configured and rendering (config/reports.csv); 6-11 to do; PDF (Typst) unchecked
-- [~] Tests: 110 expectations pass offline with fixtures (`gr.R test`). To do: live verification run;
-      benchmarks cold/warm/resume
-- [ ] Docs: README (setup, commands, authoring guide, maintainer walkthrough), limitations; lean review
+- [x] Batch: two phases (compose, parallel render), isolated failures, per-report progress (resumable),
+      logs, build manifests; cold/warm/resumed benchmark and invalidation checks (README, docs/)
+- [~] Demos: 1-5 and 7-11 shown by the sample reports, benchmark and README; 6 is covered by tests,
+      and demos/round_trip.R (on a real report) is written but not yet run; PDF (Typst) unchecked
+- [x] Tests: 115 expectations pass offline with fixtures (`gr.R test`)
+- [~] Docs: README (setup, commands, configuration, authoring, maintainer walkthrough, results,
+      limitations) done. Lean review: dead code removed; R/blocks.R restructure still to do

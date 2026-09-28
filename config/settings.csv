@@ -16,4 +16,5 @@ default,theme,default,Theme from config/themes.csv (cosmetic only)
 default,detail,standard,"Explanatory depth: brief hides the method notes under figures; standard shows them (a profile can add definitions through its own text records)"
 profile:early-childhood,history_start,2000,Focus history on the period with child care data
 profile:economic-development,detail,brief,Compact economic profile
+report:ct-capitol,theme,civic,Theme-change demonstration: every part of this report uses the civic theme
 profile:economic-development,history_start,1969,BEA county income series begin in 1969

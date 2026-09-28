@@ -27,20 +27,6 @@ batch_build <- function(ids = NULL, workers = 4, offline = FALSE, refresh = char
   t_render <- Sys.time()
   render_results <- render_pool(todo, workers, formats)
   render_secs <- as.numeric(difftime(Sys.time(), t_render, units = "secs"))
-  # Record render outcomes in each report's manifest.
-  for (id in todo) {
-    r <- render_results[[id]]
-    path <- file.path(report_dir(id), "build.json")
-    m <- jsonlite::fromJSON(path, simplifyVector = FALSE)
-    m$rendered <- identical(r$status, "ok")
-    m$needs_render <- !identical(r$status, "ok")
-    if (identical(r$status, "ok")) m$render_inputs_hash <- m$current_inputs_hash else {
-      m$status <- "failed"
-      m$error <- r$error
-    }
-    m$timings$render <- round(r$seconds, 2)
-    write_json_file(m, path)
-  }
   summary <- do.call(rbind, lapply(ids, function(id) {
     m <- jsonlite::fromJSON(file.path(report_dir(id), "build.json"), simplifyVector = FALSE)
     data.frame(report_id = id, status = m$status,
@@ -62,6 +48,21 @@ batch_build <- function(ids = NULL, workers = 4, offline = FALSE, refresh = char
   note(sprintf("Batch finished in %.1fs (compose %.1fs, render %.1fs); %d requests; %d failed.",
                total, compose_secs, render_secs, sum(summary$requests), sum(summary$status != "ok")))
   invisible(log)
+}
+
+# Record a render outcome in the report's build manifest as soon as it is known, so an
+# interrupted batch resumes with only the reports that still need rendering.
+record_render <- function(id, r) {
+  path <- file.path(report_dir(id), "build.json")
+  m <- jsonlite::fromJSON(path, simplifyVector = FALSE)
+  m$rendered <- identical(r$status, "ok")
+  m$needs_render <- !m$rendered
+  if (m$rendered) m$render_inputs_hash <- m$current_inputs_hash else {
+    m$status <- "failed"
+    m$error <- r$error
+  }
+  m$timings$render <- round(r$seconds, 2)
+  write_json_file(m, path)
 }
 
 # Run Quarto renders as separate processes, at most `workers` at a time.
@@ -87,6 +88,7 @@ render_pool <- function(ids, workers, formats) {
         ok <- identical(p$get_exit_status(), 0L)
         err <- if (ok) NULL else paste(utils::tail(readLines(file.path(report_dir(id), "render.log"), warn = FALSE), 8), collapse = " | ")
         results[[id]] <- list(status = if (ok) "ok" else "failed", seconds = secs, error = err)
+        record_render(id, results[[id]])
         note(id, if (ok) sprintf(": rendered (%.1fs)", secs) else paste0(": RENDER FAILED: ", err))
         running[[id]] <- NULL
       }
