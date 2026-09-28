@@ -47,7 +47,8 @@ test_that("benchmarks: containing parents, plus large intersecting counties; sma
 })
 
 test_that("the same territory under two names is shown once (DC as state and county)", {
-  dc <- function(type, geoid) list(pieces = data.frame(key = paste0(type, ":", geoid), type = type, geoid = geoid,
-                                                       name = "District of Columbia", pop = 700000))
-  expect_true(same_population_area(dc("state", "11"), dc("county", "11001")))
+  dc <- function(type, geoid) data.frame(key = paste0(type, ":", geoid), type = type, geoid = geoid,
+                                         name = "District of Columbia", pop = 700000)
+  expect_true(same_territory(dc("state", "11"), dc("county", "11001"), 2024))
+  expect_false(same_territory(dc("state", "11"), dc("county", "12001"), 2024))
 })

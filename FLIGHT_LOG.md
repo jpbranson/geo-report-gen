@@ -174,3 +174,28 @@ and prove every report's _snapshot/values.json and report.qmd are unchanged; (4)
 - (4) PDF: `--formats typst` works; generated qmd now has a typst format (toc, numbering,
   papersize from theme, mainfont, 8pt tables); README documents the basic layout.
 - 17:35: tests 116 pass; full batch 84 s, 0 requests, 11/12 (intended rejection). Committed.
+- After the commit: all tracked files normalized to LF (the Edit tool had left CRLF in charts.R,
+  compose.R, maps.R). Code hashes changed, so the next build recomputed metrics and re-rendered once.
+
+### 2026-09-28 ~17:45-18:20 (session 3, step 3)
+User: do the readability pass on geography.R and compose.R.
+- Proof method (scratchpad): compose_all.R (compose every report, offline, no render);
+  fingerprints2.R (md5 of each report's _snapshot/report.rds file, values.json, qmd_base.json,
+  theme.scss, report.qmd without the date, snapshot area/entities/texts/rows, every block, and the
+  error of a failed report); geo_probe.R (213 calls: specs, names, parents, contains/relation for
+  18 pairs, 21 selections with their benchmarks under 4 settings, helpers; run "online" once so
+  the ZCTA-county relationship and CBSA delineation files are cached); compare.R.
+- geography.R: geo_parents -> county_shares / state_shares / regional_parents / parent_rows;
+  geo_counties() shared by relations, containment and unions; geo_contains returns TRUE/FALSE
+  (only isTRUE was ever used); geo_relation merges the place/ZCTA-versus-county cases; union and
+  benchmark code split into describe_members, relation_matrix, benchmark_candidates,
+  benchmark_entity; same_territory() replaces is_coterminous + same_population_area (a county
+  study area is now also recognized as coterminous with a one-county state, e.g. DC);
+  entity_from_key, study_entity, the unused `spec` column of find results and dead variables
+  removed; base_name() applied vectorized (name search ~1 s instead of ~40 s).
+- compose.R: write_qmd -> qmd_header, block_markdown, figure_chunk; compute_blocks; yaml_str as
+  three plain substitutions (identical output on quotes, backslashes, line breaks, Unicode).
+- Result: 328 fingerprints, 0 differences (snapshots byte-identical); 213 probes identical except
+  the intended ones (3 contains NA -> FALSE, 8 find results without `spec`); tests 117 pass; batch
+  after the one-time re-render: all 11 up to date, 0 requests (austin-78704 is the intended
+  rejection). Lines over 120 characters: geography.R 10 -> 0, compose.R 9 -> 0.

@@ -12,20 +12,19 @@ report_context <- function(report_id) {
   vintage <- as.integer(first_non_blank(cfg$vintage, settings$boundary_vintage))
   members <- timed("resolve", parse_geo_list(cfg$geography, vintage))
   area <- timed("resolve", resolve_area(members, cfg$mode, vintage, cfg$label))
-  benchmarks <- if (identical(settings$benchmarks, "none")) list() else timed("resolve", choose_benchmarks(area, settings))
+  benchmarks <- if (identical(settings$benchmarks, "none")) list() else
+    timed("resolve", choose_benchmarks(area, settings))
   # Compare mode: every listed area is its own entity ("a1", "a2", ...); benchmarks are the
   # ancestors shared by all of them. Otherwise one study entity (a single area or a union).
   studies <- if (area$mode == "compare") {
-    lapply(seq_len(nrow(area$pieces)), function(i) entity(paste0("a", i), "study", area$pieces$name[i], area$pieces[i, ]))
-  } else list(study_entity(area))
-  study <- studies[[1]]
+    lapply(seq_len(nrow(area$pieces)), function(i) {
+      entity(paste0("a", i), "study", area$pieces$name[i], area$pieces[i, ])
+    })
+  } else list(entity("study", "study", area$label, area$pieces))
   list(report_id = report_id, cfg = cfg, profile = cfg$profile, settings = settings,
-       area = area, study = study, studies = studies, compare = area$mode == "compare", benchmarks = benchmarks,
-       benchmark_notes = attr(benchmarks, "notes"),
-       entities = c(studies, benchmarks),
-       theme = load_theme(settings$theme),
-       text_records = load_text_records(),
-       events = area_events(area, benchmarks))
+       area = area, study = studies[[1]], studies = studies, compare = area$mode == "compare",
+       benchmarks = benchmarks, benchmark_notes = attr(benchmarks, "notes"), entities = c(studies, benchmarks),
+       theme = load_theme(settings$theme), text_records = load_text_records(), events = area_events(area, benchmarks))
 }
 
 # Cited history events that apply to the study area, its members, or its benchmarks.
@@ -54,22 +53,9 @@ report_values <- function(ctx) {
 
 compose_report <- function(report_id) {
   ctx <- report_context(report_id)
-  manifest <- load_manifest(manifest_path(ctx$cfg))
-  rows <- manifest[manifest$enabled, , drop = FALSE]
-  blocks <- list()
-  failures <- list()
-  timed("compute", {
-    for (i in seq_len(nrow(rows))) {
-      row <- as.list(rows[i, ])
-      if (row$type %in% c("section", "subsection")) next
-      b <- tryCatch(compute_block(row, ctx), error = function(e) {
-        warn("Block '", row$id, "' could not be computed: ", conditionMessage(e))
-        list(id = row$id, kind = "error", error = conditionMessage(e), fields = c("title"), values = list(block_id = row$id),
-             section = row$section)
-      })
-      blocks[[row$id]] <- b
-    }
-  })
+  rows <- load_manifest(manifest_path(ctx$cfg))
+  rows <- rows[rows$enabled, , drop = FALSE]
+  blocks <- timed("compute", compute_blocks(rows, ctx))
   blocks <- finish_appendices(blocks, ctx)
   texts <- resolve_block_texts(rows, blocks, ctx)
   values <- c(list(report = report_values(ctx)), lapply(blocks, `[[`, "values"))
@@ -78,6 +64,20 @@ compose_report <- function(report_id) {
   write_snapshot(report_id, ctx, rows, blocks, texts, values)
   write_qmd(report_id, ctx, rows, blocks, texts)
   invisible(list(ctx = ctx, blocks = blocks, texts = texts))
+}
+
+# Compute every block; a block that fails becomes an error block and the report goes on.
+compute_blocks <- function(rows, ctx) {
+  blocks <- list()
+  for (i in which(!rows$type %in% c("section", "subsection"))) {
+    row <- as.list(rows[i, ])
+    blocks[[row$id]] <- tryCatch(compute_block(row, ctx), error = function(e) {
+      warn("Block '", row$id, "' could not be computed: ", conditionMessage(e))
+      list(id = row$id, kind = "error", error = conditionMessage(e), fields = "title",
+           values = list(block_id = row$id), section = row$section)
+    })
+  }
+  blocks
 }
 
 # The sources and availability appendices summarize every other block.
@@ -91,7 +91,7 @@ finish_appendices <- function(blocks, ctx) {
     }
     if (identical(blocks[[id]]$kind, "availability")) {
       blocks[[id]]$markdown <- availability_markdown(unav, blocks, ctx)
-      blocks[[id]]$values <- c(blocks[[id]]$values, list(n_unavailable = as.character(if (is.null(unav)) 0 else nrow(unav))))
+      blocks[[id]]$values <- c(blocks[[id]]$values, list(n_unavailable = as.character(NROW(unav))))
     }
   }
   blocks
@@ -101,8 +101,7 @@ sources_markdown <- function(srcs, ctx) {
   if (is.null(srcs) || !nrow(srcs)) return("")
   srcs <- unique(srcs)
   cat_src <- sources_doc()
-  ids <- unique(srcs$source_id)
-  lines <- vapply(ids, function(id) {
+  lines <- vapply(unique(srcs$source_id), function(id) {
     detail <- paste(unique(srcs$detail[srcs$source_id == id]), collapse = "; ")
     row <- cat_src[cat_src$source_id == id, , drop = FALSE]
     if (!nrow(row)) return(paste0("- ", id, ": ", detail))
@@ -116,10 +115,10 @@ sources_markdown <- function(srcs, ctx) {
                              if (length(span) == 1) paste("on", span) else paste("between", span[1], "and", span[2]),
                              " and reused from the local cache; build.json lists each file."))
   }
-  geo_note <- paste0("- **Geography**: ", ctx$area$label, " (", paste(ctx$area$members$key, collapse = ", "),
-                     "; ", ctx$area$vintage, " boundaries). ",
-                     if (length(ctx$area$notes)) paste(ctx$area$notes, collapse = " ") else "",
-                     if (length(ctx$benchmark_notes)) paste0(" ", paste(ctx$benchmark_notes, collapse = " ")) else "")
+  area <- ctx$area
+  geo_note <- paste0("- **Geography**: ", area$label, " (", paste(area$members$key, collapse = ", "), "; ",
+                     area$vintage, " boundaries). ", paste(area$notes, collapse = " "),
+                     if (length(ctx$benchmark_notes)) paste0(" ", paste(ctx$benchmark_notes, collapse = " ")))
   bm_lines <- vapply(ctx$benchmarks, function(b) paste0("- **Benchmark** ", b$label, ": ", b$relation, "."), "")
   paste(c(geo_note, bm_lines, lines), collapse = "\n")
 }
@@ -145,8 +144,11 @@ availability_markdown <- function(unav, blocks, ctx) {
 
 # Resolve every editable field of every block (plus report and section titles).
 resolve_block_texts <- function(rows, blocks, ctx) {
-  recs <- ctx$text_records
-  get <- function(field, kind, ref = NULL) resolve_text(recs, field, kind, ctx$report_id, ctx$profile, ref)
+  get <- function(field, kind = NULL, ref = NULL) {
+    resolve_text(ctx$text_records, field, kind, ctx$report_id, ctx$profile, ref)
+  }
+  # Text without a record: series labels from the catalog, event statements from history_events.csv.
+  fallback <- function(text, scope) list(text = text, scope = scope, record = NA_character_, fixed_facts = "")
   texts <- list(report.title = get("report.title", "report"), report.subtitle = get("report.subtitle", "report"))
   for (i in seq_len(nrow(rows))) {
     r <- rows[i, ]
@@ -156,23 +158,19 @@ resolve_block_texts <- function(rows, blocks, ctx) {
     }
     b <- blocks[[r$id]]
     kind <- if (identical(b$kind, "error")) "error" else r$kind
-    for (f in b$fields) {
-      if (f == "labels") next
-      texts[[paste0(r$id, ".", f)]] <- get(paste0(r$id, ".", f), kind, r$ref)
-    }
-    if ("labels" %in% b$fields && length(b$labels)) {
+    for (f in setdiff(b$fields, "labels")) texts[[paste0(r$id, ".", f)]] <- get(paste0(r$id, ".", f), kind, r$ref)
+    if ("labels" %in% b$fields) {
       for (m in names(b$labels)) {
-        t <- get(paste0(r$id, ".label.", m), NULL)
-        if (identical(t$scope, "none")) t <- get(paste0("label.", m), NULL)
-        if (identical(t$scope, "none")) t <- list(text = b$labels[[m]], scope = "catalog", record = NA_character_, fixed_facts = "")
+        t <- get(paste0(r$id, ".label.", m))
+        if (identical(t$scope, "none")) t <- get(paste0("label.", m))
+        if (identical(t$scope, "none")) t <- fallback(b$labels[[m]], "catalog")
         texts[[paste0(r$id, ".label.", m)]] <- t
       }
     }
-    for (ef in b$event_fields %||% character()) {
-      t <- get(ef, NULL)
+    for (ef in b$event_fields) {
+      t <- get(ef)
       if (identical(t$scope, "none")) {
-        ev <- ctx$events[paste0("event.", ctx$events$event_id) == ef, , drop = FALSE]
-        t <- list(text = ev$statement[1], scope = "history_events.csv", record = NA_character_, fixed_facts = "")
+        t <- fallback(ctx$events$statement[paste0("event.", ctx$events$event_id) == ef][1], "history_events.csv")
       }
       texts[[ef]] <- t
     }
@@ -183,15 +181,17 @@ resolve_block_texts <- function(rows, blocks, ctx) {
 # Every placeholder must resolve; a typo in a template stops the report with a clear list.
 check_placeholders <- function(texts, values) {
   problems <- character()
-  report_names <- names(values$report)
   for (field in names(texts)) {
-    block <- sub("\\..*$", "", field)
-    avail <- c(report_names, names(values[[block]] %||% list()))
+    avail <- c(names(values$report), names(values[[sub("\\..*$", "", field)]]))
     bad <- unknown_placeholders(texts[[field]]$text, avail)
-    if (length(bad)) problems <- c(problems, paste0(field, ": {", paste(bad, collapse = "}, {"), "} (available: ",
-                                                   paste(sort(avail), collapse = ", "), ")"))
+    if (length(bad)) {
+      problems <- c(problems, paste0(field, ": {", paste(bad, collapse = "}, {"), "} (available: ",
+                                     paste(sort(avail), collapse = ", "), ")"))
+    }
   }
-  if (length(problems)) stop("Unknown placeholders in text templates:\n  ", paste(problems, collapse = "\n  "), call. = FALSE)
+  if (length(problems)) {
+    stop("Unknown placeholders in text templates:\n  ", paste(problems, collapse = "\n  "), call. = FALSE)
+  }
   invisible(TRUE)
 }
 
@@ -201,8 +201,8 @@ write_snapshot <- function(report_id, ctx, rows, blocks, texts, values) {
   dir <- snapshot_dir(report_id)
   dir.create(dir, recursive = TRUE, showWarnings = FALSE)
   snap <- list(report_id = report_id, rows = rows, blocks = blocks,
-               texts = lapply(texts, `[[`, "text"), values = values,
-               theme = ctx$theme, entities = ctx$entities, area = ctx$area[c("label", "short", "mode", "vintage", "members", "pieces", "notes")])
+               texts = lapply(texts, `[[`, "text"), values = values, theme = ctx$theme, entities = ctx$entities,
+               area = ctx$area[c("label", "short", "mode", "vintage", "members", "pieces", "notes")])
   tmp <- file.path(dir, paste0("report.rds.tmp-", Sys.getpid()))
   saveRDS(snap, tmp)
   replace_file(tmp, file.path(dir, "report.rds"))
@@ -212,9 +212,11 @@ write_snapshot <- function(report_id, ctx, rows, blocks, texts, values) {
 
 # ---- report.qmd ------------------------------------------------------------------------------
 
+# Double-quoted YAML scalar, safe for any text (quotes, colons, Unicode, line breaks).
 yaml_str <- function(x) {
-  # Double-quoted YAML scalar, safe for any text (quotes, colons, Unicode, line breaks).
-  paste0("\"", gsub("\n", "\\n", gsub("\"", "\\\"", gsub("\\\\", "\\\\\\\\", x), fixed = TRUE), fixed = TRUE), "\"")
+  x <- gsub("\\", "\\\\", x, fixed = TRUE)
+  x <- gsub("\"", "\\\"", x, fixed = TRUE)
+  paste0("\"", gsub("\n", "\\n", x, fixed = TRUE), "\"")
 }
 
 chunk_option <- function(name, value) {
@@ -230,111 +232,127 @@ text_div <- function(field, text, block, class = "gr-text") {
 }
 
 write_qmd <- function(report_id, ctx, rows, blocks, texts) {
-  tx <- function(field) texts[[field]]$text %||% ""
-  th <- ctx$theme
-  detail <- ctx$settings$detail %||% "standard"
+  # Each text written into report.qmd is kept as the base version for the next harvest.
   base <- list()
-  track <- function(field) { base[[field]] <<- tx(field); tx(field) }
-  out <- c("---",
-           paste0("title: ", yaml_str(track("report.title"))),
-           paste0("subtitle: ", yaml_str(track("report.subtitle"))),
-           paste0("date: ", yaml_str(format(Sys.Date(), "%Y-%m-%d"))),
-           "format:",
-           "  html:",
-           "    theme: [default, _snapshot/theme.scss]",
-           "    toc: true",
-           "    toc-depth: 2",
-           "    number-sections: true",
-           "    embed-resources: true",
-           paste0("    fig-width: ", th$figure_width),
-           paste0("    fig-height: ", th$figure_height),
-           paste0("    fig-dpi: ", th$figure_dpi),
-           # PDF via Typst (`--formats typst`): the same text and figures with a basic page layout.
-           "  typst:",
-           "    toc: true",
-           "    toc-depth: 2",
-           "    number-sections: true",
-           paste0("    papersize: ", if (th$print_page_size == "letter") "us-letter" else th$print_page_size),
-           paste0("    mainfont: ", yaml_str(th$font_family)),
-           paste0("    fig-width: ", th$figure_width),
-           paste0("    fig-height: ", th$figure_height),
-           "    include-in-header:",
-           paste0("      text: ", yaml_str("#show table: set text(size: 8pt)")),
-           "knitr:",
-           "  opts_chunk:",
-           "    dev: ragg_png",
-           "execute:",
-           "  echo: false",
-           "  warning: false",
-           "  message: false",
-           "filters:",
-           "  - ../../quarto/gr-placeholders.lua",
-           "gr-values-file: _snapshot/values.json",
-           "params:",
-           paste0("  report_id: ", yaml_str(report_id)),
-           "---",
-           "",
-           "<!-- Generated by geo-report-gen. Edit text in place (headings, text between ::: fences,",
-           "     and the fig-cap/fig-alt/gr-* chunk options); the next build folds your edits into",
-           "     content/text.csv. Change structure in the manifest, not here. -->",
-           "",
-           "```{r}",
-           "#| label: setup",
-           "#| include: false",
-           "root <- Sys.getenv(\"GR_ROOT\", unset = normalizePath(\"../..\", winslash = \"/\"))",
-           "Sys.setenv(GR_ROOT = root)",
-           "source(file.path(root, \"R\", \"load.R\"))",
-           "gr <- gr_open_snapshot(\"_snapshot/report.rds\")",
-           "```",
-           "")
+  track <- function(field) {
+    base[[field]] <<- texts[[field]]$text %||% ""
+    base[[field]]
+  }
+  title <- track("report.title")
+  subtitle <- track("report.subtitle")
+  out <- qmd_header(report_id, title, subtitle, ctx$theme)
   in_subsection <- FALSE
   for (i in seq_len(nrow(rows))) {
     r <- rows[i, ]
-    if (r$type == "section") {
-      in_subsection <- FALSE
-      out <- c(out, paste0("# ", track(paste0(r$id, ".title")), " {#sec-", r$id, "}"), "")
-      next
+    if (r$type %in% c("section", "subsection")) {
+      in_subsection <- r$type == "subsection"
+      out <- c(out, paste0(if (in_subsection) "## " else "# ", track(paste0(r$id, ".title")), " {#sec-", r$id, "}"), "")
+    } else {
+      out <- c(out, block_markdown(r, blocks[[r$id]], if (in_subsection) "###" else "##", track, ctx))
     }
-    if (r$type == "subsection") {
-      in_subsection <- TRUE
-      out <- c(out, paste0("## ", track(paste0(r$id, ".title")), " {#sec-", r$id, "}"), "")
-      next
-    }
-    b <- blocks[[r$id]]
-    level <- if (in_subsection) "###" else "##"
-    f <- function(name) paste0(r$id, ".", name)
-    if (identical(b$kind, "error")) {
-      out <- c(out, paste0(level, " ", track(f("title")), " {#blk-", r$id, "}"), "",
-               paste0("::: {.gr-unavailable}\nThis block could not be produced: ", b$error, "\n:::"), "")
-      next
-    }
-    if ("title" %in% b$fields) out <- c(out, paste0(level, " ", track(f("title")), " {#blk-", r$id, "}"), "")
-    if ("body" %in% b$fields) out <- c(out, text_div(f("body"), track(f("body")), r$id))
-    if ("prose" %in% b$fields) out <- c(out, text_div(f("prose"), track(f("prose")), r$id))
-    if (isTRUE(b$figure) || isTRUE(b$table)) {
-      label <- paste0(if (isTRUE(b$table)) "tbl-" else "fig-", r$id)
-      opts <- c(paste0("#| label: ", label),
-                chunk_option(if (isTRUE(b$table)) "tbl-cap" else "fig-cap", track(f("caption"))))
-      if ("alt" %in% b$fields) opts <- c(opts, chunk_option("fig-alt", track(f("alt"))))
-      for (g in intersect(c("x_label", "y_label", "legend_title"), b$fields)) {
-        opts <- c(opts, chunk_option(paste0("gr-", gsub("_", "-", g)), track(f(g))))
-      }
-      if (!is.null(b$labels) && length(b$labels)) {
-        lab <- lapply(names(b$labels), function(m) track(paste0(r$id, ".label.", m)))
-        names(lab) <- names(b$labels)
-        opts <- c(opts, chunk_option("gr-labels", lab))
-      }
-      if (identical(r$kind, "map") || identical(r$kind, "locator")) opts <- c(opts, paste0("#| fig-height: ", th$map_height))
-      out <- c(out, "```{r}", opts, paste0("gr_block(gr, ", yaml_str(r$id), ")"), "```", "")
-    }
-    if (identical(r$kind, "history")) out <- c(out, history_markdown(b, r$id, track, ctx))
-    if (!is.null(b$markdown)) out <- c(out, b$markdown, "")
-    if ("note" %in% b$fields && detail != "brief") out <- c(out, text_div(f("note"), track(f("note")), r$id, "gr-note"))
-    if ("source_note" %in% b$fields) out <- c(out, text_div(f("source_note"), track(f("source_note")), r$id, "gr-source"))
   }
   write_text_file(out, file.path(report_dir(report_id), "report.qmd"))
   write_json_file(base, file.path(snapshot_dir(report_id), "qmd_base.json"))
   invisible(out)
+}
+
+# YAML header (HTML; PDF through Typst with a basic page layout), the editing note, and the
+# setup chunk that opens the snapshot.
+qmd_header <- function(report_id, title, subtitle, th) {
+  c("---",
+    paste0("title: ", yaml_str(title)),
+    paste0("subtitle: ", yaml_str(subtitle)),
+    paste0("date: ", yaml_str(format(Sys.Date(), "%Y-%m-%d"))),
+    "format:",
+    "  html:",
+    "    theme: [default, _snapshot/theme.scss]",
+    "    toc: true",
+    "    toc-depth: 2",
+    "    number-sections: true",
+    "    embed-resources: true",
+    paste0("    fig-width: ", th$figure_width),
+    paste0("    fig-height: ", th$figure_height),
+    paste0("    fig-dpi: ", th$figure_dpi),
+    "  typst:",
+    "    toc: true",
+    "    toc-depth: 2",
+    "    number-sections: true",
+    paste0("    papersize: ", if (th$print_page_size == "letter") "us-letter" else th$print_page_size),
+    paste0("    mainfont: ", yaml_str(th$font_family)),
+    paste0("    fig-width: ", th$figure_width),
+    paste0("    fig-height: ", th$figure_height),
+    "    include-in-header:",
+    paste0("      text: ", yaml_str("#show table: set text(size: 8pt)")),
+    "knitr:",
+    "  opts_chunk:",
+    "    dev: ragg_png",
+    "execute:",
+    "  echo: false",
+    "  warning: false",
+    "  message: false",
+    "filters:",
+    "  - ../../quarto/gr-placeholders.lua",
+    "gr-values-file: _snapshot/values.json",
+    "params:",
+    paste0("  report_id: ", yaml_str(report_id)),
+    "---",
+    "",
+    "<!-- Generated by geo-report-gen. Edit text in place (headings, text between ::: fences,",
+    "     and the fig-cap/fig-alt/gr-* chunk options); the next build folds your edits into",
+    "     content/text.csv. Change structure in the manifest, not here. -->",
+    "",
+    "```{r}",
+    "#| label: setup",
+    "#| include: false",
+    "root <- Sys.getenv(\"GR_ROOT\", unset = normalizePath(\"../..\", winslash = \"/\"))",
+    "Sys.setenv(GR_ROOT = root)",
+    "source(file.path(root, \"R\", \"load.R\"))",
+    "gr <- gr_open_snapshot(\"_snapshot/report.rds\")",
+    "```",
+    "")
+}
+
+# One block: heading, text in fenced divs, the figure or table chunk, generated markdown
+# (history, appendices), then notes.
+block_markdown <- function(r, b, level, track, ctx) {
+  field <- function(name) paste0(r$id, ".", name)
+  heading <- function() c(paste0(level, " ", track(field("title")), " {#blk-", r$id, "}"), "")
+  if (identical(b$kind, "error")) {
+    return(c(heading(), paste0("::: {.gr-unavailable}\nThis block could not be produced: ", b$error, "\n:::"), ""))
+  }
+  out <- if ("title" %in% b$fields) heading()
+  for (f in intersect(c("body", "prose"), b$fields)) out <- c(out, text_div(field(f), track(field(f)), r$id))
+  if (isTRUE(b$figure) || isTRUE(b$table)) out <- c(out, figure_chunk(r, b, track, ctx$theme))
+  if (identical(r$kind, "history")) out <- c(out, history_markdown(b, r$id, track, ctx))
+  if (!is.null(b$markdown)) out <- c(out, b$markdown, "")
+  if ("note" %in% b$fields && !identical(ctx$settings$detail, "brief")) {
+    out <- c(out, text_div(field("note"), track(field("note")), r$id, "gr-note"))
+  }
+  if ("source_note" %in% b$fields) {
+    out <- c(out, text_div(field("source_note"), track(field("source_note")), r$id, "gr-source"))
+  }
+  out
+}
+
+# The chunk that draws a figure or table. Its caption, alt text and axis, legend and series
+# labels are chunk options, edited in place like the rest of the text.
+figure_chunk <- function(r, b, track, th) {
+  field <- function(name) paste0(r$id, ".", name)
+  table <- isTRUE(b$table)
+  opts <- c(paste0("#| label: ", if (table) "tbl-" else "fig-", r$id),
+            chunk_option(if (table) "tbl-cap" else "fig-cap", track(field("caption"))))
+  if ("alt" %in% b$fields) opts <- c(opts, chunk_option("fig-alt", track(field("alt"))))
+  for (g in intersect(c("x_label", "y_label", "legend_title"), b$fields)) {
+    opts <- c(opts, chunk_option(paste0("gr-", gsub("_", "-", g)), track(field(g))))
+  }
+  if (length(b$labels)) {
+    labels <- lapply(names(b$labels), function(m) track(field(paste0("label.", m))))
+    opts <- c(opts, chunk_option("gr-labels", stats::setNames(labels, names(b$labels))))
+  }
+  if (identical(r$kind, "map") || identical(r$kind, "locator")) {
+    opts <- c(opts, paste0("#| fig-height: ", th$map_height))
+  }
+  c("```{r}", opts, paste0("gr_block(gr, ", yaml_str(r$id), ")"), "```", "")
 }
 
 # Each event statement is its own editable text field; the date, evidence type and citation

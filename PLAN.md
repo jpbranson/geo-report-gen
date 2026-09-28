@@ -34,7 +34,7 @@ Key decisions
 
 ## Checklist
 
-Status as of 2026-09-28 17:15 (session 3; details in FLIGHT_LOG.md). `[x]` done and exercised by the
+Status as of 2026-09-28 18:20 (session 3; details in FLIGHT_LOG.md). `[x]` done and exercised by the
 sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
 
 - [x] Environment: renv library + `renv.lock`, Quarto discovery, `.env` for key/contact (never logged)
@@ -50,17 +50,17 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
       browsable page (`gr.R catalog --html`) with scope and gaps, live `gr.R verify` (13 of 13 ok)
 - [x] Content: manifests, block library, 3 profiles, scoped text, templates, cited history events,
       stale-fact warnings, `gr.R new` (subject/metric selection)
-- [~] Authoring: inline harvest, bulk CSV export/import and conflict detection, covered by tests; to do:
-      demonstrate on a real report through regeneration
+- [x] Authoring: inline harvest, bulk CSV export/import and conflict detection, covered by tests and
+      demonstrated on a real report through regeneration (demos/round_trip.R, 10/10)
 - [x] Rendering: theme, charts, maps, tables; reviewed and fixed (see FLIGHT_LOG.md)
 - [x] Custom module example (modules/childcare_gap.R, inserted via profiles/early-childhood.csv)
 - [x] Batch: two phases (compose, parallel render), isolated failures, per-report progress (resumable),
       logs, build manifests; cold/warm/resumed benchmark and invalidation checks (README, docs/)
 - [x] Demos 1-11: sample reports, demos/round_trip.R (10/10), benchmark, README; PDF via Typst works
       (basic page layout, documented)
-- [x] Tests: 116 expectations pass offline with fixtures (`gr.R test`)
-- [~] Docs and lean review: README complete; dead code removed; R/blocks.R restructured (output
-      proven identical). Possible next: a final pass over the other long files (geography.R, compose.R)
+- [x] Tests: 117 expectations pass offline with fixtures (`gr.R test`)
+- [x] Docs and lean review: README complete; dead code removed; R/blocks.R, R/geography.R and
+      R/compose.R restructured, each with every report's output proven identical
 
 ## Step agreed with the user 2026-09-28 17:20 (done 17:35; checking back)
 
@@ -73,3 +73,19 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
        report's values.json, report.qmd and block data identical (239 fingerprints, 0 differences)
 4. [x] PDF via Typst: renders; added Typst format settings (TOC, numbering, theme font and paper,
        smaller table text); status documented in README
+
+## Step agreed with the user 2026-09-28 17:45: readability pass on geography.R and compose.R (done 18:20)
+
+- [x] R/geography.R (725 -> 686 lines; longest function 84 -> 50 lines): geo_parents split into
+      county_shares, state_shares, regional_parents and parent_rows; one geo_counties() replaces
+      three inline copies;
+      geo_contains is a short list of known containments (TRUE/FALSE); union and benchmark code
+      split into named steps (describe_members, relation_matrix, benchmark_candidates,
+      benchmark_entity); same_territory() replaces is_coterminous + same_population_area; name
+      search vectorized (`find` / name: specs about 1 s instead of about 40 s)
+- [x] R/compose.R (357 -> 375 lines; write_qmd 107 -> 24 lines): write_qmd split into qmd_header
+      (the literal YAML), block_markdown and figure_chunk; compute_blocks; simpler yaml_str
+      (identical output on tricky strings); dead variables removed
+- [x] Proof: 328 fingerprints (snapshot files byte-identical, values.json, qmd_base.json, report.qmd,
+      every block) 0 differences; 213 geography probes (specs, names, parents, relations, unions,
+      benchmarks, errors) identical except two intended changes; 117 tests; batch up to date
