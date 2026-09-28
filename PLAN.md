@@ -56,8 +56,20 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
 - [x] Custom module example (modules/childcare_gap.R, inserted via profiles/early-childhood.csv)
 - [x] Batch: two phases (compose, parallel render), isolated failures, per-report progress (resumable),
       logs, build manifests; cold/warm/resumed benchmark and invalidation checks (README, docs/)
-- [~] Demos: 1-5 and 7-11 shown by the sample reports, benchmark and README; 6 is covered by tests,
-      and demos/round_trip.R (on a real report) is written but not yet run; PDF (Typst) unchecked
-- [x] Tests: 115 expectations pass offline with fixtures (`gr.R test`)
-- [~] Docs: README (setup, commands, configuration, authoring, maintainer walkthrough, results,
-      limitations) done. Lean review: dead code removed; R/blocks.R restructure still to do
+- [x] Demos 1-11: sample reports, demos/round_trip.R (10/10), benchmark, README; PDF via Typst works
+      (basic page layout, documented)
+- [x] Tests: 116 expectations pass offline with fixtures (`gr.R test`)
+- [~] Docs and lean review: README complete; dead code removed; R/blocks.R restructured (output
+      proven identical). Possible next: a final pass over the other long files (geography.R, compose.R)
+
+## Step agreed with the user 2026-09-28 17:20 (done 17:35; checking back)
+
+1. [x] Run demos/round_trip.R: 10/10 checks pass (fixed: CRLF line breaks from a spreadsheet round
+       trip looked like edits; read_table now normalizes them)
+2. [x] Visual review of lake-in maps, tx-cities, ct-capitol (civic theme), austin-tx custom chart.
+       Fixed: map palette and legend order; overlapping period bars in compare charts; overprinted
+       and misapplied break labels (history_events.csv `sources` column); custom chart axis title
+3. [x] R/blocks.R restructured (metric text split into named steps, long lines 35 -> 14); every
+       report's values.json, report.qmd and block data identical (239 fingerprints, 0 differences)
+4. [x] PDF via Typst: renders; added Typst format settings (TOC, numbering, theme font and paper,
+       smaller table text); status documented in README

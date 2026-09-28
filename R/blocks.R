@@ -53,10 +53,10 @@ phrase <- function(ctx, name, values) {
 
 join_list <- function(items, ctx) {
   items <- items[nzchar(items)]
-  if (!length(items)) return("")
-  if (length(items) == 1) return(items)
-  and <- phrase(ctx, "and", list())
-  paste0(paste(items[-length(items)], collapse = ", "), if (length(items) > 2) "," else "", " ", and, " ", items[length(items)])
+  n <- length(items)
+  if (n <= 1) return(if (n) items else "")
+  comma <- if (n > 2) "," else ""   # serial comma for three or more items
+  paste0(paste(items[-n], collapse = ", "), comma, " ", phrase(ctx, "and", list()), " ", items[n])
 }
 
 # How an entity is named in running text: "the state of Indiana", "the Midwest Region",
@@ -85,28 +85,39 @@ metric_text <- function(ctx, metric_id, what = c("label", "sentence")) {
 
 source_row <- function(source_id, detail) data.frame(source_id = source_id, detail = detail, stringsAsFactors = FALSE)
 
+# Provenance rows for the sources appendix: each metric's source and table or series.
+metric_sources <- function(metrics) {
+  do.call(rbind, lapply(metrics, function(m) source_row(recipe_for(m)$source_id, metric_doc(m)$table_or_series)))
+}
+
 # Reasons for missing values, for the report's availability appendix. Rows are collapsed:
 # one row per measure and reason, naming the areas ("All areas" when every area in the block
 # is affected) and the periods (as a range) it applies to.
 block_unavailable_rows <- function(res, block_id, ctx) {
-  bad <- res[!res$status %in% c("ok", "controlled", "open_interval", "unreliable", "moe_unavailable", "imputed"), , drop = FALSE]
+  shown <- c("ok", "controlled", "open_interval", "unreliable", "moe_unavailable", "imputed")
+  bad <- res[!res$status %in% shown, , drop = FALSE]
   if (!nrow(bad)) return(NULL)
   et <- entity_table(ctx)
   n_ent <- length(unique(res$entity_id))
   every <- ave(bad$entity_id, bad$metric_id, bad$period, FUN = function(x) length(unique(x))) == n_ent
-  bad$reason <- ifelse(grepl("^not available for this period: no published data for", bad$method) & every,
-                       "not published for this period (the source table is not available in this release)", bad$method)
+  table_missing <- grepl("^not available for this period: no published data for", bad$method) & every
+  bad$reason <- ifelse(table_missing, "not published for this period (the source table is not available in this release)",
+                       bad$method)
   bad$entity <- et$full_label[match(bad$entity_id, et$entity_id)]
+  # First one row per measure, period, status and reason, naming the areas affected...
   by_period <- split(bad, paste(bad$metric_id, bad$period, bad$status, bad$reason))
   rows <- do.call(rbind, lapply(by_period, function(g) {
-    data.frame(metric_id = g$metric_id[1], period = g$period_label[1], period_end = g$period_end[1], status = g$status[1],
-               reason = g$reason[1], entity = if (length(unique(g$entity_id)) == n_ent && n_ent > 1) "All areas" else paste(g$entity, collapse = "; "),
-               stringsAsFactors = FALSE)
+    all_areas <- length(unique(g$entity_id)) == n_ent && n_ent > 1
+    data.frame(metric_id = g$metric_id[1], period = g$period_label[1], period_end = g$period_end[1],
+               status = g$status[1], reason = g$reason[1],
+               entity = if (all_areas) "All areas" else paste(g$entity, collapse = "; "), stringsAsFactors = FALSE)
   }))
+  # ...then one row per measure, reason and areas, with the periods (a range when more than two).
   groups <- split(rows, paste(rows$metric_id, rows$status, rows$reason, rows$entity))
   do.call(rbind, lapply(groups, function(g) {
     g <- g[order(g$period_end), ]
-    periods <- if (nrow(g) > 2) paste0(g$period[1], " to ", g$period[nrow(g)], " (", nrow(g), " periods)") else paste(g$period, collapse = ", ")
+    n <- nrow(g)
+    periods <- if (n > 2) paste0(g$period[1], " to ", g$period[n], " (", n, " periods)") else paste(g$period, collapse = ", ")
     data.frame(block_id = block_id, metric_id = g$metric_id[1], entity = g$entity[1], period = periods,
                status = g$status[1], reason = g$reason[1], stringsAsFactors = FALSE)
   }))
@@ -132,17 +143,18 @@ dependence_share <- function(metric_id, bm, settings) {
 
 compute_block_metric <- function(row, ctx, settings, opts) {
   metrics <- split_list(row$metrics)
+  sources <- vapply(metrics, function(m) recipe_for(m)$source_id, "")
   use_parents <- grepl("parents", row$compare)
   use_time <- grepl("time", row$compare)
   entities <- if (use_parents) ctx$entities else ctx$studies
   focus <- ctx$study
-  # Context: if the primary source does not publish the study area's geography type (e.g.
-  # BEA and FHFA publish counties, not cities), show the benchmarks it does publish, starting
+  # Context: if no metric's source publishes the study area's geography type (BEA and FHFA
+  # publish counties, not cities), show the benchmarks the first source does publish, starting
   # with the nearest (e.g. the county containing the city), clearly labeled as context.
-  prov1 <- get_provider(recipe_for(metrics[1])$source_id)
-  supports_study <- vapply(metrics, function(m) all(ctx$study$pieces$type %in% get_provider(recipe_for(m)$source_id)$geo_types), TRUE)
+  prov1 <- get_provider(sources[1])
+  publishes_study <- vapply(sources, function(s) all(ctx$study$pieces$type %in% get_provider(s)$geo_types), TRUE)
   context <- NULL
-  if (!any(supports_study)) {
+  if (!any(publishes_study)) {
     context <- Filter(function(e) e$role == "benchmark" && all(e$pieces$type %in% prov1$geo_types), ctx$entities)
     if (length(context)) {
       entities <- if (use_parents) context else context[1]
@@ -153,68 +165,87 @@ compute_block_metric <- function(row, ctx, settings, opts) {
   # it uses nominal dollars (and keeps years the price index does not cover).
   relative <- identical(opts$index, "relative")
   res <- do.call(rbind, lapply(metrics, function(m) {
-    recipe <- recipe_for(m)
-    periods <- metric_periods(recipe, settings)
-    periods <- periods[as.integer(periods) >= as.integer(settings$history_start %||% 0) |
-                         get_provider(recipe$source_id)$period_kind == "multiyear"]
-    if (!is.null(opts$periods)) periods <- intersect(periods, split_list(opts$periods, ","))
-    if (!use_time) periods <- utils::tail(periods, 1)
-    compute_metric(m, entities, settings, periods, constant_dollars = !relative)
+    compute_metric(m, entities, settings, block_periods(m, settings, opts, use_time), constant_dollars = !relative)
   }))
   et <- entity_table(ctx)
   res$label <- et$label[match(res$entity_id, et$entity_id)]
   res$role <- et$role[match(res$entity_id, et$entity_id)]
-  # The text describes the first metric with data for the described area (a long history
-  # block may start with a county-only series that a city lacks).
+  # The text describes the first metric with data for the described area (a long-history
+  # block may start with a series that a city lacks).
   described <- vapply(metrics, function(m) any(res$metric_id == m & res$entity_id == focus$id & !is.na(res$value)), TRUE)
   primary <- if (any(described)) metrics[described][1] else metrics[1]
   units <- metric_units(primary)
-  index_base <- ""
-  if (relative) {
-    # Each area as a percentage of the widest benchmark (usually the nation) in the same year;
-    # the benchmark itself is the 100 line, so its own series is not drawn.
-    ref_id <- entities[[length(entities)]]$id
-    ref <- res[res$entity_id == ref_id, , drop = FALSE]
-    res$index_value <- 100 * res$value / ref$value[match(paste(res$metric_id, res$period), paste(ref$metric_id, ref$period))]
-    res$index_value[res$entity_id == ref_id] <- NA
-  }
-  if (identical(opts$index, "first")) {
-    # Growth view: every area relative to its value in the first period the described area has
-    # data for, so areas of different sizes share one scale.
-    mine <- res[res$metric_id == primary & res$entity_id == focus$id & !is.na(res$value), , drop = FALSE]
-    mine <- mine[order(mine$period_end), , drop = FALSE]
-    base <- res[res$period == mine$period[1], , drop = FALSE]
-    res$index_value <- 100 * res$value / base$value[match(paste(res$metric_id, res$entity_id), paste(base$metric_id, base$entity_id))]
-    index_base <- mine$period_label[1] %||% ""
-  }
+  indexed <- add_index(res, opts$index, entities, primary, focus)
+  res <- indexed$res
   values <- if (isTRUE(ctx$compare) && is.null(context)) compare_values(res, primary, ctx, settings) else
     metric_values(res, primary, ctx, settings, focus)
-  values$index_base <- index_base
-  # Captions name the whole plotted span of the described area, across all of its series.
-  plotted <- res[res$entity_id == focus$id & !is.na(res$value), , drop = FALSE]
-  plotted <- plotted[order(plotted$period_end), , drop = FALSE]
-  if (nrow(plotted) > 1) values$period_span <- paste0(plotted$period_label[1], " to ", plotted$period_label[nrow(plotted)])
-  n <- nrow(plotted)
-  values$first_observed <- if (n) fmt_value(plotted$value[1], units, ctx$theme, plotted$bound[1]) else ""
-  values$first_observed_period <- if (n) plotted$period_label[1] else ""
-  values$last_observed <- if (n) fmt_value(plotted$value[n], units, ctx$theme, plotted$bound[n]) else ""
-  values$last_observed_period <- if (n) plotted$period_label[n] else ""
-  if (!is.null(context) && length(context)) {
-    values$context_note <- phrase(ctx, "context_note", list(metric_label = values$metric_label, area_short = ctx$area$short,
-                                                             focus = focus$short, relation = focus$relation,
-                                                             source_levels = prov1$availability_note %||% ""))
+  values$index_base <- indexed$base
+  values <- utils::modifyList(values, observed_values(res, focus, units, ctx$theme))
+  if (length(context)) {
+    values$context_note <- phrase(ctx, "context_note", list(
+      metric_label = values$metric_label, area_short = ctx$area$short, focus = focus$short,
+      relation = focus$relation, source_levels = prov1$availability_note %||% ""))
     values$summary_sentence <- paste(values$context_note, values$summary_sentence)
   }
   has_data <- any(!is.na(res$value[res$entity_id %in% c(focus$id, vapply(ctx$studies, `[[`, "", "id"))]))
   list(data = list(results = res, units = units, metrics = metrics,
                    period_kind = vapply(metrics, function(m) get_provider(recipe_for(m)$source_id)$period_kind, ""),
-                   events = chart_events(ctx, primary, res)),
+                   events = chart_events(ctx, primary, res, sources)),
        values = values,
        fields = if (has_data) c("title", "prose", "caption", "alt", "x_label", "y_label", "legend_title", "note", "source_note")
                 else c("title", "prose", "source_note"),
-       sources = do.call(rbind, lapply(metrics, function(m) source_row(recipe_for(m)$source_id, metric_doc(m)$table_or_series))),
+       sources = metric_sources(metrics),
        unavailable = block_unavailable_rows(res, row$id, ctx),
        figure = has_data)
+}
+
+# Periods a block shows for one metric: the source's periods from `history_start` on (ACS
+# periods are always kept: each is a 5-year span), limited by the block's `periods` option,
+# and only the latest one when the block does not show change over time.
+block_periods <- function(metric_id, settings, opts, use_time) {
+  recipe <- recipe_for(metric_id)
+  periods <- metric_periods(recipe, settings)
+  multiyear <- get_provider(recipe$source_id)$period_kind == "multiyear"
+  periods <- periods[as.integer(periods) >= as.integer(settings$history_start %||% 0) | multiyear]
+  if (!is.null(opts$periods)) periods <- intersect(periods, split_list(opts$periods, ","))
+  if (use_time) periods else utils::tail(periods, 1)
+}
+
+# Index views (block option `index`). "relative": each area as a percentage of the widest
+# benchmark (usually the nation) in the same year; that benchmark is the 100 line, so its own
+# series is not drawn. "first": each area relative to its value in the first period the
+# described area has data for, so areas of different sizes share one scale. Returns the
+# results and the label of the base period.
+add_index <- function(res, index, entities, primary, focus) {
+  base <- ""
+  if (identical(index, "relative")) {
+    ref_id <- entities[[length(entities)]]$id
+    ref <- res[res$entity_id == ref_id, , drop = FALSE]
+    res$index_value <- 100 * res$value / ref$value[match(paste(res$metric_id, res$period), paste(ref$metric_id, ref$period))]
+    res$index_value[res$entity_id == ref_id] <- NA
+  }
+  if (identical(index, "first")) {
+    mine <- res[res$metric_id == primary & res$entity_id == focus$id & !is.na(res$value), , drop = FALSE]
+    mine <- mine[order(mine$period_end), , drop = FALSE]
+    first <- res[res$period == mine$period[1], , drop = FALSE]
+    res$index_value <- 100 * res$value / first$value[match(paste(res$metric_id, res$entity_id),
+                                                             paste(first$metric_id, first$entity_id))]
+    base <- mine$period_label[1] %||% ""
+  }
+  list(res = res, base = base)
+}
+
+# What the chart shows for the described area across all its series: the whole plotted span
+# (captions name it) and the first and last observations.
+observed_values <- function(res, focus, units, th) {
+  d <- res[res$entity_id == focus$id & !is.na(res$value), , drop = FALSE]
+  d <- d[order(d$period_end), , drop = FALSE]
+  n <- nrow(d)
+  out <- if (n > 1) list(period_span = paste0(d$period_label[1], " to ", d$period_label[n])) else list()
+  c(out, list(first_observed = if (n) fmt_value(d$value[1], units, th, d$bound[1]) else "",
+              first_observed_period = if (n) d$period_label[1] else "",
+              last_observed = if (n) fmt_value(d$value[n], units, th, d$bound[n]) else "",
+              last_observed_period = if (n) d$period_label[n] else ""))
 }
 
 # Values for a metric block's text, computed from the same results the chart shows. The
@@ -227,33 +258,32 @@ metric_values <- function(res, metric_id, ctx, settings, focus = ctx$study) {
   prov <- get_provider(recipe_for(metric_id)$source_id)
   label <- metric_text(ctx, metric_id, "label")
   sentence <- metric_text(ctx, metric_id, "sentence")
-  mine <- res[res$metric_id == metric_id & res$entity_id == focus$id & !is.na(res$value), , drop = FALSE]
-  mine <- mine[order(mine$period_end), , drop = FALSE]
-  area_short <- focus$short
+  several <- length(unique(res$entity_id)) > 1
   v <- list(metric_label = label, metric_sentence = sentence, metric_label_lower = sentence,
             units_label = units_label(doc, res, label), universe = doc$universe,
             definition = doc$definition, dollar_phrase = dollar_phrase(res, ctx),
             source_short = paste0(prov$name, ", ", doc$table_or_series),
-            x_axis_label = if (identical(prov$period_kind, "multiyear")) phrase(ctx, "x_multiyear", list()) else phrase(ctx, "x_year", list()),
-            area_and_benchmarks = if (length(unique(res$entity_id)) > 1) phrase(ctx, "area_and_benchmarks", list(area = focus$label)) else focus$label,
-            area_short = area_short, context_note = "", summary_sentence = "", change_sentence = "", benchmark_sentence = "",
-            relation_sentence = "", turning_sentence = "", growth_sentence = "",
+            x_axis_label = phrase(ctx, if (identical(prov$period_kind, "multiyear")) "x_multiyear" else "x_year", list()),
+            area_and_benchmarks = if (several) phrase(ctx, "area_and_benchmarks", list(area = focus$label)) else focus$label,
+            area_short = focus$short, context_note = "", summary_sentence = "", change_sentence = "",
+            benchmark_sentence = "", relation_sentence = "", turning_sentence = "", growth_sentence = "",
             method_note = method_note(res, metric_id, ctx, settings))
   # Every placeholder a template may use exists even when there are no data.
   v[c("latest", "latest_moe", "latest_period", "first", "first_period", "period_span", "moe_phrase",
       "reliability_phrase", "change", "annual_rate", "series_note")] <- ""
+  mine <- res[res$metric_id == metric_id & res$entity_id == focus$id & !is.na(res$value), , drop = FALSE]
+  mine <- mine[order(mine$period_end), , drop = FALSE]
   if (!nrow(mine)) {
     reasons <- unique(res$method[res$entity_id == focus$id & !is.na(res$method) & nzchar(res$method)])
-    v$summary_sentence <- phrase(ctx, "no_data", list(metric_sentence = sentence, area = area_short,
+    v$summary_sentence <- phrase(ctx, "no_data", list(metric_sentence = sentence, area = focus$short,
                                                         reason = if (length(reasons)) reasons[1] else ""))
     return(v)
   }
   last <- mine[nrow(mine), ]
   # Change is described only within one series (e.g. one estimates vintage or census counts);
-  # points from series with different boundaries or methods are not compared in the text.
+  # points from series with different boundaries or methods are compared only in the chart.
   same <- mine[mine$series == last$series, , drop = FALSE]
   first <- same[1, ]
-  series_note <- if (nrow(same) < nrow(mine)) phrase(ctx, "within_series", list(series = last$series)) else ""
   v$latest <- fmt_value(last$value, units, th, last$bound)
   v$latest_moe <- fmt_moe(last$moe, units, th)
   v$latest_period <- last$period_label
@@ -263,106 +293,131 @@ metric_values <- function(res, metric_id, ctx, settings, focus = ctx$study) {
   v$moe_phrase <- if (!is.na(last$moe) && last$moe > 0) phrase(ctx, "moe", list(latest_moe = v$latest_moe)) else ""
   v$reliability_phrase <- if (identical(last$reliability, "unreliable")) phrase(ctx, "unreliable", list()) else ""
   v$summary_sentence <- phrase(ctx, "summary", v)
-  nominal_only <- units == "dollars" && all(is.na(res$dollar_year))
-  is_count <- recipe_for(metric_id)$stat_type == "count"
-  growth_only <- is_count || unit_kind(units) == "index"
   # Survey estimates are called higher or lower only after a significance test; one without a
   # margin of error (e.g. a median interpolated for a combined area) is described as untested.
   # Census counts, administrative and model-based series have no sampling error to test.
   survey <- doc$uncertainty %in% c("acs_moe", "survey_se")
-  if (nrow(same) > 1 && nominal_only) {
-    v$change_sentence <- phrase(ctx, "nominal_only", list())
-  } else if (nrow(same) > 1) {
-    v$change <- fmt_change(last$value, first$value, units, th)$text
-    overlap <- period_overlap(first$period_start, first$period_end, last$period_start, last$period_end)
-    test <- diff_test(last$value, last$moe, first$value, first$moe, overlap = overlap)
-    testable <- survey && !anyNA(c(first$moe, last$moe)) && !all(c(first$moe, last$moe) %in% 0)
-    dir <- if (survey && anyNA(c(first$moe, last$moe))) "untested" else
-      change_direction(last$value - first$value, if (testable) test$significant else NA)
-    v$change_sentence <- trimws(paste(switch(dir, up = phrase(ctx, "change_up", v), down = phrase(ctx, "change_down", v),
-                                             not_significant = phrase(ctx, "change_ns", v), flat = phrase(ctx, "change_flat", v),
-                                             untested = phrase(ctx, "change_untested", v), ""),
-                                      series_note))
-    years <- last$period_end - first$period_end
-    if (is_count && years > 0) {
-      v$annual_rate <- paste0(formatC(100 * annual_rate(first$value, last$value, years), format = "f", digits = 1), "%")
-    }
-    tp <- turning_points(mine$period_label, mine$value)
-    if (!is.na(tp$peak) && all(mine$moe %in% 0)) {
-      v$turning_sentence <- phrase(ctx, "peak", list(peak_period = tp$peak, peak_value = fmt_value(tp$peak_value, units, th)))
-    }
+  is_count <- recipe_for(metric_id)$stat_type == "count"
+  if (nrow(same) > 1) {
+    series_note <- if (nrow(same) < nrow(mine)) phrase(ctx, "within_series", list(series = last$series)) else ""
+    nominal <- units == "dollars" && all(is.na(res$dollar_year))
+    v <- change_values(v, ctx, mine, first, last, units, survey, is_count, nominal, series_note)
   }
-  bms <- Filter(function(e) e$role == "benchmark" && e$id != focus$id, ctx$entities)
-  bms <- Filter(function(e) any(res$entity_id == e$id), bms)
-  # Counts and indexes: compare growth over the same span rather than levels.
-  if (length(bms) && growth_only && nrow(mine) > 1) {
-    items <- character()
-    for (bm in bms) {
-      b <- res[res$metric_id == metric_id & res$entity_id == bm$id & res$period %in% c(first$period, last$period) & !is.na(res$value), , drop = FALSE]
-      if (nrow(b) == 2) {
-        b <- b[order(b$period_end), ]
-        items <- c(items, paste0(fmt_change(b$value[2], b$value[1], units, th)$text, " in ", entity_text_label(bm, ctx)))
-      }
-    }
-    if (length(items)) v$growth_sentence <- phrase(ctx, "growth_compare", list(first_period = v$first_period, latest_period = v$latest_period,
-                                                                                change = v$change %||% "", list = join_list(items, ctx),
-                                                                                area_short = area_short))
+  bms <- Filter(function(e) e$role == "benchmark" && e$id != focus$id && any(res$entity_id == e$id), ctx$entities)
+  if (length(bms) && nrow(mine) > 1 && (is_count || unit_kind(units) == "index")) {
+    v$growth_sentence <- growth_sentence(ctx, res, metric_id, bms, first, last, v, units)
   }
   if (length(bms) && comparable_stat(metric_id)) {
-    parts <- list(higher = character(), lower = character(), ns = character(), same = character(), untested = character())
-    for (bm in bms) {
-      b <- res[res$metric_id == metric_id & res$entity_id == bm$id & res$period == last$period, , drop = FALSE]
-      if (!nrow(b) || is.na(b$value)) next
-      item <- paste0(entity_text_label(bm, ctx), " (", fmt_value(b$value, units, th, b$bound), ")")
-      # Dependence adjustment applies when the described area is the study area itself.
-      share <- if (identical(focus$id, "study")) dependence_share(metric_id, bm, settings) else 0
-      t <- diff_test(last$value, last$moe, b$value, b$moe, part_share = share)
-      # Without published margins of error (model-based or administrative data) there is no
-      # test; values that look the same once rounded are described as about the same.
-      testable <- !is.na(last$moe) && !is.na(b$moe)
-      key <- if (testable && !t$significant) "ns" else
-        if (!testable && survey) "untested" else
-          if (!testable && fmt_value(last$value, units, th) == fmt_value(b$value, units, th)) "same" else
-            if (last$value > b$value) "higher" else "lower"
-      parts[[key]] <- c(parts[[key]], item)
-    }
-    clauses <- c(if (length(parts$higher)) phrase(ctx, "bench_higher", list(list = join_list(parts$higher, ctx))),
-                 if (length(parts$lower)) phrase(ctx, "bench_lower", list(list = join_list(parts$lower, ctx))),
-                 if (length(parts$ns)) phrase(ctx, "bench_ns", list(list = join_list(parts$ns, ctx))),
-                 if (length(parts$same)) phrase(ctx, "bench_same", list(list = join_list(parts$same, ctx))))
-    if (length(clauses)) v$benchmark_sentence <- phrase(ctx, "bench_sentence", list(parts = join_list(clauses, ctx), latest_period = v$latest_period))
-    if (length(parts$untested)) {
-      v$benchmark_sentence <- trimws(paste(v$benchmark_sentence,
-                                           phrase(ctx, "bench_untested", list(list = join_list(parts$untested, ctx)))))
-    }
-    # Relationship to the widest containing benchmark over time (usually the nation). Same-year
-    # ratios need no price adjustment, so nominal dollars are fine here.
-    containing <- Filter(function(e) isTRUE(e$contains_study), bms)
-    ref <- if (length(containing)) containing[[length(containing)]] else NULL
-    rb <- if (is.null(ref)) res[0, ] else res[res$metric_id == metric_id & res$entity_id == ref$id & !is.na(res$value), , drop = FALSE]
-    rb <- rb[rb$period %in% c(first$period, last$period), , drop = FALSE]
-    if (nrow(mine) > 1 && nrow(rb) == 2) {
-      rb <- rb[order(rb$period_end), ]
-      side <- function(g) phrase(ctx, if (g >= 0) "side_above" else "side_below", list())
-      if (unit_kind(units) == "percent") {
-        g1 <- first$value - rb$value[1]
-        g2 <- last$value - rb$value[2]
-        # Neutral wording: the change in the gap is not itself tested, so no "widened" claims.
-        v$relation_sentence <- phrase(ctx, "gap", list(benchmark = entity_text_label(ref, ctx), area_short = area_short,
-                                                        gap_first = formatC(abs(g1), format = "f", digits = 1), side_first = side(g1),
-                                                        gap_latest = formatC(abs(g2), format = "f", digits = 1), side_latest = side(g2),
-                                                        first_period = first$period_label, latest_period = last$period_label))
-      } else if (rb$value[1] > 0 && rb$value[2] > 0) {
-        v$relation_sentence <- phrase(ctx, "ratio_change", list(benchmark = entity_text_label(ref, ctx),
-                                                                 ratio_first = paste0(round(100 * first$value / rb$value[1]), "%"),
-                                                                 ratio_latest = paste0(round(100 * last$value / rb$value[2]), "%"),
-                                                                 first_period = first$period_label, latest_period = last$period_label))
-      }
-    }
+    v$benchmark_sentence <- benchmark_sentence(ctx, res, metric_id, bms, focus, last, units, survey, settings)
+    v$relation_sentence <- relation_sentence(ctx, res, metric_id, bms, focus, mine, first, last, units)
   }
   v
 }
 
+# Change over time within one series: tested for survey estimates (overlapping ACS periods
+# adjusted), "untested" for a survey estimate without a margin of error, and taken at face
+# value for census counts and administrative or model-based series. Also the annual growth
+# rate of counts and the peak of series without sampling error.
+change_values <- function(v, ctx, mine, first, last, units, survey, is_count, nominal, series_note) {
+  if (nominal) {
+    v$change_sentence <- phrase(ctx, "nominal_only", list())
+    return(v)
+  }
+  th <- ctx$theme
+  v$change <- fmt_change(last$value, first$value, units, th)$text
+  moes <- c(first$moe, last$moe)
+  overlap <- period_overlap(first$period_start, first$period_end, last$period_start, last$period_end)
+  test <- diff_test(last$value, last$moe, first$value, first$moe, overlap = overlap)
+  testable <- survey && !anyNA(moes) && !all(moes %in% 0)
+  dir <- if (survey && anyNA(moes)) "untested" else
+    change_direction(last$value - first$value, if (testable) test$significant else NA)
+  wording <- c(up = "change_up", down = "change_down", not_significant = "change_ns", flat = "change_flat",
+               untested = "change_untested")
+  v$change_sentence <- trimws(paste(if (dir %in% names(wording)) phrase(ctx, wording[[dir]], v) else "", series_note))
+  years <- last$period_end - first$period_end
+  if (is_count && years > 0) {
+    v$annual_rate <- paste0(formatC(100 * annual_rate(first$value, last$value, years), format = "f", digits = 1), "%")
+  }
+  tp <- turning_points(mine$period_label, mine$value)
+  if (!is.na(tp$peak) && all(mine$moe %in% 0)) {
+    v$turning_sentence <- phrase(ctx, "peak", list(peak_period = tp$peak, peak_value = fmt_value(tp$peak_value, units, th)))
+  }
+  v
+}
+
+# Counts and indexes: growth in each benchmark over the same span (their levels would compare
+# areas of different sizes, or index levels that only express growth since the base year).
+growth_sentence <- function(ctx, res, metric_id, bms, first, last, v, units) {
+  items <- character()
+  for (bm in bms) {
+    b <- res[res$metric_id == metric_id & res$entity_id == bm$id & res$period %in% c(first$period, last$period) &
+               !is.na(res$value), , drop = FALSE]
+    if (nrow(b) != 2) next
+    b <- b[order(b$period_end), ]
+    items <- c(items, paste0(fmt_change(b$value[2], b$value[1], units, ctx$theme)$text, " in ", entity_text_label(bm, ctx)))
+  }
+  if (!length(items)) return("")
+  phrase(ctx, "growth_compare", list(first_period = v$first_period, latest_period = v$latest_period,
+                                     change = v$change %||% "", list = join_list(items, ctx), area_short = v$area_short))
+}
+
+# Levels against each benchmark in the latest period. Survey estimates are tested (with the
+# part-whole adjustment when a benchmark contains the study area); without margins of error a
+# survey difference is "untested", and other data are compared at face value ("about the
+# same" when both round to the same figure).
+benchmark_sentence <- function(ctx, res, metric_id, bms, focus, last, units, survey, settings) {
+  th <- ctx$theme
+  parts <- list(higher = character(), lower = character(), ns = character(), same = character(), untested = character())
+  for (bm in bms) {
+    b <- res[res$metric_id == metric_id & res$entity_id == bm$id & res$period == last$period, , drop = FALSE]
+    if (!nrow(b) || is.na(b$value)) next
+    share <- if (identical(focus$id, "study")) dependence_share(metric_id, bm, settings) else 0
+    t <- diff_test(last$value, last$moe, b$value, b$moe, part_share = share)
+    testable <- !is.na(last$moe) && !is.na(b$moe)
+    key <- if (testable && !t$significant) "ns" else
+      if (!testable && survey) "untested" else
+        if (!testable && fmt_value(last$value, units, th) == fmt_value(b$value, units, th)) "same" else
+          if (last$value > b$value) "higher" else "lower"
+    parts[[key]] <- c(parts[[key]], paste0(entity_text_label(bm, ctx), " (", fmt_value(b$value, units, th, b$bound), ")"))
+  }
+  clauses <- unlist(lapply(c("higher", "lower", "ns", "same"), function(k) {
+    if (length(parts[[k]])) phrase(ctx, paste0("bench_", k), list(list = join_list(parts[[k]], ctx)))
+  }))
+  out <- ""
+  if (length(clauses)) {
+    out <- phrase(ctx, "bench_sentence", list(parts = join_list(clauses, ctx), latest_period = last$period_label))
+  }
+  if (length(parts$untested)) {
+    out <- trimws(paste(out, phrase(ctx, "bench_untested", list(list = join_list(parts$untested, ctx)))))
+  }
+  out
+}
+
+# The area's position against the widest benchmark that contains it (usually the nation) in the
+# first and latest periods: the gap in percentage points for percentages, a ratio otherwise.
+# Same-year comparisons need no price adjustment. The change in the gap is not tested, so the
+# wording stays neutral (no "widened" or "narrowed").
+relation_sentence <- function(ctx, res, metric_id, bms, focus, mine, first, last, units) {
+  containing <- Filter(function(e) isTRUE(e$contains_study), bms)
+  if (!length(containing) || nrow(mine) < 2) return("")
+  ref <- containing[[length(containing)]]
+  rb <- res[res$metric_id == metric_id & res$entity_id == ref$id & !is.na(res$value) &
+              res$period %in% c(first$period, last$period), , drop = FALSE]
+  if (nrow(rb) != 2) return("")
+  rb <- rb[order(rb$period_end), ]
+  common <- list(benchmark = entity_text_label(ref, ctx), area_short = focus$short,
+                 first_period = first$period_label, latest_period = last$period_label)
+  if (unit_kind(units) == "percent") {
+    gap <- c(first$value - rb$value[1], last$value - rb$value[2])
+    side <- function(g) phrase(ctx, if (g >= 0) "side_above" else "side_below", list())
+    points <- formatC(abs(gap), format = "f", digits = 1)
+    return(phrase(ctx, "gap", c(common, list(gap_first = points[1], side_first = side(gap[1]),
+                                             gap_latest = points[2], side_latest = side(gap[2])))))
+  }
+  if (rb$value[1] <= 0 || rb$value[2] <= 0) return("")
+  phrase(ctx, "ratio_change", c(common, list(ratio_first = paste0(round(100 * first$value / rb$value[1]), "%"),
+                                             ratio_latest = paste0(round(100 * last$value / rb$value[2]), "%"))))
+}
 
 # Compare mode: list every area's latest value and whether it differs significantly from the
 # first shared benchmark. Areas are not ranked against each other (pairwise differences are
@@ -384,7 +439,7 @@ compare_values <- function(res, metric_id, ctx, settings) {
     flag <- ""
     if (use_ref && !is.na(r$moe) && !is.na(ref$moe)) {
       t <- diff_test(r$value, r$moe, ref$value, ref$moe)
-      flag <- if (!t$significant) phrase(ctx, "cmp_ns", list()) else if (r$value > ref$value) phrase(ctx, "cmp_above", list()) else phrase(ctx, "cmp_below", list())
+      flag <- phrase(ctx, if (!t$significant) "cmp_ns" else if (r$value > ref$value) "cmp_above" else "cmp_below", list())
     }
     paste0(s$short, " ", fmt_value(r$value, units, th, r$bound), flag)
   }, "")
@@ -427,24 +482,30 @@ method_note <- function(res, metric_id, ctx, settings) {
   prov <- get_provider(recipe_for(metric_id)$source_id)
   notes <- character()
   if (identical(prov$period_kind, "multiyear")) notes <- c(notes, phrase(ctx, "note_multiyear", list()))
-  if (any(ctx$study$pieces$type %in% c("place", "place_part", "cousub")) && any(res$entity_id == "study") &&
-      length(unique(res$period[res$entity_id == "study"])) > 1) notes <- c(notes, phrase(ctx, "note_legal_area", list()))
+  # A city's values over time follow its boundaries at each date, so annexations are part of change.
+  legal_area <- any(ctx$study$pieces$type %in% c("place", "place_part", "cousub")) &&
+    length(unique(res$period[res$entity_id == "study"])) > 1
+  if (legal_area) notes <- c(notes, phrase(ctx, "note_legal_area", list()))
   if (any(grepl("interpolated", res$method))) notes <- c(notes, phrase(ctx, "note_interpolated", list()))
-  if (any(res$status == "unreliable")) notes <- c(notes, phrase(ctx, "note_unreliable", list(cv = settings$cv_unreliable)))
+  if (any(res$status == "unreliable")) {
+    notes <- c(notes, phrase(ctx, "note_unreliable", list(cv = settings$cv_unreliable)))
+  }
   if (any(res$status == "imputed")) notes <- c(notes, phrase(ctx, "note_imputed", list()))
   if (nzchar(doc$breaks)) notes <- c(notes, doc$breaks)
   paste(notes, collapse = " ")
 }
 
 # History events drawn on a chart: events for the study area, its parents or the nation that
-# concern the metric's catalog subtopic (history_events.csv `subtopics`) and fall inside the
-# plotted years. Definitional and boundary changes are drawn as breaks; national events that
-# span a period (recessions) are shaded. Other events appear only in the history list.
-chart_events <- function(ctx, metric_id, res) {
+# concern the metric's catalog subtopic (history_events.csv `subtopics`), apply to one of the
+# plotted sources (`sources`; blank means any) and fall inside the plotted years. Definitional
+# and boundary changes are drawn as breaks; national events that span a period (recessions)
+# are shaded. Other events appear only in the history list.
+chart_events <- function(ctx, metric_id, res, sources) {
   ev <- ctx$events
   if (is.null(ev) || !nrow(ev) || !nrow(res)) return(NULL)
   topic <- metric_doc(metric_id)$subtopic_id
-  ev <- ev[vapply(ev$subtopics, function(s) topic %in% split_list(s), TRUE), , drop = FALSE]
+  ev <- ev[vapply(ev$subtopics, function(s) topic %in% split_list(s), TRUE) &
+             vapply(ev$sources, function(s) is_blank(s) || any(sources %in% split_list(s)), TRUE), , drop = FALSE]
   ev$draw <- ifelse(ev$evidence_type %in% c("definitional_change", "boundary_change"), "break",
                     ifelse(ev$geo_scope == "nation" & nzchar(ev$end_date), "shade", ""))
   ev$year <- as.integer(substr(ev$start_date, 1, 4))
@@ -480,11 +541,11 @@ compute_block_composition <- function(row, ctx, settings, opts) {
   study <- res[res$entity_id == ctx$study$id & !is.na(res$value), , drop = FALSE]
   if (!nrow(study)) {
     reasons <- unique(res$method[nzchar(res$method)])
+    no_data <- phrase(ctx, "no_data", list(metric_sentence = lower_first(members$group[1]), area = ctx$area$short,
+                                           reason = reasons[1] %||% ""))
     return(list(data = list(results = res, categories = members$category), figure = FALSE,
-                values = list(summary_sentence = phrase(ctx, "no_data", list(metric_sentence = lower_first(members$group[1]),
-                                                                            area = ctx$area$short, reason = reasons[1] %||% "")),
-                              change_sentence = "", method_note = "", area_short = ctx$area$short, latest_period = "",
-                              largest_category = "", largest_share = ""),
+                values = list(summary_sentence = no_data, change_sentence = "", method_note = "",
+                              area_short = ctx$area$short, latest_period = "", largest_category = "", largest_share = ""),
                 fields = c("title", "prose", "source_note"),
                 sources = source_row(members$source_id[1], metric_doc(members$metric_id[1])$table_or_series),
                 unavailable = block_unavailable_rows(res, row$id, ctx)))
@@ -493,12 +554,12 @@ compute_block_composition <- function(row, ctx, settings, opts) {
   now <- study[study$period_end == latest_p, , drop = FALSE]
   top <- now[which.max(now$value), ]
   th <- ctx$theme
+  # Categories share one source table, so their documented breaks repeat; keep the first.
+  breaks <- unique(stats::na.omit(unlist(lapply(members$metric_id, function(m) metric_doc(m)$breaks))))
   v <- list(largest_category = as.character(top$category), largest_share = fmt_value(top$value, "percent", th),
             latest_period = if (nrow(now)) now$period_label[1] else "",
             group_label = members$group[1], summary_sentence = "", change_sentence = "",
-            # Categories share one source table, so their breaks repeat; keep the first.
-            method_note = unique(stats::na.omit(unlist(lapply(members$metric_id, function(m) metric_doc(m)$breaks))))[1] %||% "",
-            area_short = ctx$area$short)
+            method_note = breaks[1] %||% "", area_short = ctx$area$short)
   v$summary_sentence <- phrase(ctx, "composition_summary", c(v, list(area = ctx$area$short)))
   if (isTRUE(ctx$compare)) {
     # Each compared area's largest group; the areas are not ranked against each other.
@@ -508,7 +569,8 @@ compute_block_composition <- function(row, ctx, settings, opts) {
       x <- x[which.max(x$value), ]
       paste0(x$category, " in ", s$short, " (", fmt_value(x$value, "percent", th), ")")
     }, "")
-    v$summary_sentence <- phrase(ctx, "composition_compare", list(latest_period = v$latest_period, list = join_list(tops, ctx)))
+    v$summary_sentence <- phrase(ctx, "composition_compare",
+                                 list(latest_period = v$latest_period, list = join_list(tops, ctx)))
   }
   firsts <- study[study$period_end == min(study$period_end), , drop = FALSE]
   if (nrow(firsts) && min(study$period_end) < latest_p) {
@@ -522,13 +584,13 @@ compute_block_composition <- function(row, ctx, settings, opts) {
     big <- big[order(-abs(big$diff)), , drop = FALSE]
     if (nrow(big)) {
       b <- big[1, ]
-      v$change_sentence <- phrase(ctx, "composition_change",
-                                  list(category = as.character(b$category),
-                                       first = fmt_value(b$value_1, "percent", th), latest = fmt_value(b$value_2, "percent", th),
-                                       first_period = b$period_label_1, latest_period = b$period_label_2,
-                                       change = fmt_change(b$value_2, b$value_1, "percent", th)$text))
+      v$change_sentence <- phrase(ctx, "composition_change", list(
+        category = as.character(b$category), first = fmt_value(b$value_1, "percent", th),
+        latest = fmt_value(b$value_2, "percent", th), first_period = b$period_label_1,
+        latest_period = b$period_label_2, change = fmt_change(b$value_2, b$value_1, "percent", th)$text))
     } else {
-      v$change_sentence <- phrase(ctx, "composition_stable", list(first_period = firsts$period_label[1], latest_period = v$latest_period))
+      v$change_sentence <- phrase(ctx, "composition_stable",
+                                  list(first_period = firsts$period_label[1], latest_period = v$latest_period))
     }
   }
   list(data = list(results = res, categories = members$category),
@@ -546,7 +608,9 @@ compute_block_composition <- function(row, ctx, settings, opts) {
 compute_block_distribution <- function(row, ctx, settings, opts) {
   metric_id <- split_list(row$metrics)[1]
   recipe <- recipe_for(metric_id)
-  if (is_blank(recipe$bins_table)) stop("Block '", row$id, "': metric ", metric_id, " has no bins_table.", call. = FALSE)
+  if (is_blank(recipe$bins_table)) {
+    stop("Block '", row$id, "': metric ", metric_id, " has no bins_table.", call. = FALSE)
+  }
   release <- utils::tail(metric_periods(recipe, settings), 1)
   bins <- acs_bins(recipe$bins_table, release)
   bm <- Filter(function(e) e$role == "benchmark" && isTRUE(e$contains_study), ctx$entities)
@@ -599,7 +663,7 @@ compute_block_facts <- function(row, ctx, settings, opts) {
     r$flag <- ""
     for (i in which(r$entity_id != ref_entity$id)) {
       other <- ctx$entities[[match(r$entity_id[i], et$entity_id)]]
-      if (comparable_stat(m) && nrow(ref) && !is.na(ref$value) && !is.na(r$value[i]) && !is.na(ref$moe) && !is.na(r$moe[i])) {
+      if (comparable_stat(m) && nrow(ref) && !anyNA(c(ref$value, r$value[i], ref$moe, r$moe[i]))) {
         share <- if (identical(ref_entity$id, "study")) dependence_share(m, other, settings) else 0
         t <- diff_test(ref$value, ref$moe, r$value[i], r$moe[i], part_share = share)
         if (t$significant) r$flag[i] <- "*"
@@ -616,7 +680,7 @@ compute_block_facts <- function(row, ctx, settings, opts) {
                      flag_reference = ref_entity$short),
        fields = c("title", "prose", "caption", "note", "source_note", "labels"),
        labels = labels,
-       sources = do.call(rbind, lapply(metrics, function(m) source_row(recipe_for(m)$source_id, metric_doc(m)$table_or_series))),
+       sources = metric_sources(metrics),
        unavailable = block_unavailable_rows(res, row$id, ctx),
        table = TRUE)
 }
@@ -626,19 +690,22 @@ compute_block_facts <- function(row, ctx, settings, opts) {
 compute_block_history <- function(row, ctx, settings, opts) {
   ev <- ctx$events
   subjects <- split_list(opts$subjects, ",")
-  if (!is.null(ev) && length(subjects)) ev <- ev[vapply(ev$subjects, function(s) any(split_list(s) %in% subjects), TRUE), , drop = FALSE]
+  if (!is.null(ev) && length(subjects)) {
+    ev <- ev[vapply(ev$subjects, function(s) any(split_list(s) %in% subjects), TRUE), , drop = FALSE]
+  }
   local <- if (!is.null(ev)) ev[ev$geo_scope != "nation", , drop = FALSE] else NULL
   national <- if (!is.null(ev)) ev[ev$geo_scope == "nation", , drop = FALSE] else NULL
   # National events (recessions, definitional changes) annotate charts; the list shows them
   # only when the block option national=true asks for it.
   include_national <- as_flag(opts$national, FALSE)
   shown <- rbind(local, if (include_national) national)
-  if (!is.null(shown) && nrow(shown)) shown <- shown[order(shown$start_date), , drop = FALSE]
+  any_shown <- !is.null(shown) && nrow(shown) > 0
+  if (any_shown) shown <- shown[order(shown$start_date), , drop = FALSE]
   list(data = list(events = shown),
        values = list(n_events = if (is.null(shown)) 0 else nrow(shown), area = ctx$area$short),
        fields = c("title", "prose", "note"),
-       event_fields = if (!is.null(shown) && nrow(shown)) paste0("event.", shown$event_id) else character(),
-       sources = if (!is.null(shown) && nrow(shown)) source_row("history_events", paste(unique(shown$publisher), collapse = "; ")) else NULL,
+       event_fields = if (any_shown) paste0("event.", shown$event_id) else character(),
+       sources = if (any_shown) source_row("history_events", paste(unique(shown$publisher), collapse = "; ")),
        table = FALSE)
 }
 
@@ -664,18 +731,17 @@ compute_block_availability <- function(row, ctx, settings, opts) {
 # rules as built-in blocks), formatting, statistics and the theme. Modules never fetch raw
 # data themselves unless they read a local file named in their options.
 module_context <- function(ctx, settings, opts) {
+  et <- entity_table(ctx)
+  metric <- function(metric_id, entities = ctx$entities, periods = NULL) {
+    r <- compute_metric(metric_id, entities, settings, periods)
+    r$label <- et$label[match(r$entity_id, et$entity_id)]
+    r
+  }
   list(area = ctx$area, study = ctx$study, studies = ctx$studies, benchmarks = ctx$benchmarks,
        entities = ctx$entities, settings = settings, options = opts, theme = ctx$theme,
-       metric = function(metric_id, entities = ctx$entities, periods = NULL) {
-         r <- compute_metric(metric_id, entities, settings, periods)
-         r$label <- vapply(r$entity_id, function(id) ctx$entities[[which(vapply(ctx$entities, `[[`, "", "id") == id)]]$short, "")
-         r
-       },
+       metric = metric,
        latest = function(metric_id, entities = ctx$entities) {
-         recipe <- recipe_for(metric_id)
-         r <- compute_metric(metric_id, entities, settings, utils::tail(metric_periods(recipe, settings), 1))
-         r$label <- vapply(r$entity_id, function(id) entities[[which(vapply(entities, `[[`, "", "id") == id)]]$short, "")
-         r
+         metric(metric_id, entities, utils::tail(metric_periods(recipe_for(metric_id), settings), 1))
        },
        fmt = function(x, units) fmt_value(x, units, ctx$theme),
        stats = list(moe_sum = moe_sum, moe_prop = moe_prop, moe_ratio = moe_ratio, diff_test = diff_test),

@@ -179,7 +179,9 @@ render_block_map <- function(b, txt, th) {
   } else tr$fill_class <- ifelse(has_value, "All tracts", "No data")
   lv <- c(levels(bins), "All tracts", "No data")
   tr$fill_class <- factor(tr$fill_class, levels = lv[lv %in% tr$fill_class])
-  cols <- c(stats::setNames(pal[seq_len(max(0, length(breaks) - 1))], utils::head(levels(bins), length(breaks) - 1)),
+  # Fewer classes than colors: use the darkest ones, so the lowest class stays visible on the page.
+  n <- max(0, length(breaks) - 1)
+  cols <- c(stats::setNames(pal[seq_len(n) + length(pal) - n], utils::head(levels(bins), n)),
             `All tracts` = pal[3], `No data` = th$color_missing)
   shapes <- sf::st_transform(tr, crs)
   unreliable <- shapes[tr$class == "Unreliable estimate", ]
@@ -190,7 +192,8 @@ render_block_map <- function(b, txt, th) {
                      color = th$color_text, linewidth = 0.25)
   }
   p + geom_sf(data = sf::st_transform(d$outline, crs), fill = NA, color = th$color_text, linewidth = 0.7) +
-    scale_fill_manual(values = cols, name = txt$legend_title, drop = TRUE) +
-    scale_linetype_manual(values = c(`Unreliable estimate (CV above threshold)` = "22"), name = NULL) +
+    scale_fill_manual(values = cols, name = txt$legend_title, drop = TRUE, guide = guide_legend(order = 1)) +
+    scale_linetype_manual(values = c(`Unreliable estimate (CV above threshold)` = "22"), name = NULL,
+                          guide = guide_legend(order = 2)) +
     coord_sf(crs = crs, datum = NA) + map_theme(th)
 }

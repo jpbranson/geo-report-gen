@@ -103,12 +103,16 @@ code_version <- function(files) hash_files(root_path(files))
 
 # Configuration and content tables are read as character columns only: no type
 # guessing (GEOIDs keep leading zeros), empty cells stay "", multiline cells survive.
+# Line breaks inside cells become "\n" whatever program saved the file, so a spreadsheet
+# round trip does not look like an edit.
 read_table <- function(path) {
   if (!file.exists(path)) stop("Missing table: ", path)
   df <- readr::read_csv(path, col_types = readr::cols(.default = readr::col_character()),
                         na = character(), trim_ws = FALSE, progress = FALSE,
                         show_col_types = FALSE, locale = readr::locale(encoding = "UTF-8"))
-  as.data.frame(df, stringsAsFactors = FALSE)
+  df <- as.data.frame(df, stringsAsFactors = FALSE)
+  df[] <- lapply(df, function(x) gsub("\r\n", "\n", x, fixed = TRUE))
+  df
 }
 
 # Written as UTF-8 with a byte-order mark so Excel opens Unicode text correctly;

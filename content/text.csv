@@ -177,6 +177,7 @@ pcpi-trend.prose,default,"{summary_sentence} {relation_sentence} The chart shows
 lake-map.title,default,Poverty within {area_short},2026-09-28T00:00:00,,
 income-map-lake.title,default,Household income within {area_short},2026-09-28T00:00:00,,
 childcare-gap.title,default,Licensed child care slots per 100 young children,2026-09-28T00:00:00,,
+childcare-gap.x_label,default,Licensed slots per 100 children under 5,2026-09-28T00:00:00,,
 @custom.title,default,{module_title},2026-09-28T00:00:00,,
 @custom.prose,default,{summary_sentence},2026-09-28T00:00:00,,
 @custom.caption,default,{module_title},2026-09-28T00:00:00,,

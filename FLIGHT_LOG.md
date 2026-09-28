@@ -151,7 +151,26 @@ human-legible as possible (complexity/verbosity is not better). Keep PLAN.md and
   copies). Fixed: cached() returns the stored copy; verified (rebuild after a fresh computation
   is "up to date", 0 misses).
 - 17:12: tests 115 pass; full batch 78 s, 0 requests, 11/12 (the rejection is intended).
-- WRAP-UP at the user's request (17:15). Next steps when resuming: run demos/round_trip.R (written,
-  never run); visual review of lake-in maps, kc-core/tx-cities/ct-capitol (civic theme) and the
-  custom module chart; restructure R/blocks.R with a before/after diff of every report's
-  _snapshot/values.json and report.qmd; PDF (typst) check; final lean review; commit.
+- WRAP-UP at the user's request (17:15). Committed da4310c. Reported to the user.
+
+### 2026-09-28 ~17:20- (session 3, step 2)
+User: update PLAN.md and this log, then do these four in order and check back (tracked in PLAN.md
+"Current step"): (1) run demos/round_trip.R; (2) visual review of lake-in maps, tx-cities
+comparison, ct-capitol civic theme, austin-tx custom child care chart; (3) restructure R/blocks.R
+and prove every report's _snapshot/values.json and report.qmd are unchanged; (4) PDF (Typst) check.
+- (1) round trip 10/10 after two fixes: read_table() turns CRLF inside cells into LF (a
+  spreadsheet round trip had looked like an edit); the demo refreshes BEA (a city never reads the
+  1900-1990 county counts). Test added for CRLF.
+- (2) Fixed: map classes use the darkest palette colors, fill legend first; compare-mode trend
+  charts skip period bars when several areas are described; break labels one per year on
+  alternating rows; history_events.csv has a `sources` column so a break is drawn only on the
+  sources it applies to (CT planning regions: ACS/PEP/CBP/BPS, not FHFA or LAUS); custom chart axis
+  title (text.csv childcare-gap.x_label). Civic theme verified on prose, tables, notes, links.
+- (3) blocks.R: compute_block_metric + metric_values split into block_periods, add_index,
+  observed_values, change_values, growth_sentence, benchmark_sentence, relation_sentence;
+  metric_sources helper; long lines 35 -> 14. Proof: scratchpad fingerprints.R (values.json,
+  report.qmd without the date, digest of each block's data) baseline vs after: 239 items, 0 diffs;
+  control run (no change) also 0 diffs.
+- (4) PDF: `--formats typst` works; generated qmd now has a typst format (toc, numbering,
+  papersize from theme, mainfont, 8pt tables); README documents the basic layout.
+- 17:35: tests 116 pass; full batch 84 s, 0 requests, 11/12 (intended rejection). Committed.

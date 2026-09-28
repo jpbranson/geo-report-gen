@@ -40,8 +40,15 @@ Everything runs through one entry point, `Rscript gr.R <command>`:
 | `verify` | live checks of every operational source (appends to `catalog/verification_log.csv`) |
 | `test` | automated tests (offline, with fixtures) |
 
-Options: `--offline` (cache only), `--refresh <source,...>` (re-download), `--force` (re-render),
+Options: `--offline` (cache only), `--refresh <source,...>` (re-download the raw files in those
+`cache/raw/<source>` folders, e.g. `census_acs5`, `bls`, `bea`), `--force` (re-render),
 `--no-render`, `--workers <n>`, `--formats html,typst`.
+
+PDF: `--formats typst` (or `--formats html,typst`) also writes `reports/<id>/report.pdf` through
+Quarto's Typst engine, with the same text, tables, charts and maps, a table of contents and
+numbered sections, in the theme's font and paper size. The page layout is basic: a figure or
+table that does not fit moves to the next page and can leave white space, and tables use a
+smaller font. HTML is the primary format.
 
 ## From configuration to report
 
@@ -78,7 +85,7 @@ the inputs' hashes and every raw file used.
 | `config/themes.csv` | `theme`, `key`, `value`, `note`; a theme overrides the `default` rows it names |
 | `profiles/*.csv`, `config/manifests/*.csv` | `id`, `type` (section, subsection, block, metric, text, custom), `ref`, `enabled`, `compare`, `viz`, `options` (`key=value; ...`) |
 | `content/text.csv` | `field_id`, `scope`, `text` (or `@prose/<file>.md`), `updated`, `fixed_facts`, `note` |
-| `content/history_events.csv` | cited events: dates, `geo_scope`, `subjects`, `subtopics`, `statement`, `evidence_type`, source and access date |
+| `content/history_events.csv` | cited events: dates, `geo_scope`, `subjects`, `subtopics`, `sources` (the data a definitional or boundary break applies to; blank for all), `statement`, `evidence_type`, citation and access date |
 | `catalog/*.csv` | subjects, sources, metrics (documentation), recipes (computation), blocks, geography support |
 
 ## Geography

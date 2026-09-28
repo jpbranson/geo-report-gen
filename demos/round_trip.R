@@ -16,7 +16,7 @@ env <- c("current", GR_ROOT = work, GR_CACHE = file.path(root, "cache"),
 gr <- function(...) {
   res <- processx::run(file.path(R.home("bin"), "Rscript"), c("--vanilla", "gr.R", ...), wd = work, env = env,
                        error_on_status = FALSE)
-  paste(res$stdout, res$stderr)
+  invisible(paste(res$stdout, res$stderr))
 }
 path <- function(...) file.path(work, ...)
 read <- function(p) readLines(p, warn = FALSE, encoding = "UTF-8")
@@ -54,10 +54,10 @@ r <- read(path("config", "reports.csv"))
 r <- sub("^gary-in,place:1827000,single,,general,,", "gary-in,place:1827000,single,,general,config/manifests/gary-in.csv,", r)
 write(r, path("config", "reports.csv"))
 
-cat("5. Rebuild with a data refresh (1900-1990 county counts re-downloaded)\n")
-downloads <- function() sum(grepl("\tcensus_hist\t", read(file.path(root, "cache", "requests.log"))))
+cat("5. Rebuild with a data refresh (BEA county income file re-downloaded)\n")
+downloads <- function() sum(grepl("\tbea\t", read(file.path(root, "cache", "requests.log"))))
 before <- downloads()
-out <- gr("build", "gary-in", "--refresh", "census_hist")
+out <- gr("build", "gary-in", "--refresh", "bea")
 q <- read(qmd)
 html <- paste(read(path("reports", "gary-in", "report.html")), collapse = "\n")
 check("inline prose survived the rebuild", any(grepl("(prose edited inline)", q, fixed = TRUE)))

@@ -48,16 +48,21 @@ plot_trend <- function(b, txt, th) {
     }
     breaks <- ev[ev$draw == "break", , drop = FALSE]
     if (nrow(breaks)) {
+      # One label per year (events of the same year are joined), on alternating rows so that
+      # labels of neighbouring breaks do not overprint.
+      breaks <- stats::aggregate(label ~ year, data = breaks, FUN = function(x) paste(unique(x), collapse = "; "))
+      breaks$vjust <- 1.2 + 1.4 * ((seq_len(nrow(breaks)) - 1) %% 2)
       p <- p + geom_vline(data = breaks, aes(xintercept = year), inherit.aes = FALSE,
                           linetype = "22", color = th$color_muted, linewidth = 0.35) +
-        geom_text(data = breaks, aes(x = year, y = Inf, label = event_label(label, txt, event_id)),
-                  inherit.aes = FALSE, vjust = 1.2, hjust = -0.03, size = 2.6, color = th$color_muted, family = fam)
+        geom_text(data = breaks, aes(x = year, y = Inf, label = label, vjust = vjust),
+                  inherit.aes = FALSE, hjust = -0.03, size = 2.6, color = th$color_muted, family = fam)
     }
   }
   # The area being described is emphasized; benchmarks are thinner and carry no spans or
   # error bars (their values and margins are in the text and tables).
   focus <- if (any(shown$role == "study")) shown$role == "study" else shown$label == shown$label[1]
   spans <- shown[shown$kind == "multiyear" & focus, , drop = FALSE]
+  if (length(unique(spans$label)) > 1) spans <- spans[0, ]   # period bars of several areas would overlap
   if (nrow(spans)) {
     p <- p + geom_segment(data = spans, aes(x = period_start, xend = period_end + 0.98, y = y, yend = y),
                           linewidth = 1.6, alpha = 0.35, lineend = "butt")
@@ -101,10 +106,6 @@ pretty_years <- function(r) {
   by <- if (span > 60) 10 else if (span > 25) 5 else if (span > 10) 2 else 1
   breaks <- seq(ceiling(r[1] / by) * by, floor(r[2] / by) * by, by = by)
   if (length(breaks) < 2) round(r) else breaks
-}
-
-event_label <- function(label, txt, event_id) {
-  vapply(seq_along(label), function(i) (txt$event_labels %||% list())[[event_id[i]]] %||% label[i], "")
 }
 
 plot_compare <- function(b, txt, th) {

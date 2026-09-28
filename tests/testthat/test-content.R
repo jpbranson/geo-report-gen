@@ -33,6 +33,12 @@ test_that("CSV tables keep Unicode, commas, quotes, line breaks and leading zero
   expect_equal(read_table(path), df)
 })
 
+test_that("line breaks saved as CRLF by another program read back as LF", {
+  path <- tempfile(fileext = ".csv")
+  writeBin(charToRaw("id,text\r\n1,\"first\r\nsecond\"\r\n"), path)
+  expect_equal(read_table(path)$text, "first\nsecond")
+})
+
 test_that("manifests reject duplicate ids, unknown blocks and rows before the first section", {
   m <- data.frame(id = c("intro", "intro", "x"), type = c("text", "section", "block"), ref = c("intro", "", "nope"),
                   enabled = "TRUE", compare = "", viz = "", options = "")
