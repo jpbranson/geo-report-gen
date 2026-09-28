@@ -1,0 +1,11 @@
+report_id,geography,mode,label,profile,manifest,vintage,enabled,note
+gary-in,place:1827000,single,,general,,,TRUE,"Census place in one county: all parent benchmarks (county, state, region, nation); long decline history with cited context"
+austin-tx,place:4805000,single,,early-childhood,,,TRUE,"Census place intersecting four counties (Travis, Williamson, Hays, Bastrop); early-childhood profile"
+austin-core,county:48453 + county:48491 + county:48209,union,"Travis, Williamson and Hays counties",economic-development,,,TRUE,Same-state union of three counties
+kc-core,county:29095 + county:20091 + county:20209,union,Kansas City core counties (MO and KS),economic-development,,,TRUE,Multi-state union: intersecting states shown separately; shared ancestor Midwest region
+travis-austin,county:48453 + place:4805000,union,Travis County and the City of Austin,general,,,TRUE,Overlapping county and place resolved with published place-by-county parts
+austin-78704,zcta:78704 + place:4805000,union,,general,,,TRUE,Overlapping ZCTA and place: rejected with an explanation (demonstrates isolated failure)
+ct-capitol,county:09110,single,,general,,,TRUE,Connecticut planning region (county-equivalent since 2022): boundary change breaks county history
+lake-in,county:18089,single,,general,config/manifests/lake-in.csv,,TRUE,County report with a within-area tract map and no parent charts where unnecessary
+tx-cities,place:4805000 + place:4819000 + place:4835000 + place:4865000,compare,Texas's four largest cities,general,,,TRUE,"Comparison of Austin, Dallas, Houston and San Antonio side by side"
+in-cities,place:1827000 + place:1836003 + place:1871000,separate,,general,,,TRUE,"One report per city (Gary, Indianapolis, South Bend) from one list"

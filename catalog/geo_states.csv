@@ -1,0 +1,57 @@
+state,usps,name,region,region_name,division,division_name,in_nation,note
+01,AL,Alabama,3,South,6,East South Central,TRUE,
+02,AK,Alaska,4,West,9,Pacific,TRUE,County-equivalents are boroughs and census areas; Valdez-Cordova split in 2019
+04,AZ,Arizona,4,West,8,Mountain,TRUE,
+05,AR,Arkansas,3,South,7,West South Central,TRUE,
+06,CA,California,4,West,9,Pacific,TRUE,
+08,CO,Colorado,4,West,8,Mountain,TRUE,
+09,CT,Connecticut,1,Northeast,1,New England,TRUE,Planning regions replaced the 8 counties as county-equivalents from 2022 data
+10,DE,Delaware,3,South,5,South Atlantic,TRUE,
+11,DC,District of Columbia,3,South,5,South Atlantic,TRUE,State-equivalent; also a county-equivalent and a place (all coterminous)
+12,FL,Florida,3,South,5,South Atlantic,TRUE,
+13,GA,Georgia,3,South,5,South Atlantic,TRUE,
+15,HI,Hawaii,4,West,9,Pacific,TRUE,
+16,ID,Idaho,4,West,8,Mountain,TRUE,
+17,IL,Illinois,2,Midwest,3,East North Central,TRUE,
+18,IN,Indiana,2,Midwest,3,East North Central,TRUE,
+19,IA,Iowa,2,Midwest,4,West North Central,TRUE,
+20,KS,Kansas,2,Midwest,4,West North Central,TRUE,
+21,KY,Kentucky,3,South,6,East South Central,TRUE,
+22,LA,Louisiana,3,South,7,West South Central,TRUE,County-equivalents are parishes
+23,ME,Maine,1,Northeast,1,New England,TRUE,
+24,MD,Maryland,3,South,5,South Atlantic,TRUE,Baltimore city is a county-equivalent
+25,MA,Massachusetts,1,Northeast,1,New England,TRUE,
+26,MI,Michigan,2,Midwest,3,East North Central,TRUE,
+27,MN,Minnesota,2,Midwest,4,West North Central,TRUE,
+28,MS,Mississippi,3,South,6,East South Central,TRUE,
+29,MO,Missouri,2,Midwest,4,West North Central,TRUE,St. Louis city is a county-equivalent
+30,MT,Montana,4,West,8,Mountain,TRUE,
+31,NE,Nebraska,2,Midwest,4,West North Central,TRUE,
+32,NV,Nevada,4,West,8,Mountain,TRUE,Carson City is a county-equivalent
+33,NH,New Hampshire,1,Northeast,1,New England,TRUE,
+34,NJ,New Jersey,1,Northeast,2,Middle Atlantic,TRUE,
+35,NM,New Mexico,4,West,8,Mountain,TRUE,
+36,NY,New York,1,Northeast,2,Middle Atlantic,TRUE,
+37,NC,North Carolina,3,South,5,South Atlantic,TRUE,
+38,ND,North Dakota,2,Midwest,4,West North Central,TRUE,
+39,OH,Ohio,2,Midwest,3,East North Central,TRUE,
+40,OK,Oklahoma,3,South,7,West South Central,TRUE,
+41,OR,Oregon,4,West,9,Pacific,TRUE,
+42,PA,Pennsylvania,1,Northeast,2,Middle Atlantic,TRUE,
+44,RI,Rhode Island,1,Northeast,1,New England,TRUE,
+45,SC,South Carolina,3,South,5,South Atlantic,TRUE,
+46,SD,South Dakota,2,Midwest,4,West North Central,TRUE,
+47,TN,Tennessee,3,South,6,East South Central,TRUE,
+48,TX,Texas,3,South,7,West South Central,TRUE,
+49,UT,Utah,4,West,8,Mountain,TRUE,
+50,VT,Vermont,1,Northeast,1,New England,TRUE,
+51,VA,Virginia,3,South,5,South Atlantic,TRUE,Independent cities are county-equivalents; Bedford city merged into Bedford County in 2013
+53,WA,Washington,4,West,9,Pacific,TRUE,
+54,WV,West Virginia,3,South,5,South Atlantic,TRUE,
+55,WI,Wisconsin,2,Midwest,3,East North Central,TRUE,
+56,WY,Wyoming,4,West,8,Mountain,TRUE,
+72,PR,Puerto Rico,,,,,FALSE,"Not in a Census region; ACS publishes Puerto Rico separately (Puerto Rico Community Survey), outside U.S. totals"
+60,AS,American Samoa,,,,,FALSE,Island Area: not covered by the ACS; decennial Island Areas data only
+66,GU,Guam,,,,,FALSE,Island Area: not covered by the ACS; decennial Island Areas data only
+69,MP,Northern Mariana Islands,,,,,FALSE,Island Area: not covered by the ACS; decennial Island Areas data only
+78,VI,U.S. Virgin Islands,,,,,FALSE,Island Area: not covered by the ACS; decennial Island Areas data only

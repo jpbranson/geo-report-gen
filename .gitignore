@@ -1,0 +1,19 @@
+﻿# Machine-specific settings and secrets
+.env
+.Renviron
+
+# Shared data cache and generated reports (rebuild with: Rscript gr.R batch)
+cache/
+reports/
+
+# R / renv
+.Rhistory
+.RData
+.Rproj.user/
+renv/library/
+renv/local/
+renv/staging/
+
+# Tools
+.quarto/
+.claude/

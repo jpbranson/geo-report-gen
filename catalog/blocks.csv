@@ -1,0 +1,42 @@
+block_id,subject_id,kind,metrics,compare,viz,options,description
+intro,overview,text,,none,,,Introductory prose (text only)
+locator,overview,locator,,none,map,,Map locating the study area and its benchmarks
+key-facts,overview,facts,pop_total_acs;median_age_acs;median_household_income_acs;poverty_rate_acs;owner_occupied_share_acs;bachelors_plus_share_acs,parents,table,,Headline indicators for the study area and benchmarks (latest period)
+history-context,overview,history,,none,list,,Cited historical context events for the area and nation
+pop-history,demographics,metric,pop_total_dec,time,line,history_start=2000,Population by census (decennial counts)
+pop-growth,demographics,metric,pop_total_dec,time+parents,line,index=first; history_start=2000,Population growth indexed to the first census shown (study area and benchmarks)
+age-structure,demographics,composition,group:age_groups,time,stacked_bar,,Age structure over non-overlapping ACS periods (no parent chart)
+race-ethnicity,demographics,composition,group:race_ethnicity,time,stacked_bar,"periods=2019,2024",Race and Hispanic origin (2015-2019 vs 2020-2024; coding break noted)
+median-age,demographics,metric,median_age_acs,parents,dot,,Median age compared with benchmarks
+income-trend,income_poverty_hardship,metric,median_household_income_acs,time+parents,line,,Median household income over time in constant dollars
+income-distribution,income_poverty_hardship,distribution,median_household_income_acs,distribution,bar,,Household income distribution (study area vs widest containing benchmark)
+per-capita-income,income_poverty_hardship,metric,per_capita_income_acs,time+parents,line,,Per capita income over time in constant dollars
+poverty-trend,income_poverty_hardship,metric,poverty_rate_acs,time+parents,line,,Poverty rate over time
+child-poverty,children_early_childhood,metric,child_poverty_rate_acs,time+parents,line,,Child poverty rate
+labor-force,employment_labor,metric,labor_force_participation_acs,time+parents,line,,Labor force participation
+education,education,metric,bachelors_plus_share_acs,time+parents,line,,Adults with a bachelor's degree or higher
+snap,income_poverty_hardship,metric,snap_households_share_acs,parents,dot,,Households receiving SNAP
+housing-units-history,housing,metric,housing_units_dec,time,line,history_start=2000,Housing units by census
+tenure-trend,housing,metric,owner_occupied_share_acs,time+parents,line,,Homeownership rate over time
+home-value-trend,housing,metric,median_home_value_acs,time+parents,line,,Median home value over time in constant dollars
+rent-trend,housing,metric,median_gross_rent_acs,time+parents,line,,Median gross rent over time in constant dollars
+rent-burden,housing,metric,rent_burden_30plus_share_acs,time+parents,line,,Renters paying 30% or more of income on rent
+vacancy,housing,metric,vacancy_rate_acs,parents,dot,,Vacancy rate
+young-children,children_early_childhood,metric,children_under5_acs,time,line,,Children under 5 over time (study area only)
+working-parents,childcare,metric,children_under6_all_parents_working_share_acs,time+parents,line,,Young children whose parents all work (potential need for care)
+commute,transportation,metric,mean_commute_minutes_acs,parents,dot,,Mean travel time to work
+broadband,broadband,metric,broadband_households_share_acs,parents,dot,,Households with broadband (short history)
+poverty-map,income_poverty_hardship,map,poverty_rate_acs,within,map,,Poverty rate by census tract within the study area
+income-map,income_poverty_hardship,map,median_household_income_acs,within,map,,Median household income by census tract within the study area
+availability,appendix,availability,,none,table,,Measures not shown and why
+sources,appendix,sources,,none,list,,"Geography, benchmarks and sources"
+pop-long-history,demographics,metric,pop_hist_census;pop_total_dec;pop_estimate_pep,time,line,history_start=1900,Population across the longest available record: census counts 1900-2020 and annual estimates 2000-2025
+pop-estimates,demographics,metric,pop_estimate_pep,time+parents,line,index=first; history_start=2000,"Annual population estimates indexed to 2000, by estimate series (not spliced)"
+unemployment-trend,employment_labor,metric,unemployment_rate_laus,time+parents,line,history_start=1990,Annual unemployment rate since 1990 with recessions shaded
+pcpi-trend,income_poverty_hardship,metric,per_capita_personal_income_bea,time+parents,line,index=relative; history_start=1969,Per capita personal income since 1969 (county context for places)
+house-prices,housing,metric,house_price_index_fhfa,time+parents,line,history_start=1990,House price index (2000 = 100)
+permits-trend,housing,metric,housing_units_authorized_bps,time,line,history_start=2000,New housing units authorized each year
+childcare-prices,childcare,metric,childcare_price_center_infant_ndcp,time+parents,line,history_start=2008,Weekly price of center-based infant care (county)
+childcare-affordability,childcare,metric,childcare_price_infant_share_income_ndcp,time+parents,line,history_start=2008,Infant care price as a share of median family income
+childcare-establishments,childcare,metric,childcare_establishments_cbp,time,line,history_start=1998,Child day care establishments with employees (not slots)
+childcare-capacity,childcare,facts,childcare_capacity_tx;children_under5_acs,parents,table,,Licensed capacity (Texas) alongside children under 5

@@ -1,0 +1,49 @@
+metric_id,source_id,stat_type,numerator,denominator,published_var,bins_table,scale,dollars,group,category
+pop_total_acs,census_acs5,count,B01003_001,,,,1,,,
+median_age_acs,census_acs5,median,,,B01002_001,,1,,,
+age_under5_share_acs,census_acs5,share,B01001_003+B01001_027,B01001_001,,,100,,age_groups,Under 5
+age_5_17_share_acs,census_acs5,share,B01001_004+B01001_005+B01001_006+B01001_028+B01001_029+B01001_030,B01001_001,,,100,,age_groups,5 to 17
+age_18_24_share_acs,census_acs5,share,B01001_007+B01001_008+B01001_009+B01001_010+B01001_031+B01001_032+B01001_033+B01001_034,B01001_001,,,100,,age_groups,18 to 24
+age_25_44_share_acs,census_acs5,share,B01001_011+B01001_012+B01001_013+B01001_014+B01001_035+B01001_036+B01001_037+B01001_038,B01001_001,,,100,,age_groups,25 to 44
+age_45_64_share_acs,census_acs5,share,B01001_015+B01001_016+B01001_017+B01001_018+B01001_019+B01001_039+B01001_040+B01001_041+B01001_042+B01001_043,B01001_001,,,100,,age_groups,45 to 64
+age_65plus_share_acs,census_acs5,share,B01001_020+B01001_021+B01001_022+B01001_023+B01001_024+B01001_025+B01001_044+B01001_045+B01001_046+B01001_047+B01001_048+B01001_049,B01001_001,,,100,,age_groups,65 and over
+hispanic_share_acs,census_acs5,share,B03002_012,B03002_001,,,100,,race_ethnicity,Hispanic or Latino (any race)
+nh_white_share_acs,census_acs5,share,B03002_003,B03002_001,,,100,,race_ethnicity,"White alone, not Hispanic"
+nh_black_share_acs,census_acs5,share,B03002_004,B03002_001,,,100,,race_ethnicity,"Black alone, not Hispanic"
+nh_asian_share_acs,census_acs5,share,B03002_006,B03002_001,,,100,,race_ethnicity,"Asian alone, not Hispanic"
+nh_multiracial_share_acs,census_acs5,share,B03002_009,B03002_001,,,100,,race_ethnicity,"Two or more races, not Hispanic"
+nh_other_share_acs,census_acs5,share,B03002_005+B03002_007+B03002_008,B03002_001,,,100,,race_ethnicity,"Other single race, not Hispanic"
+median_household_income_acs,census_acs5,median,,,B19013_001,B19001,1,period_end,,
+per_capita_income_acs,census_acs5,ratio,B19313_001,B01003_001,B19301_001,,1,period_end,,
+poverty_rate_acs,census_acs5,share,B17001_002,B17001_001,,,100,,,
+child_poverty_rate_acs,census_acs5,share,B17020_003+B17020_004+B17020_005,B17020_003+B17020_004+B17020_005+B17020_011+B17020_012+B17020_013,,,100,,,
+labor_force_participation_acs,census_acs5,share,B23025_002,B23025_001,,,100,,,
+unemployment_rate_acs,census_acs5,share,B23025_005,B23025_003,,,100,,,
+bachelors_plus_share_acs,census_acs5,share,B15003_022+B15003_023+B15003_024+B15003_025,B15003_001,,,100,,,
+snap_households_share_acs,census_acs5,share,B22001_002,B22001_001,,,100,,,
+housing_units_acs,census_acs5,count,B25001_001,,,,1,,,
+owner_occupied_share_acs,census_acs5,share,B25003_002,B25003_001,,,100,,,
+vacancy_rate_acs,census_acs5,share,B25002_003,B25002_001,,,100,,,
+median_home_value_acs,census_acs5,median,,,B25077_001,B25075,1,period_end,,
+median_gross_rent_acs,census_acs5,median,,,B25064_001,B25063,1,period_end,,
+rent_burden_30plus_share_acs,census_acs5,share,B25070_007+B25070_008+B25070_009+B25070_010,B25070_002+B25070_003+B25070_004+B25070_005+B25070_006+B25070_007+B25070_008+B25070_009+B25070_010,,,100,,,
+children_under5_acs,census_acs5,count,B01001_003+B01001_027,,,,1,,,
+own_children_under6_acs,census_acs5,count,B23008_002,,,,1,,,
+children_under6_all_parents_working_share_acs,census_acs5,share,B23008_004+B23008_010+B23008_013,B23008_002,,,100,,,
+mean_commute_minutes_acs,census_acs5,ratio,B08013_001,B08012_001,,,1,,,
+broadband_households_share_acs,census_acs5,share,B28002_004,B28002_001,,,100,,,
+pop_total_dec,census_dec,count,2000:P001001; 2010:P001001; 2020:P1_001N,,,,1,,,
+housing_units_dec,census_dec,count,2000:H001001; 2010:H001001; 2020:H1_001N,,,,1,,,
+pop_estimate_pep,census_pep,count,population,,,,1,,,
+pop_hist_census,census_hist,count,population,,,,1,,,
+per_capita_personal_income_bea,bea_cainc,ratio,personal_income,population,per_capita_personal_income,,1,year,,
+house_price_index_fhfa,fhfa_hpi,value,hpi2000,,,,1,,,
+housing_units_authorized_bps,census_bps,count,units,,,,1,,,
+childcare_price_center_infant_ndcp,dol_ndcp,value,MCINFANT,,,,1,year,,
+childcare_price_center_preschool_ndcp,dol_ndcp,value,MCPRESCHOOL,,,,1,year,,
+childcare_price_family_infant_ndcp,dol_ndcp,value,MFCCINFANT,,,,1,year,,
+childcare_price_infant_share_income_ndcp,dol_ndcp,value,SHARE_MFI_CINFANT,,,,1,,,
+childcare_establishments_cbp,census_cbp,count,ESTAB,,,,1,,,
+childcare_capacity_tx,tx_hhsc,count,capacity,,,,1,,,
+unemployment_rate_laus,bls_laus,share,unemployed,labor_force,rate,,100,,,
+labor_force_laus,bls_laus,count,labor_force,,,,1,,,

@@ -1,0 +1,36 @@
+theme,key,value,note
+default,font_family,Segoe UI,"Body, chart, map and table text. Must be installed for charts; HTML falls back to font_fallback."
+default,font_fallback,"-apple-system, 'Helvetica Neue', Arial, sans-serif",CSS fallback stack after font_family
+default,font_family_headings,Segoe UI Semibold,Headings in the document and chart titles
+default,base_size,10.5,Base chart text size (points)
+default,body_size,16px,Document body text size
+default,content_width,48rem,Maximum width of the text column
+default,color_text,#1d2433,Primary text
+default,color_muted,#5a6372,"Notes, sources, axis text"
+default,color_background,#ffffff,Page and chart background
+default,color_rule,#d8dde6,"Grid lines, table rules and borders"
+default,color_accent,#1f5aa6,"Links, headings accent and the study area in charts and maps"
+default,color_benchmarks,"#8a6d3b,#5e7a5a,#7a6a9a,#8c8c8c,#a0522d","Benchmarks in the order they are listed (county, state, region, nation)"
+default,palette_categories,"#1f5aa6,#e69f00,#009e73,#cc79a7,#56b4e9,#d55e00,#6b6b6b","Categories (age groups, race and ethnicity); colorblind-safe (Okabe-Ito based)"
+default,palette_sequential,"#eff3ff,#c6dbef,#9ecae1,#6baed6,#3182bd,#08519c",Choropleth maps (low to high)
+default,color_missing,#e6e6e6,Map areas with no data
+default,color_unreliable,#b5b5b5,Map areas whose estimate is unreliable or suppressed
+default,color_shading,#eeeeee,Shaded periods such as recessions
+default,figure_width,7,Figure width (inches)
+default,figure_height,3.8,Figure height (inches)
+default,map_height,5.2,Map height (inches)
+default,figure_dpi,160,Raster resolution for HTML figures
+default,digits_percent,1,Decimals for percentages and percentage points
+default,digits_dollars,0,Decimals for dollar amounts
+default,digits_ratio,1,Decimals for other ratios and means
+default,print_page_size,letter,Paper size when printing or rendering PDF
+default,print_break_before_sections,TRUE,Start each top-level section on a new page when printing
+civic,font_family,Georgia,Alternative theme used in the theme-change demonstration
+civic,font_fallback,"'Times New Roman', serif",
+civic,font_family_headings,Georgia,
+civic,color_text,#222222,
+civic,color_muted,#666666,
+civic,color_accent,#8c2d19,
+civic,color_benchmarks,"#2b6f8c,#6b8e23,#9467bd,#7f7f7f,#bc8f8f",
+civic,palette_categories,"#8c2d19,#2b6f8c,#d4a017,#6b8e23,#9467bd,#bc8f8f,#7f7f7f",
+civic,palette_sequential,"#fff5eb,#fdd0a2,#fdae6b,#fd8d3c,#e6550d,#a63603",

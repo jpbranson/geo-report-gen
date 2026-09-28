@@ -1,0 +1,83 @@
+subject_id,subject,subtopic_id,subtopic,description
+demographics,Demographics,population_size,Population size and growth,"Residents counted or estimated, and how the total has changed."
+demographics,Demographics,age_sex,Age and sex,Age structure and sex composition of residents.
+demographics,Demographics,race_ethnicity,Race and Hispanic origin,Self-identified race and Hispanic or Latino origin.
+demographics,Demographics,nativity_migration,Nativity and migration,"Foreign-born residents, recent movers and migration flows."
+demographics,Demographics,language,Language,Language spoken at home and English ability.
+demographics,Demographics,veterans,Veterans,Civilian veterans.
+households_families,Households and families,household_types,Household types,"Family and nonfamily households, married couples, single parents."
+households_families,Households and families,household_size,Household size,Persons per household.
+households_families,Households and families,living_arrangements,Living arrangements,Living alone and multigenerational households.
+households_families,Households and families,grandparents_caregivers,Grandparents as caregivers,Grandparents responsible for grandchildren.
+children_early_childhood,Children and early childhood,child_population,Child population,Children by age group.
+children_early_childhood,Children and early childhood,working_parents,Working parents,Children whose parents are all in the labor force.
+children_early_childhood,Children and early childhood,child_poverty,Child poverty,Children in households below the poverty line.
+children_early_childhood,Children and early childhood,early_education,Early education enrollment,Nursery school and preschool enrollment (not a measure of child care availability).
+childcare,Child care,childcare_supply,Providers and establishments,"Licensed providers, child care businesses and establishments."
+childcare,Child care,childcare_capacity,Licensed capacity,Licensed slots (capacity) of regulated providers.
+childcare,Child care,childcare_enrollment,Enrollment and use,Children enrolled in or using child care.
+childcare,Child care,childcare_cost,Prices and affordability,Prices charged by providers and their share of family income.
+childcare,Child care,childcare_need,Estimated need,Children who may need care (e.g. under 6 with all parents working).
+childcare,Child care,childcare_subsidy,Subsidies,Child Care and Development Fund and other subsidy use.
+childcare,Child care,head_start,Head Start,Head Start and Early Head Start programs and slots.
+education,Education,attainment,Educational attainment,Highest level of schooling completed by adults.
+education,Education,enrollment,School enrollment,Enrollment by level of school.
+education,Education,k12_schools,K-12 schools,"Public and private schools, students and staff."
+education,Education,higher_education,Higher education,"Colleges, enrollment and degrees."
+employment_labor,Employment and labor force,labor_force,Labor force,Labor force size and participation.
+employment_labor,Employment and labor force,unemployment,Unemployment,Unemployment counts and rates.
+employment_labor,Employment and labor force,occupations,Occupations,Occupations of employed residents.
+employment_labor,Employment and labor force,wages_earnings,Wages and earnings,Earnings of residents and wages paid by employers.
+industries_business,Industries and business activity,industry_employment,Jobs by industry (workplace),Jobs located in the area by industry.
+industries_business,Industries and business activity,industry_of_residents,Industry of residents,Industry of employed residents (where they live).
+industries_business,Industries and business activity,establishments,Business establishments,Establishments and nonemployer businesses.
+industries_business,Industries and business activity,business_dynamics,Business dynamics,Business formation and closures.
+industries_business,Industries and business activity,output_gdp,Output and GDP,Gross domestic product by area.
+income_poverty_hardship,"Income, poverty and hardship",household_income,Household income,Household income levels and distribution.
+income_poverty_hardship,"Income, poverty and hardship",per_capita_income,Per capita income,Income per resident (survey-based).
+income_poverty_hardship,"Income, poverty and hardship",personal_income,Personal income,Personal income from national accounts (BEA).
+income_poverty_hardship,"Income, poverty and hardship",poverty,Poverty,Poverty status of people and families.
+income_poverty_hardship,"Income, poverty and hardship",public_assistance,Public assistance,"SNAP, cash assistance and SSI receipt."
+income_poverty_hardship,"Income, poverty and hardship",material_hardship,Material hardship,"Food insufficiency, difficulty paying expenses and similar measures."
+housing,Housing and homelessness,housing_stock,Housing stock,"Housing units, structure type and age."
+housing,Housing and homelessness,tenure,Tenure,Owner- and renter-occupied homes.
+housing,Housing and homelessness,home_values_rents,Home values and rents,Owner-reported home values and gross rents.
+housing,Housing and homelessness,cost_burden,Housing cost burden,Households paying 30% or more of income for housing.
+housing,Housing and homelessness,housing_production,Housing production,New housing units authorized by building permits.
+housing,Housing and homelessness,house_prices,House prices,Repeat-sales house price indexes.
+housing,Housing and homelessness,vacancy,Vacancy,Vacant housing units and vacancy rates.
+housing,Housing and homelessness,homelessness,Homelessness,Point-in-time counts of people experiencing homelessness.
+health,"Health, disability and health care access",health_outcomes,Health outcomes and behaviors,Model-based estimates of chronic conditions and behaviors.
+health,"Health, disability and health care access",disability,Disability,Residents with a disability.
+health,"Health, disability and health care access",health_insurance,Health insurance,Health insurance coverage.
+health,"Health, disability and health care access",healthcare_access,Health care access,"Shortage areas, providers and facilities."
+health,"Health, disability and health care access",mortality,Mortality,Deaths and death rates.
+food_access,Food access,food_access,Food access,Distance to supermarkets and low access.
+food_access,Food access,food_environment,Food environment,"Stores, restaurants and food prices."
+food_access,Food access,food_assistance,Food assistance,SNAP and WIC participation.
+transportation,Transportation and commuting,commuting_mode,Commuting mode,How workers get to work.
+transportation,Transportation and commuting,travel_time,Travel time,Commute duration.
+transportation,Transportation and commuting,vehicle_availability,Vehicle availability,Households without a vehicle.
+transportation,Transportation and commuting,worker_flows,Worker flows,Where residents work and where workers live.
+transportation,Transportation and commuting,transportation_safety,Transportation safety,Traffic fatalities.
+broadband,Broadband,internet_subscription,Internet subscription,Households with broadband subscriptions.
+broadband,Broadband,broadband_availability,Broadband availability,Service availability reported by providers.
+broadband,Broadband,device_access,Device access,Households with computers or smartphones.
+public_safety,Public safety,crime,Crime,Offenses reported by law enforcement agencies.
+public_safety,Public safety,justice,Justice system,Arrests and corrections.
+public_safety,Public safety,emergency_services,Emergency services,Fire and emergency medical services.
+environment_climate,Environment and climate hazards,hazard_risk,Hazard risk,Expected losses from natural hazards.
+environment_climate,Environment and climate hazards,air_quality,Air quality,Air quality index days and pollutant levels.
+environment_climate,Environment and climate hazards,extreme_weather,Extreme weather,"Storm events, heat and drought."
+environment_climate,Environment and climate hazards,environmental_burden,Environmental burden,Composite environmental and demographic burden indicators.
+environment_climate,Environment and climate hazards,land_cover,Land cover,"Developed, agricultural and natural land."
+civic_participation,Civic participation,voting,Voting,Election turnout and results.
+civic_participation,Civic participation,voter_registration,Voter registration,Registered voters.
+civic_participation,Civic participation,election_administration,Election administration,"Ballots, polling places and administration."
+civic_participation,Civic participation,civic_engagement,Civic engagement,Volunteering and civic activities.
+public_services_finance,Local public services and finance,local_government_finance,Local government finance,Revenues and expenditures of local governments.
+public_services_finance,Local public services and finance,school_finance,School finance,School district revenues and spending.
+public_services_finance,Local public services and finance,public_employment,Public employment,Government employees and payroll.
+public_services_finance,Local public services and finance,libraries_services,Libraries and services,Public libraries and other local services.
+income_poverty_hardship,"Income, poverty and hardship",prices_inflation,Prices and inflation,Price indexes and regional price parities used to compare dollar values across time and places.
+housing,Housing and homelessness,evictions,Evictions,Eviction filings and judgments (court records; coverage varies by state).
