@@ -192,4 +192,4 @@ Reports may keep growing (the user edits down), so every new block goes into the
        recipe dollars "prior_year"; compositions accept a category from two sources; charts
        mixing census years and ACS periods label the axis "Year". Test fixture is made up
        (NHGIS terms)
-3. [ ] Check back with the user
+3. [x] Checked back with the user (00:20)
