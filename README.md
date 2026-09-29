@@ -225,11 +225,15 @@ per Quarto render, so rendering is the main cost whenever many reports change.
 
 ## Limitations
 
-- 158 of the 406 cataloged metrics are operational (ACS detailed tables, decennial census,
-  population estimates, SAIPE, SAHIE, CDC PLACES, BEA, BLS, FHFA, building permits, child care
-  prices and businesses, Texas licensing); the rest are documented only. Environment and climate
-  hazards, public safety, civic participation and local public finance have no operational
-  metric yet.
+- 181 of the 425 cataloged metrics are operational (ACS detailed tables, decennial census,
+  population estimates, SAIPE, SAHIE, CDC PLACES, County Business Patterns, BEA, BLS, FHFA,
+  building permits, child care prices, Texas licensing); the rest are documented only.
+  Environment and climate hazards, public safety, civic participation and local public finance
+  have no operational metric yet.
+- County Business Patterns (jobs, establishments and payroll where businesses are located)
+  covers counties, states and the nation. From 2017 a sector with fewer than 3 establishments in
+  a county is not published, so jobs by industry are shown by NAICS sector (combining sectors
+  would lose whole groups) and small sectors can be missing for small counties.
 - City histories start in 2000: the Census API has no earlier census tables for places.
 - Medians of combined areas have no margin of error (the Census Bureau publishes no method).
 - SAIPE and SAHIE (annual poverty, income and health insurance estimates) cover counties, states

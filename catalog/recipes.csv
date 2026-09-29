@@ -43,7 +43,7 @@ childcare_price_center_infant_ndcp,dol_ndcp,value,MCINFANT,,,,1,year,,
 childcare_price_center_preschool_ndcp,dol_ndcp,value,MCPRESCHOOL,,,,1,year,,
 childcare_price_family_infant_ndcp,dol_ndcp,value,MFCCINFANT,,,,1,year,,
 childcare_price_infant_share_income_ndcp,dol_ndcp,value,SHARE_MFI_CINFANT,,,,1,,,
-childcare_establishments_cbp,census_cbp,count,ESTAB,,,,1,,,
+childcare_establishments_cbp,census_cbp,count,ESTAB_624410,,,,1,,,
 childcare_capacity_tx,tx_hhsc,count,capacity,,,,1,,,
 unemployment_rate_laus,bls_laus,share,unemployed,labor_force,rate,,100,,,
 labor_force_laus,bls_laus,count,labor_force,,,,1,,,
@@ -157,3 +157,26 @@ snap_receipt_adults_places,cdc_places,share,FOODSTAMP_N,ADULTS,FOODSTAMP,,100,,,
 housing_insecurity_places,cdc_places,share,HOUSINSECU_N,ADULTS,HOUSINSECU,,100,,,
 utility_shutoff_threat_places,cdc_places,share,SHUTUTILITY_N,ADULTS,SHUTUTILITY,,100,,,
 lack_reliable_transportation_places,cdc_places,share,LACKTRPT_N,ADULTS,LACKTRPT,,100,,,
+jobs_agriculture_share_cbp,census_cbp,share,EMP_11,EMP_00,,,100,,jobs_industry,"Forestry, fishing and farm support"
+jobs_mining_share_cbp,census_cbp,share,EMP_21,EMP_00,,,100,,jobs_industry,"Mining, quarrying, oil and gas"
+jobs_utilities_share_cbp,census_cbp,share,EMP_22,EMP_00,,,100,,jobs_industry,Utilities
+jobs_construction_share_cbp,census_cbp,share,EMP_23,EMP_00,,,100,,jobs_industry,Construction
+jobs_manufacturing_share_cbp,census_cbp,share,EMP_31-33,EMP_00,,,100,,jobs_industry,Manufacturing
+jobs_wholesale_share_cbp,census_cbp,share,EMP_42,EMP_00,,,100,,jobs_industry,Wholesale trade
+jobs_retail_share_cbp,census_cbp,share,EMP_44-45,EMP_00,,,100,,jobs_industry,Retail trade
+jobs_transportation_share_cbp,census_cbp,share,EMP_48-49,EMP_00,,,100,,jobs_industry,Transportation and warehousing
+jobs_information_share_cbp,census_cbp,share,EMP_51,EMP_00,,,100,,jobs_industry,Information
+jobs_finance_share_cbp,census_cbp,share,EMP_52,EMP_00,,,100,,jobs_industry,Finance and insurance
+jobs_real_estate_share_cbp,census_cbp,share,EMP_53,EMP_00,,,100,,jobs_industry,"Real estate, rental and leasing"
+jobs_professional_share_cbp,census_cbp,share,EMP_54,EMP_00,,,100,,jobs_industry,"Professional, scientific and technical services"
+jobs_management_share_cbp,census_cbp,share,EMP_55,EMP_00,,,100,,jobs_industry,Management of companies
+jobs_administrative_share_cbp,census_cbp,share,EMP_56,EMP_00,,,100,,jobs_industry,"Administrative, support and waste services"
+jobs_education_share_cbp,census_cbp,share,EMP_61,EMP_00,,,100,,jobs_industry,Educational services
+jobs_health_share_cbp,census_cbp,share,EMP_62,EMP_00,,,100,,jobs_industry,Health care and social assistance
+jobs_arts_share_cbp,census_cbp,share,EMP_71,EMP_00,,,100,,jobs_industry,"Arts, entertainment and recreation"
+jobs_food_share_cbp,census_cbp,share,EMP_72,EMP_00,,,100,,jobs_industry,Accommodation and food services
+jobs_other_services_share_cbp,census_cbp,share,EMP_81,EMP_00,,,100,,jobs_industry,Other services
+establishments_cbp,census_cbp,count,ESTAB_00,,,,1,,,
+employment_cbp,census_cbp,count,EMP_00,,,,1,,,
+annual_payroll_per_employee_cbp,census_cbp,ratio,PAYANN_00,EMP_00,,,1000,year,,
+childcare_employment_cbp,census_cbp,count,EMP_624410,,,,1,,,

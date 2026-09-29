@@ -263,3 +263,23 @@ NRI, USDA Food Environment Atlas), then check back. Plan in PLAN.md.
   place in each county" (geo_type_names); no-data phrases end with a period.
 - Verified: tests 150 pass; batch online 155 s / 61 requests, then offline clean (no warnings);
   ct-capitol, travis-austin, austin-tx tables and the Gary diabetes map reviewed.
+- CBP all industries (step 2, done ~20:40): R/providers/cbp.R replaces the 624410-only code in
+  childcare.R. Variables <measure>_<NAICS code> (ESTAB_00, EMP_31-33, PAYANN_624410); one API
+  request per (year, scope, code) with EMPSZES=001 and, from 2008, LFO=001 (national and state
+  rows split by legal form from 2008; the old code relied on row order). Withheld flags are D, S
+  and size ranges a-m (checked on all cached files: flagged values are 0); "r" (revised, e.g. the
+  2014 national row) and G/H/J (noise) are published values. Missing row: 0 before 2017,
+  suppressed from 2017 (fewer than 3 establishments). Cache files renamed <code>-<scope>.parquet
+  (child care data re-downloaded once).
+- Jobs by industry uses the 19 NAICS sectors separately: grouping them like ACS C24030 lost the
+  group in 40-60% of counties (e.g. management of companies missing in 61% blocks "professional,
+  management and administrative"; Wyandotte KS utilities blocked "transportation, warehousing and
+  utilities" for kc-core); zero-filling could hide a large single HQ. 181 of 425 operational.
+- Fixes found while reviewing: short_label cut at the first comma (austin-core text said "Travis"
+  for the three-county total); now only a trailing state or metro suffix is dropped. Trend-chart
+  direct labels wrap at 28 characters with right margin sized to the longest line; bar
+  compositions keep the entity order (study first) when the first category lacks a study value.
+  Facts tables get {dollar_phrase}.
+- Verified: tests 164 pass (Loving County TX fixture: withheld 2016 mining, no 2016 health row,
+  no 2023 transportation row; 2014 national "r" flag); batch online 149 requests, offline clean;
+  austin-core and kc-core charts and tables reviewed.

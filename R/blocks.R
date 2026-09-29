@@ -690,7 +690,7 @@ compute_block_facts <- function(row, ctx, settings, opts) {
   }
   list(data = list(results = res, metrics = metrics, entities = et),
        values = list(n_indicators = length(metrics), latest_period = latest, flag_reference = ref_entity$short,
-                     summary_sentence = summary),
+                     summary_sentence = summary, dollar_phrase = dollar_phrase(res, ctx)),
        fields = if (has_data) c("title", "prose", "caption", "note", "source_note", "labels") else c("title", "prose", "source_note"),
        labels = labels,
        sources = metric_sources(metrics),

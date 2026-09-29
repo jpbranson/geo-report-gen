@@ -526,7 +526,16 @@ default_area_label <- function(members, mode) {
          if (length(st) > 1) paste0(" in ", length(st), " states") else paste0(", ", st), ")")
 }
 
-short_label <- function(label) sub(" (city|town|village|borough|CDP|municipality)$", "", sub(",.*$", "", label))
+# The short name used in sentences: "Gary city, Indiana" -> "Gary", "Kansas City, MO-KS Metro
+# Area" -> "Kansas City". Only a trailing state or metro area suffix is dropped, so a label such
+# as "Travis, Williamson and Hays counties" stays whole.
+short_label <- function(label) {
+  tail <- sub("^.*,\\s*", "", label)
+  if (grepl(",", label, fixed = TRUE) && (tail %in% state_table()$name || grepl("^[A-Z]{2}(-[A-Z]{2})* (Metro|Micro) Area$", tail))) {
+    label <- sub(",[^,]*$", "", label)
+  }
+  sub(" (city|town|village|borough|CDP|municipality)$", "", label)
+}
 
 # ---- Entities and benchmarks ----------------------------------------------------------
 

@@ -2,6 +2,7 @@
 # another:
 #   dol_ndcp   prices charged by providers (median weekly full-time price), counties, 2008-2022
 #   census_cbp child day care establishments with paid employees (NAICS 624410), 1998-2023
+#              (County Business Patterns, all industries, in cbp.R)
 #   tx_hhsc    licensed capacity of Texas child care operations (current snapshot only)
 # Preschool enrollment (ACS) and estimated need (ACS B23008) are separate ACS metrics.
 
@@ -45,59 +46,6 @@ register_provider("dol_ndcp", list(
   period_label = function(period) as.character(period),
   period_kind = "annual",
   availability_note = "NDCP prices are county-level only; there are no price data for Indiana or New Mexico in any year, and some states have gaps."))
-
-# ---- County Business Patterns: child day care establishments ------------------------------
-
-# The industry variable name changes with each NAICS revision; code 624410 is unchanged
-# since NAICS 1997. SIC-based years (1986-1997) are a different classification and are not
-# joined to this series.
-cbp_naics_var <- function(year) {
-  if (year <= 2002) "NAICS1997" else if (year <= 2007) "NAICS2002" else if (year <= 2011) "NAICS2007" else if (year <= 2016) "NAICS2012" else "NAICS2017"
-}
-
-cbp_raw <- function(year, scope) {
-  path <- cache_path("raw", "census_cbp", year, paste0("624410_", scope, ".parquet"))
-  cached(path, source = "census_cbp", compute = function() {
-    q <- list(get = "ESTAB,EMP", `for` = switch(scope, county = "county:*", state = "state:*", nation = "us:*"))
-    q[[cbp_naics_var(year)]] <- "624410"
-    resp <- http_perform(census_request(paste0(year, "/cbp"), q))
-    df <- census_parse(resp, paste("CBP", year, scope))
-    if (!ncol(df)) data.frame(note = character(0)) else df
-  })
-}
-
-cbp_fetch <- function(variables, pieces, periods, options = list()) {
-  out <- list()
-  for (yr in as.integer(periods)) {
-    for (scope in unique(ifelse(pieces$type == "nation", "nation", ifelse(pieces$type == "state", "state", "county")))) {
-      df <- cbp_raw(yr, scope)
-      keys <- if (!nrow(df)) character() else switch(scope, county = paste0("county:", df$state, df$county),
-                                                     state = paste0("state:", df$state), nation = "nation:US")
-      want <- pieces$key[ifelse(pieces$type == "nation", "nation", ifelse(pieces$type == "state", "state", "county")) == scope]
-      est <- suppressWarnings(as.numeric(df$ESTAB))[match(want, keys)]
-      # No row: before 2017 that means no establishments; from 2017 cells with fewer than 3
-      # establishments are not published, so a missing row is "suppressed".
-      status <- ifelse(!is.na(est), "ok", if (yr >= 2017) "suppressed" else "ok")
-      est[is.na(est) & yr < 2017] <- 0
-      out[[length(out) + 1]] <- data.frame(geo = want, name = "", variable = "ESTAB", estimate = est, moe = NA_real_,
-                                           status = status, bound = NA_character_,
-                                           note = ifelse(status == "suppressed", "fewer than 3 establishments or none (not published from 2017)", ""),
-                                           period = as.character(yr), period_start = yr, period_end = yr,
-                                           source_id = "census_cbp", series = "County Business Patterns (NAICS)",
-                                           stringsAsFactors = FALSE)
-    }
-  }
-  do.call(rbind, out)
-}
-
-register_provider("census_cbp", list(
-  name = "U.S. Census Bureau, County Business Patterns (establishments, NAICS 624410 child day care services)",
-  geo_types = c("nation", "state", "county"),
-  fetch = cbp_fetch,
-  periods = function(settings, recipe) seq(max(1998L, as.integer(settings$history_start %||% 1998)), 2023L),
-  period_label = function(period) as.character(period),
-  period_kind = "annual",
-  availability_note = "CBP counts establishments with paid employees by business location (not slots, not home-based sole proprietors); no place-level data."))
 
 # ---- Texas HHSC Child Care Regulation: licensed capacity (current) ------------------------
 

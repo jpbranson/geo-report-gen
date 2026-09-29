@@ -114,6 +114,22 @@ test_that("PLACES: published county values, states summed from counties, the U.S
   expect_match(k$method, "no PLACES estimate for this area")
 })
 
+test_that("CBP: withheld cells and missing rows follow the publication rules of their year", {
+  loving <- data.frame(key = "county:48301", type = "county", geoid = "48301", stringsAsFactors = FALSE)
+  d <- cbp_fetch(c("ESTAB_21", "EMP_21", "EMP_62"), loving, 2016)
+  expect_equal(d$estimate[d$variable == "ESTAB_21"], 2)                  # establishments are always published
+  expect_equal(d$status[d$variable == "EMP_21"], "suppressed")            # employment withheld (flag a)
+  expect_match(d$note[d$variable == "EMP_21"], "withheld")
+  expect_equal(d$estimate[d$variable == "EMP_62"], 0)                    # no row before 2017: no establishments
+  d <- cbp_fetch("EMP_48-49", loving, 2023)
+  expect_equal(d$status, "suppressed")                                    # no row from 2017: fewer than 3 or none
+  expect_match(d$note, "fewer than 3")
+  us <- data.frame(key = "nation:US", type = "nation", geoid = "US", stringsAsFactors = FALSE)
+  d <- cbp_fetch("EMP_00", us, 2014)                                      # flag r (revised) is a published value
+  expect_equal(d$status, "ok")
+  expect_equal(d$estimate, 121069944)
+})
+
 test_that("a value the source did not publish carries the source's reason", {
   d <- long("county:1", "ESTAB_00", NA, NA, "suppressed")
   d$note <- "fewer than 3 establishments or none"

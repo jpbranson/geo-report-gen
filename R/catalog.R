@@ -151,7 +151,8 @@ verify_sources <- function() {
   checks <- list(
     census_acs5 = census_check("2024/acs/acs5", list(get = "NAME,B01003_001E", `for` = "us:1"), "2020-2024 ACS U.S. population", "B01003_001E"),
     census_dec = census_check("2020/dec/dhc", list(get = "NAME,P1_001N", `for` = "us:1"), "2020 Census U.S. population", "P1_001N"),
-    census_cbp = census_check("2023/cbp", list(get = "ESTAB", `for` = "us:*", NAICS2017 = "624410"), "2023 U.S. child day care establishments", "ESTAB"),
+    census_cbp = census_check("2023/cbp", list(get = "ESTAB", `for` = "us:*", NAICS2017 = "00", EMPSZES = "001", LFO = "001"),
+                              "2023 U.S. establishments with employees", "ESTAB"),
     census_saipe = census_check("timeseries/poverty/saipe", list(get = "NAME,SAEPOVRTALL_PT", `for` = "us:*", time = "2024"),
                                 "2024 SAIPE U.S. poverty rate", "SAEPOVRTALL_PT"),
     census_sahie = census_check("timeseries/healthins/sahie",

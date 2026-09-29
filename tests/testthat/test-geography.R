@@ -52,3 +52,12 @@ test_that("the same territory under two names is shown once (DC as state and cou
   expect_true(same_territory(dc("state", "11"), dc("county", "11001"), 2024))
   expect_false(same_territory(dc("state", "11"), dc("county", "12001"), 2024))
 })
+
+test_that("short names drop only a trailing state or metro area suffix", {
+  expect_equal(short_label("Gary city, Indiana"), "Gary")
+  expect_equal(short_label("Lake County, Indiana"), "Lake County")
+  expect_equal(short_label("Kansas City, MO-KS Metro Area"), "Kansas City")
+  expect_equal(short_label("Travis, Williamson and Hays counties"), "Travis, Williamson and Hays counties")
+  expect_equal(short_label("Travis, Williamson and Hays counties, Texas"), "Travis, Williamson and Hays counties")
+  expect_equal(short_label("Combined area (5 counties, Texas)"), "Combined area (5 counties, Texas)")
+})

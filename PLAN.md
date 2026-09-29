@@ -120,8 +120,15 @@ industries, households, civic, public safety and public finance had none. Now 13
        (3 tables, a tract map, social needs). Engine: a source's reason for a missing value is shown
        in "What is not shown"; a facts table without any study-area value says why instead of
        showing dashes; empty comparison columns are dropped
-2. [ ] County Business Patterns for all industries (jobs and establishments located in the area
-       by NAICS sector; extends the existing CBP adapter)
+2. [x] County Business Patterns for all industries (R/providers/cbp.R, replacing the child care
+       only adapter): establishments, mid-March jobs and payroll by NAICS code for counties, states
+       and the nation, 1998-2023; withheld cells (before 2017) and unpublished cells with fewer than
+       3 establishments (from 2017) are "suppressed" with the reason. 23 metrics (jobs,
+       establishments, payroll per employee, child care jobs, 19 sectors); blocks jobs-trend,
+       business-summary, jobs-industry-mix, payroll-trend (economic development), childcare-jobs
+       (early childhood). Also fixed: short names cut at the first comma ("Travis" for a
+       three-county area); long chart labels wrap and get room; bar compositions keep the study
+       area first
 3. [ ] FEMA National Risk Index (expected annual loss, risk, social vulnerability, community
        resilience; counties and tracts)
 4. [ ] USDA ERS Food Environment Atlas (county food stores, restaurants, food assistance, access)

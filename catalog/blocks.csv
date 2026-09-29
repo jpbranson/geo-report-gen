@@ -72,3 +72,8 @@ health-status,health,facts,fair_poor_health_places;frequent_mental_distress_plac
 health-behaviors,health,facts,current_smoking_places;binge_drinking_places;physical_inactivity_places;routine_checkup_places,parents,table,,"Smoking, drinking, physical activity and checkups among adults (CDC PLACES)"
 diabetes-map,health,map,diabetes_prevalence_places,within,map,,Diagnosed diabetes among adults by census tract (CDC PLACES)
 social-needs,income_poverty_hardship,facts,food_insecurity_adults_places;snap_receipt_adults_places;housing_insecurity_places;utility_shutoff_threat_places;lack_reliable_transportation_places,parents,table,,"Food insecurity, SNAP, unpaid housing costs, utility shutoff threats and transportation barriers among adults (CDC PLACES; states that asked)"
+jobs-trend,industries_business,metric,employment_cbp,time+parents,line,index=first; history_start=1998,"Jobs located in the area (mid-March paid employees) since 1998, indexed to 1998"
+business-summary,industries_business,facts,establishments_cbp;employment_cbp;annual_payroll_per_employee_cbp,parents,table,,"Business establishments, jobs and payroll per employee (County Business Patterns, latest year)"
+jobs-industry-mix,industries_business,composition,group:jobs_industry,parents,bar,,"Jobs located in the area by the employer's industry, against comparison areas (County Business Patterns, latest year)"
+payroll-trend,employment_labor,metric,annual_payroll_per_employee_cbp,time+parents,line,history_start=1998,Annual payroll per employee since 1998 in constant dollars
+childcare-jobs,childcare,metric,childcare_employment_cbp,time,line,history_start=1998,Paid employees of child day care establishments since 1998

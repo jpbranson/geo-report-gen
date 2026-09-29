@@ -82,15 +82,18 @@ plot_trend <- function(b, txt, th) {
   last <- shown |> group_by(label) |> filter(x == max(x)) |> slice(1) |> ungroup() |> as.data.frame()
   direct <- length(unique(shown$label)) <= 6
   if (direct) {
-    p <- p + ggrepel::geom_text_repel(data = last, aes(label = label), hjust = 0, direction = "y",
+    p <- p + ggrepel::geom_text_repel(data = last, aes(label = wrap_label(label)), hjust = 0, direction = "y",
                                       nudge_x = 0.02 * diff(range(shown$x, na.rm = TRUE)) + 0.3, size = 3,
                                       segment.color = th$color_rule, family = fam, min.segment.length = 0.2,
                                       seed = 1, max.overlaps = Inf)
   }
   xr <- range(c(shown$period_start, shown$x), na.rm = TRUE)
+  # Room on the right for direct labels, widened for long (wrapped) names.
+  longest <- max(nchar(unlist(strsplit(wrap_label(unique(shown$label)), "\n", fixed = TRUE))))
+  room <- if (direct) max(0.22, 0.012 * longest) else 0.04
   p <- p + scale_color_manual(values = cols, guide = if (direct) "none" else "legend", name = txt$legend_title) +
     scale_shape_manual(values = c(`FALSE` = 19, `TRUE` = 21), guide = "none") +
-    scale_x_continuous(breaks = pretty_years(xr), expand = expansion(mult = c(0.02, if (direct) 0.22 else 0.04))) +
+    scale_x_continuous(breaks = pretty_years(xr), expand = expansion(mult = c(0.02, room))) +
     scale_y_continuous(labels = if (indexed) scales::label_number(accuracy = 1) else axis_labeller(units)) +
     labs(x = txt$x_label, y = txt$y_label) +
     gr_ggtheme(th)
@@ -146,7 +149,8 @@ render_block_composition <- function(b, txt, th) {
   d$category <- factor(shown_cats[match(as.character(d$category), cats)], levels = shown_cats)
   by_entity <- grepl("parents", b$compare)
   d$row <- if (by_entity) d$label else d$period_label
-  row_levels <- if (by_entity) rev(unique(d$label)) else rev(unique(d$period_label[order(d$period_end)]))
+  # Areas keep the report's order (study area first) even when the first category lacks a value for one of them.
+  row_levels <- if (by_entity) rev(intersect(unique(b$data$results$label), d$label)) else rev(unique(d$period_label[order(d$period_end)]))
   d$row <- factor(d$row, levels = row_levels)
   if (identical(b$viz, "bar")) return(composition_bars(d, txt, th, by_entity))
   cols <- category_colors(th, shown_cats)
