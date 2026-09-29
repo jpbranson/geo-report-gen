@@ -178,6 +178,19 @@ test_that("EAVS: totals of election jurisdictions; a city splitting counties; no
   expect_equal(t$status, "ok")                                              # North Dakota reports its voters
 })
 
+test_that("Government finance: county governments for counties, city governments for places, states as sums", {
+  area <- function(type, geoid) entity(geoid, "study", geoid, data.frame(key = paste0(type, ":", geoid), type = type, geoid = geoid,
+                                                                         name = "", pop = NA_real_))
+  st <- resolve_settings()
+  r <- compute_metric("county_gov_property_tax_per_capita_govfin", list(area("county", "10001"), area("place", "1021200"),
+                                                                        area("state", "10")), st, constant_dollars = FALSE)
+  expect_equal(r$value[r$entity_id == "10001"], 1000 * 13844 / 183643)                  # $1,000 per resident
+  expect_equal(r$status[r$entity_id == "1021200"], "not_applicable")                     # Dover is a city, not a county
+  expect_equal(r$value[r$entity_id == "10"], 1000 * (13844 + 146474 + 84242) / (183643 + 561531 + 241635))
+  c <- compute_metric("city_gov_property_tax_per_capita_govfin", list(area("county", "10001")), st)
+  expect_match(c$method, "describe cities")
+})
+
 test_that("a value the source did not publish carries the source's reason", {
   d <- long("county:1", "ESTAB_00", NA, NA, "suppressed")
   d$note <- "fewer than 3 establishments or none"

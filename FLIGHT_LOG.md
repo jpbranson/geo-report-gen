@@ -332,3 +332,15 @@ now git-ignored and its line appended to .env (never printed); the user can dele
 - 2024: Lake County IN 90.5% active registration, 57.7% turnout; Indiana 85.2/59.4; U.S. 87.3/65.4;
   Texas 83.6/57.8; CT Capitol region 88.5/69.1. Block "voting" in a new "Civic participation"
   section (general). Tests 183 (fixture: DE, ND, Jackson + Kansas City).
+- Government finance (step 2, done ~22:05): R/providers/govfin.R reads the FY2022 Census of
+  Governments unit files (9.7 MB zip; fixed width: data 12+3+12+4+1, PID 12+64+35+5+9...). FY2024 is
+  a sample (1,751 of 3,029 county and 4,045 of 19,401 city governments), so FY2022 is used. Type 1
+  (county) -> county key from ID positions 4-6; type 2 (city) -> place key from the PID FIPS place
+  code. Items: T01, all T codes, 49U (the only long-term debt outstanding item in the public-use
+  file), E62; absent items are 0; POP from PID. States/regions/divisions/nation sum county (CO_*) or
+  city (CI_*) governments. Catalog: the 4 "local government" rows became county-government metrics,
+  4 city-government rows added; block local-government-finance (general, economic development).
+- Findings: Connecticut and consolidated city-counties (Marion IN, Wyandotte KS) have no county
+  government, so kc-core's union and ct-capitol get the no-data sentence with that reason. Gary FY2022
+  (2024 dollars): city property tax $572, debt $2,992 per resident; Lake County government $118, $179.
+  Tests 187 (fixture: Delaware governments, 9 KB).

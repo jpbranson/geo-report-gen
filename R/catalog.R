@@ -177,6 +177,7 @@ verify_sources <- function() {
     fema_nri = head_check(nri_url, "fema_nri"),
     usda_ers_fea = head_check(fea_url, "usda_ers_fea"),
     eac_eavs = head_check(eavs_cycles[["2024"]][["url"]], "eac_eavs"),
+    census_govfin = head_check(govfin_url, "census_govfin"),
     dol_ndcp = head_check("https://www.dol.gov/sites/dolgov/files/WB/NDCP2022.xlsx", "dol_ndcp"),
     census_geo = head_check("https://www2.census.gov/geo/tiger/GENZ2024/shp/cb_2024_us_county_500k.zip", "census_geo"),
     bls_laus = head_check("https://download.bls.gov/pub/time.series/la/la.area", "bls"),

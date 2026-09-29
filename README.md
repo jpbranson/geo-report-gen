@@ -225,11 +225,15 @@ per Quarto render, so rendering is the main cost whenever many reports change.
 
 ## Limitations
 
-- 208 of the 441 cataloged metrics are operational (ACS detailed tables, decennial census,
+- 216 of the 445 cataloged metrics are operational (ACS detailed tables, decennial census,
   population estimates, SAIPE, SAHIE, CDC PLACES, County Business Patterns, FEMA National Risk
-  Index, USDA Food Environment Atlas, EAC Election Administration and Voting Survey, BEA, BLS,
-  FHFA, building permits, child care prices, Texas licensing); the rest are documented only.
-  Public safety and local public finance have no operational metric yet.
+  Index, USDA Food Environment Atlas, EAC Election Administration and Voting Survey, Census of
+  Governments finance, BEA, BLS, FHFA, building permits, child care prices, Texas licensing); the
+  rest are documented only. Public safety has no operational metric yet.
+- Government finances (2022 Census of Governments) describe the county government for counties
+  and the city's own government for cities, not all local governments in an area. Connecticut
+  has no county governments, and consolidated city-counties (Indianapolis, Wyandotte County and
+  Kansas City, Kansas) count as cities, so those counties have no county-government values.
 - Voter registration and turnout (EAC survey, 2020 and 2024) are totals of election
   jurisdictions: counties, New England towns, Wisconsin municipalities and a few cities that run
   their own elections. Counties split by such a city (Kansas City, Missouri) and Wisconsin and
