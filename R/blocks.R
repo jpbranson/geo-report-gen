@@ -139,6 +139,17 @@ dependence_share <- function(metric_id, bm, settings) {
   if (is.na(share) || share < 0.01) 0 else share
 }
 
+# Context: if no source of a block publishes the study area's geography type (BEA and FEMA
+# publish counties, not cities), the benchmarks the first source does publish stand in, nearest
+# first (e.g. the county containing the city), clearly labeled as context. NULL when a source
+# publishes the study area.
+context_entities <- function(ctx, sources) {
+  publishes_study <- vapply(sources, function(s) all(ctx$study$pieces$type %in% get_provider(s)$geo_types), TRUE)
+  if (any(publishes_study)) return(NULL)
+  prov <- get_provider(sources[1])
+  Filter(function(e) e$role == "benchmark" && all(e$pieces$type %in% prov$geo_types), ctx$entities)
+}
+
 # ---- metric: one concept over time and/or against benchmarks ----------------------------
 
 compute_block_metric <- function(row, ctx, settings, opts) {
@@ -148,18 +159,11 @@ compute_block_metric <- function(row, ctx, settings, opts) {
   use_time <- grepl("time", row$compare)
   entities <- if (use_parents) ctx$entities else ctx$studies
   focus <- ctx$study
-  # Context: if no metric's source publishes the study area's geography type (BEA and FHFA
-  # publish counties, not cities), show the benchmarks the first source does publish, starting
-  # with the nearest (e.g. the county containing the city), clearly labeled as context.
   prov1 <- get_provider(sources[1])
-  publishes_study <- vapply(sources, function(s) all(ctx$study$pieces$type %in% get_provider(s)$geo_types), TRUE)
-  context <- NULL
-  if (!any(publishes_study)) {
-    context <- Filter(function(e) e$role == "benchmark" && all(e$pieces$type %in% prov1$geo_types), ctx$entities)
-    if (length(context)) {
-      entities <- if (use_parents) context else context[1]
-      focus <- context[[1]]
-    }
+  context <- context_entities(ctx, sources)
+  if (length(context)) {
+    entities <- if (use_parents) context else context[1]
+    focus <- context[[1]]
   }
   # A relative view compares areas within the same year, which needs no price adjustment, so
   # it uses nominal dollars (and keeps years the price index does not cover).
@@ -527,6 +531,12 @@ compute_block_composition <- function(row, ctx, settings, opts) {
   if (!nrow(members)) stop("Block '", row$id, "': no metrics in group '", group, "'.", call. = FALSE)
   use_parents <- grepl("parents", row$compare) || isTRUE(ctx$compare)
   entities <- if (isTRUE(ctx$compare)) ctx$studies else if (use_parents) ctx$entities else ctx$studies
+  focus <- ctx$study
+  context <- context_entities(ctx, members$source_id[1])
+  if (length(context)) {
+    entities <- if (use_parents) context else context[1]
+    focus <- context[[1]]
+  }
   res <- do.call(rbind, lapply(members$metric_id, function(m) {
     recipe <- recipe_for(m)
     periods <- metric_periods(recipe, settings)
@@ -539,11 +549,10 @@ compute_block_composition <- function(row, ctx, settings, opts) {
   res$category <- factor(res$category, levels = members$category)
   et <- entity_table(ctx)
   res$label <- et$label[match(res$entity_id, et$entity_id)]
-  study <- res[res$entity_id == ctx$study$id & !is.na(res$value), , drop = FALSE]
+  study <- res[res$entity_id == focus$id & !is.na(res$value), , drop = FALSE]
   if (!nrow(study)) {
-    reasons <- unique(res$method[nzchar(res$method)])
-    no_data <- phrase(ctx, "no_data", list(metric_sentence = lower_first(members$group[1]), area = ctx$area$short,
-                                           reason = reasons[1] %||% ""))
+    reasons <- unique(res$method[res$entity_id == focus$id & nzchar(res$method)])
+    no_data <- phrase(ctx, "none_available", list(area_short = ctx$area$short, reason = reasons[1] %||% ""))
     return(list(data = list(results = res, categories = members$category), figure = FALSE,
                 values = list(summary_sentence = no_data, change_sentence = "", method_note = "",
                               area_short = ctx$area$short, latest_period = "", largest_category = "", largest_share = ""),
@@ -560,9 +569,13 @@ compute_block_composition <- function(row, ctx, settings, opts) {
   v <- list(largest_category = as.character(top$category), largest_share = fmt_value(top$value, "percent", th),
             latest_period = if (nrow(now)) now$period_label[1] else "",
             group_label = members$group[1], summary_sentence = "", change_sentence = "",
-            method_note = breaks[1] %||% "", area_short = ctx$area$short)
-  v$summary_sentence <- phrase(ctx, "composition_summary", c(v, list(area = ctx$area$short)))
-  if (isTRUE(ctx$compare)) {
+            method_note = breaks[1] %||% "", area_short = focus$short)
+  v$summary_sentence <- phrase(ctx, "composition_summary", c(v, list(area = focus$short)))
+  if (length(context)) {
+    shown <- if (nzchar(focus$relation %||% "")) paste0(focus$short, " (", focus$relation, ")") else focus$short
+    v$summary_sentence <- paste(phrase(ctx, "composition_context", list(area_short = ctx$area$short, focus = shown)),
+                                v$summary_sentence)
+  } else if (isTRUE(ctx$compare)) {
     # Each compared area's largest group; the areas are not ranked against each other.
     tops <- vapply(ctx$studies, function(s) {
       x <- res[res$entity_id == s$id & res$period_end == latest_p & !is.na(res$value), , drop = FALSE]
@@ -648,15 +661,18 @@ compute_block_facts <- function(row, ctx, settings, opts) {
   metrics <- split_list(row$metrics)
   th <- ctx$theme
   et <- entity_table(ctx)
-  # Significance flags compare each column with a reference: the study area, or in compare
-  # mode the first shared benchmark (the listed areas are not tested against each other).
+  context <- context_entities(ctx, unique(vapply(metrics, function(m) recipe_for(m)$source_id, "")))
+  entities <- if (length(context)) context else ctx$entities
+  # Significance flags compare each column with a reference: the study area (or the nearest
+  # context area), or in compare mode the first shared benchmark (the listed areas are not
+  # tested against each other).
   bms <- Filter(function(e) e$role == "benchmark", ctx$entities)
-  ref_entity <- if (isTRUE(ctx$compare) && length(bms)) bms[[1]] else ctx$study
+  ref_entity <- if (length(context)) context[[1]] else if (isTRUE(ctx$compare) && length(bms)) bms[[1]] else ctx$study
   all <- list()
   for (m in metrics) {
     recipe <- recipe_for(m)
     periods <- utils::tail(metric_periods(recipe, settings), 1)
-    r <- compute_metric(m, ctx$entities, settings, periods)
+    r <- compute_metric(m, entities, settings, periods)
     units <- metric_units(m)
     ref <- r[r$entity_id == ref_entity$id, ]
     r$shown <- fmt_value(r$value, units, th, r$bound)
@@ -677,20 +693,31 @@ compute_block_facts <- function(row, ctx, settings, opts) {
   res$label <- et$label[match(res$entity_id, et$entity_id)]
   labels <- stats::setNames(vapply(metrics, function(m) metric_doc(m)$label, ""), metrics)
   latest <- paste(unique(res$period_label), collapse = ", ")
-  # Like a chart, the table is left out when the study area has no value at all; the text says why.
-  has_data <- any(!is.na(res$value[res$entity_id %in% vapply(ctx$studies, `[[`, "", "id")]))
-  summary <- if (has_data) {
-    # Name the comparison areas the table shows (those with at least one value).
-    bm <- et$label[et$role == "benchmark" & et$entity_id %in% res$entity_id[!is.na(res$value)]]
-    phrase(ctx, "facts_compare", list(area_short = ctx$area$short, latest_period = latest,
-                                      benchmark_list = if (length(bm)) join_list(bm, ctx) else phrase(ctx, "no_benchmarks", list())))
+  # Like a chart, the table is left out when the study area (or its context) has no value at
+  # all; the text says why.
+  described <- if (length(context)) context[[1]]$id else vapply(ctx$studies, `[[`, "", "id")
+  has_data <- any(!is.na(res$value[res$entity_id %in% described]))
+  # The areas the table shows are those with at least one value.
+  shown <- et$entity_id %in% res$entity_id[!is.na(res$value)]
+  summary <- if (!has_data) {
+    reasons <- res$method[res$entity_id == described[1] & nzchar(res$method)]
+    phrase(ctx, "none_available", list(area_short = ctx$area$short, reason = reasons[1] %||% ""))
+  } else if (length(context)) {
+    first <- context[[1]]
+    areas <- c(if (nzchar(first$relation %||% "")) paste0(first$short, " (", first$relation, ")") else first$short,
+               et$label[shown & et$entity_id != first$id])
+    phrase(ctx, "facts_context", list(area_short = ctx$area$short, context_list = join_list(areas, ctx), latest_period = latest))
   } else {
-    reasons <- res$method[res$entity_id == ctx$study$id & nzchar(res$method)]
-    phrase(ctx, "facts_no_data", list(area_short = ctx$area$short, reason = reasons[1] %||% ""))
+    bm <- et$label[et$role == "benchmark" & shown]
+    if (length(bm)) {
+      phrase(ctx, "facts_compare", list(area_short = ctx$area$short, latest_period = latest, benchmark_list = join_list(bm, ctx)))
+    } else phrase(ctx, "facts_alone", list(area_short = ctx$area$short, latest_period = latest))
   }
+  et <- et[et$entity_id %in% vapply(entities, `[[`, "", "id"), , drop = FALSE]
   list(data = list(results = res, metrics = metrics, entities = et),
        values = list(n_indicators = length(metrics), latest_period = latest, flag_reference = ref_entity$short,
-                     summary_sentence = summary, dollar_phrase = dollar_phrase(res, ctx)),
+                     summary_sentence = summary, dollar_phrase = dollar_phrase(res, ctx),
+                     area_short = if (length(context)) context[[1]]$short else ctx$area$short),
        fields = if (has_data) c("title", "prose", "caption", "note", "source_note", "labels") else c("title", "prose", "source_note"),
        labels = labels,
        sources = metric_sources(metrics),

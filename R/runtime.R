@@ -10,7 +10,7 @@ gr_open_snapshot <- function(path) {
     force(name)
     function(options) {
       id <- sub("^(fig|tbl)-", "", options$label %||% "")
-      options[[name]] <- fill_template(options[[name]], c(snap$values$report, snap$values[[id]]))
+      options[[name]] <- fill_template(options[[name]], c(snap$values[[id]], snap$values$report))
       options
     }
   }
@@ -27,7 +27,9 @@ gr_open_snapshot <- function(path) {
 gr_block <- function(snap, id) {
   b <- snap$blocks[[id]]
   if (is.null(b)) stop("Block '", id, "' is not in the report snapshot; rebuild the report.")
-  vals <- c(snap$values$report, snap$values[[id]])
+  # A block's own values come first (as in quarto/gr-placeholders.lua), e.g. the county a
+  # chart shows as context for a city.
+  vals <- c(snap$values[[id]], snap$values$report)
   opt <- function(option, field) {
     v <- knitr::opts_current$get(option)
     if (is.null(v)) v <- snap$texts[[paste0(id, ".", field)]]

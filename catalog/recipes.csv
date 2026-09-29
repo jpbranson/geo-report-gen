@@ -180,3 +180,21 @@ establishments_cbp,census_cbp,count,ESTAB_00,,,,1,,,
 employment_cbp,census_cbp,count,EMP_00,,,,1,,,
 annual_payroll_per_employee_cbp,census_cbp,ratio,PAYANN_00,EMP_00,,,1000,year,,
 childcare_employment_cbp,census_cbp,count,EMP_624410,,,,1,,,
+nri_loss_share_flooding_nri,fema_nri,share,IFLD_EALT+CFLD_EALT,EAL_VALT,,,100,,hazard_loss,Flooding (inland and coastal)
+nri_loss_share_hurricane_nri,fema_nri,share,HRCN_EALT,EAL_VALT,,,100,,hazard_loss,Hurricanes
+nri_loss_share_tornado_nri,fema_nri,share,TRND_EALT,EAL_VALT,,,100,,hazard_loss,Tornadoes
+nri_loss_share_wind_nri,fema_nri,share,SWND_EALT,EAL_VALT,,,100,,hazard_loss,Strong wind
+nri_loss_share_hail_nri,fema_nri,share,HAIL_EALT,EAL_VALT,,,100,,hazard_loss,Hail
+nri_loss_share_wildfire_nri,fema_nri,share,WFIR_EALT,EAL_VALT,,,100,,hazard_loss,Wildfire
+nri_loss_share_heat_nri,fema_nri,share,HWAV_EALT,EAL_VALT,,,100,,hazard_loss,Heat waves
+nri_loss_share_drought_nri,fema_nri,share,DRGT_EALT,EAL_VALT,,,100,,hazard_loss,Drought
+nri_loss_share_winter_nri,fema_nri,share,WNTW_EALT+CWAV_EALT+ISTM_EALT,EAL_VALT,,,100,,hazard_loss,"Winter weather, cold waves and ice storms"
+nri_loss_share_earthquake_nri,fema_nri,share,ERQK_EALT,EAL_VALT,,,100,,hazard_loss,Earthquakes
+nri_loss_share_other_nri,fema_nri,share,LTNG_EALT+LNDS_EALT+AVLN_EALT+TSUN_EALT+VLCN_EALT,EAL_VALT,,,100,,hazard_loss,"Lightning, landslides and other hazards"
+nri_risk_score_nri,fema_nri,value,RISK_SCORE,,,,1,,,
+nri_social_vulnerability_score_nri,fema_nri,value,SOVI_SCORE,,,,1,,,
+nri_community_resilience_score_nri,fema_nri,value,RESL_SCORE,,,,1,,,
+nri_heat_wave_risk_score_nri,fema_nri,value,HWAV_RISKS,,,,1,,,
+nri_expected_annual_loss_nri,fema_nri,count,EAL_VALT,,,,1,,,
+nri_eal_per_resident_nri,fema_nri,ratio,EAL_VALT,POPULATION,,,1,,,
+nri_building_loss_rate_nri,fema_nri,ratio,EAL_VALB,BUILDVALUE,,,1000000,,,

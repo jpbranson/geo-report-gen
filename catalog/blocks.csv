@@ -77,3 +77,6 @@ business-summary,industries_business,facts,establishments_cbp;employment_cbp;ann
 jobs-industry-mix,industries_business,composition,group:jobs_industry,parents,bar,,"Jobs located in the area by the employer's industry, against comparison areas (County Business Patterns, latest year)"
 payroll-trend,employment_labor,metric,annual_payroll_per_employee_cbp,time+parents,line,history_start=1998,Annual payroll per employee since 1998 in constant dollars
 childcare-jobs,childcare,metric,childcare_employment_cbp,time,line,history_start=1998,Paid employees of child day care establishments since 1998
+hazard-risk,environment_climate,facts,nri_risk_score_nri;nri_social_vulnerability_score_nri;nri_community_resilience_score_nri;nri_heat_wave_risk_score_nri,parents,table,,"Natural hazard risk, social vulnerability and resilience scores of the county (FEMA National Risk Index)"
+hazard-losses,environment_climate,facts,nri_expected_annual_loss_nri;nri_eal_per_resident_nri;nri_building_loss_rate_nri,parents,table,,"Expected annual losses from natural hazards, in total, per resident and per $1 million of buildings"
+hazard-loss-mix,environment_climate,composition,group:hazard_loss,parents,bar,,"Expected annual loss by hazard (FEMA National Risk Index), against comparison areas"

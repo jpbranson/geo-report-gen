@@ -129,7 +129,14 @@ industries, households, civic, public safety and public finance had none. Now 13
        (early childhood). Also fixed: short names cut at the first comma ("Travis" for a
        three-county area); long chart labels wrap and get room; bar compositions keep the study
        area first
-3. [ ] FEMA National Risk Index (expected annual loss, risk, social vulnerability, community
-       resilience; counties and tracts)
+3. [x] FEMA National Risk Index (R/providers/nri.R, v1.20 county table): 18 metrics (risk, social
+       vulnerability, community resilience and heat wave scores for single counties; expected
+       annual loss in total, per resident and per $1 million of buildings, summed to states,
+       regions, divisions and the nation; loss by hazard in 11 groups); section "Natural hazards"
+       (general: scores, losses, losses by hazard; economic development: losses). FEMA's required
+       statement is in each block's source note. Tracts not used (national 635 MB file only).
+       Engine: facts tables and compositions show the county as context for cities (as metric
+       blocks do); render-time placeholders now prefer the block's values (runtime.R had the
+       report's first, so context captions said "Gary")
 4. [ ] USDA ERS Food Environment Atlas (county food stores, restaurants, food assistance, access)
 5. [ ] Check back with the user

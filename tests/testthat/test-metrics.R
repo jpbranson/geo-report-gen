@@ -130,6 +130,23 @@ test_that("CBP: withheld cells and missing rows follow the publication rules of 
   expect_equal(d$estimate, 121069944)
 })
 
+test_that("NRI: scores only for single counties; dollar values sum to combined areas and states", {
+  counties <- function(geoids) data.frame(key = paste0("county:", geoids), type = "county", geoid = geoids,
+                                          name = "", pop = NA_real_)
+  kent <- entity("kent", "study", "Kent County", counties("10001"))
+  both <- entity("both", "study", "Kent and New Castle", counties(c("10001", "10003")))
+  de <- entity("de", "benchmark", "Delaware", data.frame(key = "state:10", type = "state", geoid = "10", name = "", pop = NA_real_))
+  r <- compute_metric("nri_risk_score_nri", list(kent, both, de), resolve_settings())
+  expect_equal(round(r$value[r$entity_id == "kent"], 2), 84.51)
+  expect_equal(r$status[r$entity_id == "both"], "not_aggregable")
+  expect_equal(r$status[r$entity_id == "de"], "not_applicable")                      # scores rank counties only
+  expect_match(r$method[r$entity_id == "de"], "rank counties")
+  e <- compute_metric("nri_eal_per_resident_nri", list(both, de), resolve_settings())
+  expect_equal(e$value[e$entity_id == "both"], (55756476.459 + 202209273.318) / (181705 + 570089), tolerance = 1e-6)
+  expect_equal(e$value[e$entity_id == "de"], (55756476.459 + 202209273.318 + 119301379.466) / (181705 + 570089 + 237214),
+               tolerance = 1e-6)
+})
+
 test_that("a value the source did not publish carries the source's reason", {
   d <- long("county:1", "ESTAB_00", NA, NA, "suppressed")
   d$note <- "fewer than 3 establishments or none"

@@ -283,3 +283,19 @@ NRI, USDA Food Environment Atlas), then check back. Plan in PLAN.md.
 - Verified: tests 164 pass (Loving County TX fixture: withheld 2016 mining, no 2016 health row,
   no 2023 transportation row; 2014 national "r" flag); batch online 149 requests, offline clean;
   austin-core and kc-core charts and tables reviewed.
+- FEMA NRI (step 3, done ~21:00): R/providers/nri.R reads NRI_Table_Counties.csv from FEMA's
+  v1.20 zip (25 MB, keyless). Checked: EAL_VALT = sum of the 18 hazard EALs (NA = 0) = B + PE + A;
+  every one of our 3,144 counties is present (CT planning regions included); scores complete for
+  the 50 states + DC (88 NA are territories), HWAV_RISKS blank in 30 counties. Scores (value
+  recipes) only for single counties: other areas get not_applicable with the reason; unions get
+  not_aggregable. Additive fields summed to state/region/division/nation. Metadata: SoVI from
+  Census Community Resilience Estimates, resilience from HVRI BRIC 2020, dollars of December
+  2024; terms require a "not endorsed by FEMA" statement (in each block's source note).
+- Engine: context_entities() shared by metric, facts and composition blocks (a city report shows
+  its county for county-only sources); facts sentences @phrase.facts_context / facts_alone,
+  composition @phrase.composition_context; @phrase.facts_no_data renamed none_available and used
+  by compositions (the old composition no-data sentence printed the group id). runtime.R filled
+  chunk-option placeholders with report values first (c(report, block)); now block first, as the
+  Lua filter documents.
+- Verified: tests 170 pass (DE fixture zip, 11 KB); batch clean; Gary (context), ct-capitol,
+  kc-core and tx-cities hazard blocks reviewed.

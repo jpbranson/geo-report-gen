@@ -225,11 +225,15 @@ per Quarto render, so rendering is the main cost whenever many reports change.
 
 ## Limitations
 
-- 181 of the 425 cataloged metrics are operational (ACS detailed tables, decennial census,
-  population estimates, SAIPE, SAHIE, CDC PLACES, County Business Patterns, BEA, BLS, FHFA,
-  building permits, child care prices, Texas licensing); the rest are documented only.
-  Environment and climate hazards, public safety, civic participation and local public finance
-  have no operational metric yet.
+- 199 of the 438 cataloged metrics are operational (ACS detailed tables, decennial census,
+  population estimates, SAIPE, SAHIE, CDC PLACES, County Business Patterns, FEMA National Risk
+  Index, BEA, BLS, FHFA, building permits, child care prices, Texas licensing); the rest are
+  documented only. Public safety, civic participation and local public finance have no
+  operational metric yet.
+- The FEMA National Risk Index is used for counties (city reports show their county). Its
+  scores rank counties against each other, so they exist only for single counties; expected
+  losses add up to states, the nation and combined areas. FEMA's terms require the statement
+  printed under each hazard table and chart. Census tracts (a 635 MB national file) are not used.
 - County Business Patterns (jobs, establishments and payroll where businesses are located)
   covers counties, states and the nation. From 2017 a sector with fewer than 3 establishments in
   a county is not published, so jobs by industry are shown by NAICS sector (combining sectors

@@ -174,6 +174,7 @@ verify_sources <- function() {
     bea_cainc = head_check("https://apps.bea.gov/regional/zip/CAINC1.zip", "bea"),
     fhfa_hpi = head_check("https://www.fhfa.gov/hpi/download/annual/hpi_at_county.xlsx", "fhfa"),
     census_bps = head_check("https://www2.census.gov/econ/bps/County/co2025a.txt", "census_bps"),
+    fema_nri = head_check(nri_url, "fema_nri"),
     dol_ndcp = head_check("https://www.dol.gov/sites/dolgov/files/WB/NDCP2022.xlsx", "dol_ndcp"),
     census_geo = head_check("https://www2.census.gov/geo/tiger/GENZ2024/shp/cb_2024_us_county_500k.zip", "census_geo"),
     bls_laus = head_check("https://download.bls.gov/pub/time.series/la/la.area", "bls"),
