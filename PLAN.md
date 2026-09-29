@@ -34,7 +34,7 @@ Key decisions
 
 ## Checklist
 
-Status as of 2026-09-28 23:20 (session 3; details in FLIGHT_LOG.md). `[x]` done and exercised by the
+Status as of 2026-09-29 00:15 (session 3; details in FLIGHT_LOG.md). `[x]` done and exercised by the
 sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
 
 - [x] Environment: renv library + `renv.lock`, Quarto discovery, `.env` for key/contact (never logged)
@@ -47,10 +47,11 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
 - [x] Providers: ACS 5-yr (2009-2024), decennial 2000/2010/2020 (1990 is not in the API), PEP, 1900-1990
       county counts, LAUS, BEA CAINC1, CPI, building permits, FHFA HPI, NDCP, CBP (all industries), Texas HHSC,
       SAIPE, SAHIE, CDC PLACES, FEMA National Risk Index, USDA Food Environment Atlas, EAC EAVS,
-      Census of Governments finance, FBI Crime Data Explorer
-- [x] Catalog: tables (17 subjects / 82 subtopics, 121 sources, 445 metrics, 219 operational), the
-      browsable page (`gr.R catalog --html`) with scope and gaps, live `gr.R verify` (21 of 21 ok;
-      424 ACS recipe x release checks, no gaps)
+      Census of Governments finance, FBI Crime Data Explorer, IPUMS NHGIS (census years 1970-2000)
+- [x] Catalog: tables (17 subjects / 82 subtopics, 121 sources, 458 metrics, 232 operational), the
+      browsable page (`gr.R catalog --html`) with scope and gaps, live `gr.R verify` (22
+      sources: 21 ok, the FBI API briefly down and ok on retry; 424 ACS recipe x release
+      checks, no gaps)
 - [x] Content: manifests, block library, 3 profiles, scoped text, templates, cited history events,
       stale-fact warnings, `gr.R new` (subject/metric selection)
 - [x] Authoring: inline harvest, bulk CSV export/import and conflict detection, covered by tests and
@@ -61,7 +62,7 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
       logs, build manifests; cold/warm/resumed benchmark and invalidation checks (README, docs/)
 - [x] Demos 1-11: sample reports, demos/round_trip.R (10/10), benchmark, README; PDF via Typst works
       (basic page layout, documented)
-- [x] Tests: 200 expectations pass offline with fixtures (`gr.R test`)
+- [x] Tests: 213 expectations pass offline with fixtures (`gr.R test`)
 - [x] Docs and lean review: README complete; dead code removed; R/blocks.R, R/geography.R and
       R/compose.R restructured, each with every report's output proven identical
 
@@ -181,7 +182,14 @@ Reports may keep growing (the user edits down), so every new block goes into the
 
 1. [x] FBI: an agency's year with under a quarter of its usual offenses (its median year, when
        that is at least 20) counts as not reported (Kansas City, Kansas in 2023)
-2. [ ] IPUMS NHGIS provider (IPUMS_API_KEY in .env, sent only as the Authorization header):
+2. [x] IPUMS NHGIS provider (IPUMS_API_KEY in .env, sent only as the Authorization header):
        census years 1970-2000 for the existing income, poverty, education, work and commuting
-       measures
+       measures. Done: R/providers/nhgis.R (httr2 client, one cached extract of 7 time series
+       tables, nominal integration, current FIPS codes); 13 metrics (median household and per
+       capita income 1980-2000 in constant dollars of the prior year, poverty, labor force
+       participation, employment ratio, bachelor's or higher 1970-2000, 7 commuting modes
+       1990-2000); dots in 6 trend charts and 1990/2000 bars in the commuting chart. Engine:
+       recipe dollars "prior_year"; compositions accept a category from two sources; charts
+       mixing census years and ACS periods label the axis "Year". Test fixture is made up
+       (NHGIS terms)
 3. [ ] Check back with the user

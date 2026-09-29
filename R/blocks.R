@@ -184,6 +184,8 @@ compute_block_metric <- function(row, ctx, settings, opts) {
   values <- if (isTRUE(ctx$compare) && is.null(context)) compare_values(res, primary, ctx, settings) else
     metric_values(res, primary, ctx, settings, focus)
   values$index_base <- indexed$base
+  kinds <- vapply(metrics, function(m) get_provider(recipe_for(m)$source_id)$period_kind, "")
+  if (length(unique(kinds)) > 1) values$x_axis_label <- phrase(ctx, "x_year", list())  # e.g. census years and ACS periods
   values <- utils::modifyList(values, observed_values(res, focus, units, ctx$theme))
   if (length(context)) {
     values$context_note <- phrase(ctx, "context_note", list(
@@ -193,7 +195,7 @@ compute_block_metric <- function(row, ctx, settings, opts) {
   }
   has_data <- any(!is.na(res$value[res$entity_id %in% c(focus$id, vapply(ctx$studies, `[[`, "", "id"))]))
   list(data = list(results = res, units = units, metrics = metrics,
-                   period_kind = vapply(metrics, function(m) get_provider(recipe_for(m)$source_id)$period_kind, ""),
+                   period_kind = kinds,
                    events = chart_events(ctx, primary, res, sources)),
        values = values,
        fields = if (has_data) c("title", "prose", "caption", "alt", "x_label", "y_label", "legend_title", "note", "source_note")
@@ -546,18 +548,21 @@ compute_block_composition <- function(row, ctx, settings, opts) {
     r$category <- recipe$category
     r
   }))
-  res$category <- factor(res$category, levels = members$category)
+  # A category can come from several sources (census years before the ACS); a view of the
+  # latest period keeps only the most recent source's period.
+  if (use_parents || identical(opts$latest_only, "true")) res <- res[res$period_end == max(res$period_end), , drop = FALSE]
+  res$category <- factor(res$category, levels = unique(members$category))
   et <- entity_table(ctx)
   res$label <- et$label[match(res$entity_id, et$entity_id)]
   study <- res[res$entity_id == focus$id & !is.na(res$value), , drop = FALSE]
   if (!nrow(study)) {
     reasons <- unique(res$method[res$entity_id == focus$id & nzchar(res$method)])
     no_data <- phrase(ctx, "none_available", list(area_short = ctx$area$short, reason = reasons[1] %||% ""))
-    return(list(data = list(results = res, categories = members$category), figure = FALSE,
+    return(list(data = list(results = res, categories = unique(members$category)), figure = FALSE,
                 values = list(summary_sentence = no_data, change_sentence = "", method_note = "",
                               area_short = ctx$area$short, latest_period = "", largest_category = "", largest_share = ""),
                 fields = c("title", "prose", "source_note"),
-                sources = source_row(members$source_id[1], metric_doc(members$metric_id[1])$table_or_series),
+                sources = unique(metric_sources(members$metric_id)),
                 unavailable = block_unavailable_rows(res, row$id, ctx)))
   }
   latest_p <- max(study$period_end, na.rm = TRUE)
@@ -586,8 +591,10 @@ compute_block_composition <- function(row, ctx, settings, opts) {
     v$summary_sentence <- phrase(ctx, "composition_compare",
                                  list(latest_period = v$latest_period, list = join_list(tops, ctx)))
   }
-  firsts <- study[study$period_end == min(study$period_end), , drop = FALSE]
-  if (nrow(firsts) && min(study$period_end) < latest_p) {
+  # Changes are tested within the latest period's source (census values have no margins of error).
+  same <- study[study$series == now$series[1], , drop = FALSE]
+  firsts <- same[same$period_end == min(same$period_end), , drop = FALSE]
+  if (nrow(firsts) && min(same$period_end) < latest_p) {
     moves <- merge(firsts[, c("category", "value", "moe", "period_label", "period_start", "period_end")],
                    now[, c("category", "value", "moe", "period_label", "period_start", "period_end")],
                    by = "category", suffixes = c("_1", "_2"))
@@ -607,12 +614,12 @@ compute_block_composition <- function(row, ctx, settings, opts) {
                                   list(first_period = firsts$period_label[1], latest_period = v$latest_period))
     }
   }
-  list(data = list(results = res, categories = members$category),
+  list(data = list(results = res, categories = unique(members$category)),
        compare_override = if (isTRUE(ctx$compare)) "subgroups+parents" else NULL,
        values = v,
        fields = c("title", "prose", "caption", "alt", "y_label", "legend_title", "note", "source_note", "labels"),
-       labels = stats::setNames(members$category, members$metric_id),
-       sources = source_row(members$source_id[1], metric_doc(members$metric_id[1])$table_or_series),
+       labels = stats::setNames(members$category, members$metric_id)[!duplicated(members$category)],
+       sources = unique(metric_sources(members$metric_id)),
        unavailable = block_unavailable_rows(res, row$id, ctx),
        figure = TRUE)
 }

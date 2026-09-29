@@ -218,3 +218,16 @@ city_gov_police_per_capita_govfin,census_govfin,ratio,CI_POLICE,CI_POP,,,1000,ye
 violent_crime_rate_fbi,fbi_cde,ratio,V,V_POP,,,100000,,,
 property_crime_rate_fbi,fbi_cde,ratio,P,P_POP,,,100000,,,
 ucr_population_coverage_fbi,fbi_cde,share,V_POP,POP,,,100,,,
+median_household_income_census,ipums_nhgis,value,B79AA,,,,1,prior_year,,
+per_capita_income_census,ipums_nhgis,value,BD5AA,,,,1,prior_year,,
+poverty_rate_census,ipums_nhgis,share,CL6AA,AX6AA,,,100,,,
+labor_force_participation_census,ipums_nhgis,share,B84AA,B84AA+B84AF,,,100,,,
+employment_population_ratio_census,ipums_nhgis,share,B84AD,B84AA+B84AF,,,100,,,
+bachelors_plus_share_census,ipums_nhgis,share,B69AC,B69AA+B69AB+B69AC,,,100,,,
+commute_drove_alone_share_census,ipums_nhgis,share,C53AB,C53AA+C53AI+C53AO+C53AP+C53AQ+C53AR+C53AS+C53AT,,,100,,commute_mode,Drove alone
+commute_carpool_share_census,ipums_nhgis,share,C53AC,C53AA+C53AI+C53AO+C53AP+C53AQ+C53AR+C53AS+C53AT,,,100,,commute_mode,Carpooled
+commute_public_transit_share_census,ipums_nhgis,share,C53AI,C53AA+C53AI+C53AO+C53AP+C53AQ+C53AR+C53AS+C53AT,,,100,,commute_mode,Public transportation
+commute_walk_share_census,ipums_nhgis,share,C53AR,C53AA+C53AI+C53AO+C53AP+C53AQ+C53AR+C53AS+C53AT,,,100,,commute_mode,Walked
+commute_bicycle_share_census,ipums_nhgis,share,C53AQ,C53AA+C53AI+C53AO+C53AP+C53AQ+C53AR+C53AS+C53AT,,,100,,commute_mode,Bicycle
+commute_other_share_census,ipums_nhgis,share,C53AO+C53AP+C53AS,C53AA+C53AI+C53AO+C53AP+C53AQ+C53AR+C53AS+C53AT,,,100,,commute_mode,"Taxi, motorcycle or other"
+work_from_home_share_census,ipums_nhgis,share,C53AT,C53AA+C53AI+C53AO+C53AP+C53AQ+C53AR+C53AS+C53AT,,,100,,commute_mode,Worked from home

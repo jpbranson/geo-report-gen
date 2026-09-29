@@ -2,8 +2,14 @@
 
 NHGIS (IPUMS, University of Minnesota) republishes every decennial census from 1790, the ACS,
 County Business Patterns 1970-2002 and other historical tables. It links them across years in
-"time series tables" and has boundary files and crosswalks. Nothing here is implemented yet. The
-source is in `catalog/sources.csv` as `ipums_nhgis`.
+"time series tables" and has boundary files and crosswalks. The source is in `catalog/sources.csv`
+as `ipums_nhgis`.
+
+**Implemented (2026-09-29):** addition 1 below, in `R/providers/nhgis.R`. It covers census years
+1970-2000 of B79, BD5, CL6/AX6, B84, B69 and C53. They appear in the income, per capita income,
+poverty, labor force, employment ratio and education charts (as dots) and the commuting chart
+(1990 and 2000 bars), for the nation, regions, divisions, states, counties, towns and places.
+The rest of this page is still open.
 
 ## What it would add
 

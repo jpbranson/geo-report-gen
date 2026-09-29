@@ -57,6 +57,31 @@ test_that("constant dollars keep nominal values and flag years the price index d
   expect_equal(out$value_nominal, c(100, 100))
   expect_equal(out$status, c("ok", "unavailable"))
   expect_equal(apply_inflation(res, list(dollars = "period_end"), list(), adjust = FALSE)$value, c(100, 100))
+  census <- data.frame(value = 100, moe = NA_real_, period_end = 2001L, status = "ok", method = "")  # income of the year before
+  expect_equal(apply_inflation(census, list(dollars = "prior_year"), list(dollar_year = "2024", price_index = "r_cpi_u_rs"))$value, 150)
+})
+
+test_that("NHGIS census years: areas match by current codes; missing and untabulated values say why", {
+  # The fixture is a made-up extract in NHGIS's file layout (the NHGIS terms forbid
+  # redistributing real extracts); the tables' census years are real metadata.
+  d <- nhgis_values()
+  expect_setequal(unique(d$key), c("nation:US", "state:10", "county:10001", "county:10003", "place:1021200"))
+  place <- function(geoid, name) data.frame(key = paste0("place:", geoid), type = "place", geoid = geoid, name = name, pop = NA_real_)
+  dover <- entity("dover", "study", "Dover city, Delaware", place("1021200", "Dover city, Delaware"))
+  st <- resolve_settings()
+  r <- compute_metric("poverty_rate_census", list(dover), st)
+  expect_equal(r$period, c("1970", "1980", "1990", "2000"))
+  expect_equal(r$period_label[2], "1980 census")
+  expect_equal(r$value, c(NA, 15, 14, 15))
+  expect_match(r$method[1], "did not exist then")                                    # no 1970 row for Dover
+  counties <- entity("kent-nc", "study", "Kent and New Castle counties", data.frame(
+    key = c("county:10001", "county:10003"), type = "county", geoid = c("10001", "10003"),
+    name = c("Kent County, Delaware", "New Castle County, Delaware"), pop = NA_real_))
+  expect_equal(compute_metric("poverty_rate_census", list(counties), st, periods = 1990L)$value, 100 * (12 + 36) / (100 + 400))
+  income <- compute_metric("median_household_income_census", list(dover), st, constant_dollars = FALSE)
+  expect_equal(income$period, c("1980", "1990", "2000"))                             # B79 starts in 1980
+  expect_equal(income$value, c(15000, 28000, NA))
+  expect_match(income$method[3], "not tabulated")
 })
 
 test_that("ACS special values become statuses, never numbers", {

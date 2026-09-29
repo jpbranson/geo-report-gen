@@ -251,14 +251,15 @@ metric_code_version <- function() {
 
 # Monetary values: keep nominal values and add constant dollars of `dollar_year` using the
 # price index in settings (`price_index`). ACS period dollars are already in dollars of the
-# final year of the period; annual series are in dollars of their own year.
+# final year of the period; annual series are in dollars of their own year; census income
+# (recipe dollars "prior_year") is in dollars of the year before the census.
 apply_inflation <- function(res, recipe, settings, adjust = TRUE) {
   res$value_nominal <- res$value
   res$moe_nominal <- res$moe
   res$dollar_year <- NA_integer_
   if (!adjust || is_blank(recipe$dollars) || !nrow(res)) return(res)
   base <- as.integer(settings$dollar_year %||% settings$acs_release %||% 2024)
-  from <- res$period_end
+  from <- res$period_end - if (identical(recipe$dollars, "prior_year")) 1L else 0L
   idx <- tryCatch(price_index_table(settings$price_index %||% "r_cpi_u_rs"), error = function(e) {
     warn("Constant dollars unavailable (", conditionMessage(e), "). Dollar values are shown in nominal ",
          "dollars of each period and are not compared over time.")

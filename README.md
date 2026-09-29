@@ -17,12 +17,16 @@ The output of every report is an editable Quarto document (`report.qmd`) and its
    CENSUS_API_KEY=<free key from https://api.census.gov/data/key_signup.html>
    GR_HTTP_CONTACT=<your email address>
    DATA_GOV_API_KEY=<free key from https://api.data.gov/signup/>
+   IPUMS_API_KEY=<free key from https://account.ipums.org/api_keys>
    ```
 
    The Census Data API needs the key for every request. BLS rejects automated downloads that
    carry no contact, so the email is sent in the User-Agent of BLS requests, and only those. The
    FBI Crime Data Explorer needs the api.data.gov key, sent only as a request header (never in
-   URLs or logs); without it, the crime blocks stop with a message saying so.
+   URLs or logs); without it, the crime blocks stop with a message saying so. Census years
+   1970-2000 come from IPUMS NHGIS, which needs the IPUMS key (sent only as a request header)
+   and an IPUMS account registered for NHGIS (https://uma.pop.umn.edu/nhgis/registration/new).
+   The first build requests one extract, which IPUMS takes about 6 minutes to produce.
 4. Run commands from the project root. On Windows, call the R 4.6 `Rscript.exe` explicitly if
    another R version is first on the PATH.
 
@@ -228,14 +232,19 @@ per Quarto render, so rendering is the main cost whenever many reports change.
 
 ## Limitations
 
-- 219 of the 445 cataloged metrics are operational (ACS detailed tables, decennial census,
+- 232 of the 458 cataloged metrics are operational (ACS detailed tables, decennial census,
   population estimates, SAIPE, SAHIE, CDC PLACES, County Business Patterns, FEMA National Risk
   Index, USDA Food Environment Atlas, EAC Election Administration and Voting Survey, Census of
-  Governments finance, FBI Crime Data Explorer, BEA, BLS, FHFA, building permits, child care
-  prices, Texas licensing); the rest are documented only.
-- Small-area socioeconomic history starts with the ACS 2005-2009 period. IPUMS NHGIS could add
-  census years back to 1970 (and county population back to 1790), but it needs a free account and
-  API key; see `docs/nhgis.md` (not implemented).
+  Governments finance, FBI Crime Data Explorer, IPUMS NHGIS, BEA, BLS, FHFA, building permits,
+  child care prices, Texas licensing); the rest are documented only.
+- Census years before the ACS (IPUMS NHGIS) cover income and poverty (1970 or 1980 to 2000),
+  education, work and commuting (commuting modes 1990 and 2000). They come from the census long
+  form, a sample; NHGIS publishes no margins of error for them, so they are drawn as dots and
+  never tested. Areas are linked across censuses by name and code, on each census's boundaries.
+  Connecticut's planning regions and combined areas' medians have no census values. The NHGIS
+  terms forbid redistributing the data: extracts stay in the cache, and the test fixture is made
+  up. Other NHGIS holdings (county population from 1790, CBP from 1970, constant-boundary
+  counts, Connecticut crosswalks) are described in `docs/nhgis.md`.
 - Crime rates (FBI Crime Data Explorer, 2016-2025) need a free api.data.gov key in `.env`
   (`DATA_GOV_API_KEY`), sent only as a request header. The FBI publishes police agencies: a city
   is its police department (matched by name) and needs all 12 months reported in a year (Gary did

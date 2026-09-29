@@ -183,6 +183,11 @@ verify_sources <- function() {
       paste0("FBI U.S. violent offenses reported in December 2025: ",
              format(x$offenses$actuals[["United States Offenses"]][["12-2025"]], big.mark = ","))
     },
+    ipums_nhgis = function() {
+      x <- nhgis_get("metadata/time_series_tables/B79")
+      paste0("NHGIS table B79 (", x$description, ") census years: ",
+             paste(intersect(nhgis_census_years, vapply(x$years, `[[`, "", "name")), collapse = ", "))
+    },
     dol_ndcp = head_check("https://www.dol.gov/sites/dolgov/files/WB/NDCP2022.xlsx", "dol_ndcp"),
     census_geo = head_check("https://www2.census.gov/geo/tiger/GENZ2024/shp/cb_2024_us_county_500k.zip", "census_geo"),
     bls_laus = head_check("https://download.bls.gov/pub/time.series/la/la.area", "bls"),

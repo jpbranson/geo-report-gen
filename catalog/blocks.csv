@@ -8,13 +8,13 @@ pop-growth,demographics,metric,pop_total_dec,time+parents,line,index=first; hist
 age-structure,demographics,composition,group:age_groups,time,stacked_bar,,Age structure over non-overlapping ACS periods (no parent chart)
 race-ethnicity,demographics,composition,group:race_ethnicity,time,stacked_bar,"periods=2019,2024",Race and Hispanic origin (2015-2019 vs 2020-2024; coding break noted)
 median-age,demographics,metric,median_age_acs,parents,dot,,Median age compared with benchmarks
-income-trend,income_poverty_hardship,metric,median_household_income_acs,time+parents,line,,Median household income over time in constant dollars
+income-trend,income_poverty_hardship,metric,median_household_income_acs;median_household_income_census,time+parents,line,history_start=1970,Median household income over time in constant dollars: censuses 1980-2000 (1979-1999 incomes; IPUMS NHGIS) and ACS periods
 income-distribution,income_poverty_hardship,distribution,median_household_income_acs,distribution,bar,,Household income distribution (study area vs widest containing benchmark)
-per-capita-income,income_poverty_hardship,metric,per_capita_income_acs,time+parents,line,,Per capita income over time in constant dollars
-poverty-trend,income_poverty_hardship,metric,poverty_rate_acs,time+parents,line,,Poverty rate over time
+per-capita-income,income_poverty_hardship,metric,per_capita_income_acs;per_capita_income_census,time+parents,line,history_start=1970,Per capita income over time in constant dollars: censuses 1980-2000 (1979-1999 incomes; IPUMS NHGIS) and ACS periods
+poverty-trend,income_poverty_hardship,metric,poverty_rate_acs;poverty_rate_census,time+parents,line,history_start=1970,Poverty rate over time: censuses 1970-2000 (IPUMS NHGIS) and ACS periods
 child-poverty,children_early_childhood,metric,child_poverty_rate_acs,time+parents,line,,Child poverty rate
-labor-force,employment_labor,metric,labor_force_participation_acs,time+parents,line,,Labor force participation
-education,education,metric,bachelors_plus_share_acs,time+parents,line,,Adults with a bachelor's degree or higher
+labor-force,employment_labor,metric,labor_force_participation_acs;labor_force_participation_census,time+parents,line,history_start=1970,Labor force participation: censuses 1970-2000 (IPUMS NHGIS) and ACS periods
+education,education,metric,bachelors_plus_share_acs;bachelors_plus_share_census,time+parents,line,history_start=1970,Adults with a bachelor's degree or higher: censuses 1970-2000 (IPUMS NHGIS) and ACS periods
 snap,income_poverty_hardship,metric,snap_households_share_acs,parents,dot,,Households receiving SNAP
 housing-units-history,housing,metric,housing_units_dec,time,line,history_start=2000,Housing units by census
 tenure-trend,housing,metric,owner_occupied_share_acs,time+parents,line,,Homeownership rate over time
@@ -47,13 +47,13 @@ health-insurance,health,metric,uninsured_rate_acs,time+parents,line,,Residents w
 uninsured-children,health,metric,uninsured_rate_children_acs,time+parents,line,,Children under 19 without health insurance
 disability,health,metric,disability_rate_acs,time+parents,line,,Residents with a disability (questions revised in 2008)
 health-coverage,health,facts,uninsured_rate_acs;uninsured_rate_children_acs;medicaid_means_tested_coverage_acs;disability_rate_acs;disability_uninsured_19_64_acs,parents,table,,Health insurance coverage and disability against benchmarks
-commute-mode,transportation,composition,group:commute_mode,time,stacked_bar,,How workers get to work over non-overlapping ACS periods
+commute-mode,transportation,composition,group:commute_mode,time,stacked_bar,,How workers get to work: the 1990 and 2000 censuses (IPUMS NHGIS) and non-overlapping ACS periods
 getting-around,transportation,facts,mean_commute_minutes_acs;commute_60plus_min_share_acs;households_no_vehicle_share_acs;renter_households_no_vehicle_share_acs;vehicles_per_household_acs,parents,table,,Commute times and vehicle availability against benchmarks
 internet-access,broadband,facts,broadband_households_share_acs;households_fixed_broadband_share_acs;households_cellular_data_only_share_acs;households_without_internet_subscription_share_acs;households_no_computer_share_acs;households_smartphone_only_share_acs,parents,table,,Internet subscriptions and computers (latest period; short history)
 industry-mix,industries_business,composition,group:industry,parents,bar,,"Industries of employed residents (where residents work, not jobs located in the area)"
 occupation-mix,employment_labor,composition,group:occupation,parents,stacked_bar,,Occupations of employed residents against benchmarks
 earnings,employment_labor,metric,median_earnings_acs,time+parents,line,,Median earnings of workers in constant dollars
-employment-ratio,employment_labor,metric,employment_population_ratio_acs,time+parents,line,,Employment-population ratio
+employment-ratio,employment_labor,metric,employment_population_ratio_acs;employment_population_ratio_census,time+parents,line,history_start=1970,Employment-population ratio: censuses 1970-2000 (IPUMS NHGIS) and ACS periods
 inequality,income_poverty_hardship,metric,gini_index_acs,parents,dot,,Gini index of household income inequality
 economic-security,income_poverty_hardship,facts,below_200pct_poverty_share_acs;snap_households_share_acs;snap_receipt_among_poverty_households_acs;public_assistance_income_households_acs;ssi_households_acs,parents,table,,Low income and income support against benchmarks
 housing-stock,housing,facts,single_family_detached_share_acs;multifamily_5plus_share_acs;median_year_built_acs;rental_vacancy_rate_acs;homeowner_vacancy_rate_acs;seasonal_vacant_share_acs,parents,table,,Housing stock and vacancy against benchmarks

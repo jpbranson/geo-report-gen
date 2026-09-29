@@ -395,3 +395,15 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   agency's median year when the median is at least 20 offenses. Of 334 cached agency series it
   removes 3 agency-years: KCK violent 2023 (180 vs 1,539), a Connecticut agency's property 2020
   (6 vs 27) and a Texas agency's property 2020 (29 vs 149). Tests 203.
+- NHGIS (done ~00:05): the first extract request failed with HTTP 401 (the account was not
+  registered for NHGIS; the user registered). ipums_key.txt held "IPUMS_KEY=<key>", so .env
+  first got the prefix too (API: "Invalid API key"); fixed without printing the key. Layout
+  (time_by_row_layout, csv_no_header): one CSV per level; place/cty_sub rows carry integrated
+  codes (PLACEA, CTY_SUBA: 5 digits = current FIPS; shorter = defunct, dropped); NHGIS repeats
+  45 Wisconsin town-years identically (deduplicated). One extract of AX6, B69, B79, B84, BD5,
+  C53, CL6 took 6.2 minutes; 225,236 area-years. Checks: U.S. median household income $16,841
+  (1979), $30,056 (1989), $41,994 (1999); per capita $7,298 (1979); poverty 13.1% (1989). Gary
+  poverty 15% (1970), 20%, 29%, 26% (2000); Gary median household income about $70,000 (1979,
+  2024 dollars) against $38,000 now. Austin bachelor's or higher 21% (1970), 40% (2000).
+  value-type recipes read their variable from the numerator column (fixed). Tests 213; batch
+  clean (austin-78704 rejected as intended).
