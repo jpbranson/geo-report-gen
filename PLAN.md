@@ -34,7 +34,7 @@ Key decisions
 
 ## Checklist
 
-Status as of 2026-09-28 19:20 (session 3; details in FLIGHT_LOG.md). `[x]` done and exercised by the
+Status as of 2026-09-28 21:25 (session 3; details in FLIGHT_LOG.md). `[x]` done and exercised by the
 sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
 
 - [x] Environment: renv library + `renv.lock`, Quarto discovery, `.env` for key/contact (never logged)
@@ -45,10 +45,10 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
 - [x] Statistics: counts, shares, ratios, medians from distributions, MOE propagation, significance tests
       incl. overlap + part-whole dependence, status codes, constant dollars (R-CPI-U-RS)
 - [x] Providers: ACS 5-yr (2009-2024), decennial 2000/2010/2020 (1990 is not in the API), PEP, 1900-1990
-      county counts, LAUS, BEA CAINC1, CPI, building permits, FHFA HPI, NDCP, CBP 624410, Texas HHSC,
-      SAIPE, SAHIE
-- [x] Catalog: tables (17 subjects / 82 subtopics, 120 sources, 399 metrics, 137 operational), the
-      browsable page (`gr.R catalog --html`) with scope and gaps, live `gr.R verify` (15 of 15 ok;
+      county counts, LAUS, BEA CAINC1, CPI, building permits, FHFA HPI, NDCP, CBP (all industries), Texas HHSC,
+      SAIPE, SAHIE, CDC PLACES, FEMA National Risk Index, USDA Food Environment Atlas
+- [x] Catalog: tables (17 subjects / 82 subtopics, 120 sources, 440 metrics, 206 operational), the
+      browsable page (`gr.R catalog --html`) with scope and gaps, live `gr.R verify` (18 of 18 ok;
       424 ACS recipe x release checks, no gaps)
 - [x] Content: manifests, block library, 3 profiles, scoped text, templates, cited history events,
       stale-fact warnings, `gr.R new` (subject/metric selection)
@@ -60,7 +60,7 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
       logs, build manifests; cold/warm/resumed benchmark and invalidation checks (README, docs/)
 - [x] Demos 1-11: sample reports, demos/round_trip.R (10/10), benchmark, README; PDF via Typst works
       (basic page layout, documented)
-- [x] Tests: 138 expectations pass offline with fixtures (`gr.R test`)
+- [x] Tests: 177 expectations pass offline with fixtures (`gr.R test`)
 - [x] Docs and lean review: README complete; dead code removed; R/blocks.R, R/geography.R and
       R/compose.R restructured, each with every report's output proven identical
 
@@ -145,4 +145,4 @@ industries, households, civic, public safety and public finance had none. Now 13
        values or rate denominators are published, so no sums; Connecticut uses former counties.
        Verified: tests 176 pass; gr.R verify 18 of 18 sources ok, 424 ACS recipe checks, no gaps;
        demos/round_trip.R 10 of 10
-5. [ ] Check back with the user
+5. [x] Checked back with the user (21:25)
