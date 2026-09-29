@@ -172,6 +172,7 @@ verify_sources <- function() {
     census_pep = head_check(paste0(pep_base, pep_files$file[1]), "census_pep"),
     census_hist = head_check("https://data.nber.org/census/population/cencounts/cencounts.csv", "census_hist"),
     bea_cainc = head_check("https://apps.bea.gov/regional/zip/CAINC1.zip", "bea"),
+    bea_cagdp = head_check("https://apps.bea.gov/regional/zip/CAGDP2.zip", "bea"),
     fhfa_hpi = head_check("https://www.fhfa.gov/hpi/download/annual/hpi_at_county.xlsx", "fhfa"),
     census_bps = head_check("https://www2.census.gov/econ/bps/County/co2025a.txt", "census_bps"),
     fema_nri = head_check(nri_url, "fema_nri"),

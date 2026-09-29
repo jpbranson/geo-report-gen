@@ -144,8 +144,10 @@ fmt_value <- function(x, units, th, bound = NA) {
   out
 }
 
-# Large totals (such as expected losses of a state) in millions or billions, so tables stay narrow.
+# Large totals (such as expected losses of a state or GDP) in millions, billions or trillions, so
+# tables stay narrow.
 fmt_dollar_amount <- function(v, digits) {
+  if (v >= 1e12) return(paste(formatC(v / 1e12, format = "f", digits = 1), "trillion"))
   if (v >= 1e9) return(paste(formatC(v / 1e9, format = "f", digits = 1), "billion"))
   if (v >= 1e7) return(paste(formatC(v / 1e6, format = "f", digits = 1), "million"))
   formatC(v, format = "f", digits = digits, big.mark = ",")

@@ -97,3 +97,6 @@ pay-per-job-trend,employment_labor,metric,average_annual_pay_qcew,time+parents,l
 jobs-by-ownership-industry,industries_business,composition,group:jobs_ownership_industry_qcew,parents,bar,,"Jobs at employers in the area: private jobs by industry and government jobs by level, against comparison areas (QCEW, latest year)"
 childcare-pay,childcare,facts,childcare_establishments_qcew;childcare_employment_qcew;childcare_avg_annual_pay_qcew;average_annual_pay_private_qcew,parents,table,,"Child day care employers, their jobs and average pay, against pay for all private jobs (QCEW, latest year)"
 childcare-pay-trend,childcare,metric,childcare_avg_annual_pay_qcew,time+parents,line,,Average annual pay per child day care job in constant dollars (QCEW)
+gdp-summary,industries_business,facts,gdp_current_dollars_bea;gdp_per_capita_bea,parents,table,,"GDP and GDP per resident, against comparison areas (BEA, latest year)"
+real-gdp-trend,industries_business,metric,real_gdp_index_bea,time+parents,line,index=first,"Growth of real GDP since 2001, indexed to the first year (BEA)"
+gdp-industry-mix,industries_business,composition,group:gdp_industry_bea,parents,bar,,"Shares of GDP by industry group, against comparison areas (BEA, latest year)"

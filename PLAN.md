@@ -34,7 +34,7 @@ Key decisions
 
 ## Checklist
 
-Status as of 2026-09-29 15:50 (session 5; details in FLIGHT_LOG.md). `[x]` done and exercised by the
+Status as of 2026-09-29 16:15 (session 5; details in FLIGHT_LOG.md). `[x]` done and exercised by the
 sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
 
 - [x] Environment: renv library + `renv.lock`, Quarto discovery, `.env` for key/contact (never logged)
@@ -45,12 +45,12 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
 - [x] Statistics: counts, shares, ratios, medians from distributions, MOE propagation, significance tests
       incl. overlap + part-whole dependence, status codes, constant dollars (R-CPI-U-RS)
 - [x] Providers: ACS 5-yr (2009-2024), decennial 2000/2010/2020 (1990 is not in the API), PEP, 1900-1990
-      county counts, LAUS, BEA CAINC1, CPI, building permits, FHFA HPI, NDCP, CBP (all industries), Texas HHSC,
+      county counts, LAUS, BEA CAINC1 and county GDP, CPI, building permits, FHFA HPI, NDCP, CBP (all industries), Texas HHSC,
       SAIPE, SAHIE, CDC PLACES, LEHD LODES, BLS QCEW, FEMA National Risk Index, USDA Food Environment Atlas, EAC EAVS,
       Census of Governments finance, FBI Crime Data Explorer, IPUMS NHGIS (census years
       1790-2000, County Business Patterns 1970-1997)
-- [x] Catalog: tables (17 subjects / 83 subtopics, 122 sources, 503 metrics, 291 operational), the
-      browsable page (`gr.R catalog --html`) with scope and gaps, live `gr.R verify` (25 sources;
+- [x] Catalog: tables (17 subjects / 83 subtopics, 122 sources, 515 metrics, 306 operational), the
+      browsable page (`gr.R catalog --html`) with scope and gaps, live `gr.R verify` (26 sources;
       424 ACS recipe x release checks, no gaps)
 - [x] Content: manifests, block library, 3 profiles, scoped text, templates, cited history events,
       stale-fact warnings, `gr.R new` (subject/metric selection)
@@ -62,7 +62,7 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
       logs, build manifests; cold/warm/resumed benchmark and invalidation checks (README, docs/)
 - [x] Demos 1-11: sample reports, demos/round_trip.R (10/10), benchmark, README; PDF via Typst works
       (basic page layout, documented)
-- [x] Tests: 253 expectations pass offline with fixtures (`gr.R test`)
+- [x] Tests: 263 expectations pass offline with fixtures (`gr.R test`)
 - [x] Docs and lean review: README complete; dead code removed; R/blocks.R, R/geography.R and
       R/compose.R restructured, each with every report's output proven identical
 
@@ -228,7 +228,7 @@ Reports may keep growing (the user edits down), so every new block goes into the
 2. [x] Verified on amd64 and arm64: tests, byte-identical report values and text, PDF, preview
 3. [x] Portable folder (arm64 image, cache and reports, setup steps); Docker files pushed to GitHub
 
-## Step agreed with the user 2026-09-29 14:35: three jobs and output sources, in order
+## Step agreed with the user 2026-09-29 14:35: three jobs and output sources, in order (done 16:15)
 
 All three are cataloged and their sample downloads worked (2026-09-28); each needs a provider,
 recipes and blocks. As before, every new block goes into the profiles.
@@ -260,8 +260,14 @@ recipes and blocks. As before, every new block goes into the profiles.
        pay-per-job-trend, jobs-by-ownership-industry (general / economic development),
        childcare-pay, childcare-pay-trend (early childhood); subtopic childcare_workforce. BLS
        sources named bls_<program> now get the BLS contact and rate. Cache 1.9 GB (25 ZIPs)
-3. [ ] BEA GDP by county (bea_cagdp; CAGDP1, CAGDP2), 2001-2024: GDP in current dollars (summed for
-       combined areas), real GDP in chained 2017 dollars (single areas only: chained dollars do
-       not add), and GDP by industry. Extends R/providers/bea.R (same zip layout as CAINC1). (D)
-       cells suppressed; Connecticut planning regions from 2024 only
-4. [ ] Verify (tests, gr.R verify, demos/round_trip.R, batch) and check back with the user
+3. [x] BEA GDP by county (bea_cagdp), done 16:15: R/providers/bea.R reads CAGDP1 and CAGDP2 through a
+       shared ZIP reader (CAINC1 uses it too). Current-dollar GDP, all industries and 12 industry
+       groups that add up to the total (county detail by single sector is withheld up to 40% of
+       the time); regions and divisions sum states; GDP per resident with CAINC1 population.
+       Changed from the plan: real growth uses BEA's chain-type quantity index (2017 = 100)
+       instead of chained dollars, so the text compares growth, not levels; like chained
+       dollars, it has no value for combined areas or regions. 15 metrics; blocks gdp-summary,
+       real-gdp-trend (general, economic development), gdp-industry-mix (economic development).
+       Dollar amounts from $1 trillion print as trillions
+4. [x] Verified after each source (tests 263; verify 25 of 26, FEMA 403 in Docker; round trip 10/10;
+       batch 12 ok, austin-78704 rejected as intended); checking back with the user (16:15)

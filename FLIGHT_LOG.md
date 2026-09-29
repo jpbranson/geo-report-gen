@@ -496,4 +496,22 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   agriculture, mining, construction and information figures for 2025 (the chart shows no bar).
   Charts reviewed. Tests 253; verify 23 of 25 (FEMA 403 in Docker; FBI 503 upstream); round
   trip 10/10; batch 12 ok, austin-78704 rejected as intended.
-- Next: BEA county GDP (PLAN.md step 3).
+- Committed and pushed (8b8b9ea). Next: BEA county GDP (PLAN.md step 3).
+
+## 2026-09-29 15:55 (session 5, continued): BEA county GDP (done 16:15)
+
+- CAGDP1.zip 1.9 MB (line 1 real GDP in chained 2017 dollars, line 2 quantity index, line 3
+  current dollars); CAGDP2.zip 15.3 MB (current dollars by industry). Last updated February 5,
+  2026 (2024 new, 2020-2023 revised). County (D) cells in 2024: health care 1,274 of 3,127,
+  wholesale 808; the industry groups (lines 87, 11, 12, 88, 89, 45, 50, 59, 68, 75, 82, 83,
+  which partition line 1) far fewer. Connecticut: planning regions for 2024 only, former
+  counties (NA) in 2024; the planning regions have no quantity index (base year 2017).
+- First version used chained dollars for the trend: the text then compared levels across areas
+  ("lower than Indiana ($412.0 billion)") and called them nominal. Switched to the quantity
+  index (units "index": growth compared over the same span). Also "$29298.0 billion" -> added
+  trillions to fmt_dollar_amount (only values of $1 trillion and up change).
+- Checks: Lake County IN 2024 GDP $31.24 billion (matches the catalog sample), real index 104.6
+  (2017 = 100), +24.1% since 2001 vs Indiana +50.4%; U.S. $29.3 trillion, $86,143 per resident;
+  Kent County DE manufacturing 2024 (D). Charts reviewed. Tests 263; verify 25 of 26 (FEMA 403);
+  round trip 10/10; batch 12 ok, austin-78704 rejected as intended.
+- The three agreed sources are done; checking back with the user.

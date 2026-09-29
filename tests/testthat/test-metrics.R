@@ -359,6 +359,33 @@ test_that("QCEW: counties, states and the nation; regions sum states; withheld a
   expect_equal(jobs(area("dover", "place:1021200"))$status, "not_applicable")
 })
 
+test_that("BEA GDP: current dollars add up, chained dollars do not; withheld groups and Connecticut's switch", {
+  # Real lines of the CAGDP1, CAGDP2 and CAINC1 files: Delaware, the South Atlantic states,
+  # Connecticut and the nation.
+  area <- function(id, keys) entity(id, "study", id, data.frame(key = keys, type = sub(":.*$", "", keys),
+                                                                geoid = sub("^[^:]*:", "", keys), name = id, pop = NA_real_))
+  st <- resolve_settings()
+  gdp <- function(m, ...) compute_metric(m, list(...), st, periods = 2024L, constant_dollars = FALSE)
+  kent <- area("kent", "county:10001")
+  both <- area("ks", c("county:10001", "county:10005"))
+  sa <- area("sa", "division:5")
+  g <- gdp("gdp_current_dollars_bea", kent, both, sa, area("us", "nation:US"))
+  expect_equal(g$value, 1000 * c(11652246, 11652246 + 23355694, 5519008299, 29298013000))   # thousands of dollars
+  r <- gdp("real_gdp_index_bea", kent, both, sa)
+  expect_equal(r$value[1], 118.816)                                                          # 2017 = 100
+  expect_equal(r$status[2:3], c("not_aggregable", "not_aggregable"))
+  expect_match(r$method[3], "cannot be combined")
+  expect_equal(gdp("gdp_per_capita_bea", kent)$value, 1000 * 11652246 / 192690)
+  expect_equal(gdp("gdp_government_share_bea", kent)$value, 100 * 3024989 / 11652246)
+  m <- gdp("gdp_manufacturing_share_bea", kent)
+  expect_equal(m$status, "suppressed")                                                       # (D) in 2024
+  expect_match(m$method, "withheld by BEA")
+  capitol <- area("capitol", "county:09110")
+  ct <- compute_metric("gdp_current_dollars_bea", list(capitol), st, periods = c(2023L, 2024L), constant_dollars = FALSE)
+  expect_equal(ct$status, c("unavailable", "ok"))                                            # planning regions in 2024 only
+  expect_equal(ct$value[2], 1000 * 110914256)
+})
+
 test_that("a value the source did not publish carries the source's reason", {
   d <- long("county:1", "ESTAB_00", NA, NA, "suppressed")
   d$note <- "fewer than 3 establishments or none"

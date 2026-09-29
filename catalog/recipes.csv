@@ -290,3 +290,18 @@ jobs_other_services_share_qcew,bls_qcew,share,EMP_5_81,EMP_0_10,,,100,,jobs_owne
 jobs_federal_share_qcew,bls_qcew,share,EMP_1_10,EMP_0_10,,,100,,jobs_ownership_industry_qcew,Federal government
 jobs_state_government_share_qcew,bls_qcew,share,EMP_2_10,EMP_0_10,,,100,,jobs_ownership_industry_qcew,State government
 jobs_local_government_share_qcew,bls_qcew,share,EMP_3_10,EMP_0_10,,,100,,jobs_ownership_industry_qcew,Local government
+gdp_current_dollars_bea,bea_cagdp,count,GDP_ALL,,,,1,year,,
+real_gdp_index_bea,bea_cagdp,value,REAL_GDP_INDEX,,,,1,,,
+gdp_per_capita_bea,bea_cagdp,ratio,GDP_ALL,POPULATION,,,1,year,,
+gdp_natural_share_bea,bea_cagdp,share,GDP_NATURAL,GDP_ALL,,,100,,gdp_industry_bea,Natural resources and mining
+gdp_construction_share_bea,bea_cagdp,share,GDP_CONSTRUCTION,GDP_ALL,,,100,,gdp_industry_bea,Construction
+gdp_manufacturing_share_bea,bea_cagdp,share,GDP_MANUFACTURING,GDP_ALL,,,100,,gdp_industry_bea,Manufacturing
+gdp_trade_share_bea,bea_cagdp,share,GDP_TRADE,GDP_ALL,,,100,,gdp_industry_bea,Wholesale and retail trade
+gdp_transport_utilities_share_bea,bea_cagdp,share,GDP_TRANSPORT_UTILITIES,GDP_ALL,,,100,,gdp_industry_bea,Transportation and utilities
+gdp_information_share_bea,bea_cagdp,share,GDP_INFORMATION,GDP_ALL,,,100,,gdp_industry_bea,Information
+gdp_fire_share_bea,bea_cagdp,share,GDP_FIRE,GDP_ALL,,,100,,gdp_industry_bea,"Finance, insurance and real estate"
+gdp_business_services_share_bea,bea_cagdp,share,GDP_BUSINESS_SERVICES,GDP_ALL,,,100,,gdp_industry_bea,Professional and business services
+gdp_education_health_share_bea,bea_cagdp,share,GDP_EDUCATION_HEALTH,GDP_ALL,,,100,,gdp_industry_bea,"Education, health care and social assistance"
+gdp_leisure_share_bea,bea_cagdp,share,GDP_LEISURE,GDP_ALL,,,100,,gdp_industry_bea,"Arts, recreation, lodging and food services"
+gdp_other_services_share_bea,bea_cagdp,share,GDP_OTHER_SERVICES,GDP_ALL,,,100,,gdp_industry_bea,Other services
+gdp_government_share_bea,bea_cagdp,share,GDP_GOVERNMENT,GDP_ALL,,,100,,gdp_industry_bea,Government

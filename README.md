@@ -254,11 +254,12 @@ per Quarto render, so rendering is the main cost whenever many reports change.
 
 ## Limitations
 
-- 291 of the 503 cataloged metrics are operational (ACS detailed tables, decennial census,
+- 306 of the 515 cataloged metrics are operational (ACS detailed tables, decennial census,
   population estimates, SAIPE, SAHIE, CDC PLACES, County Business Patterns, LEHD LODES, BLS QCEW,
-  FEMA National Risk Index, USDA Food Environment Atlas, EAC Election Administration and Voting
-  Survey, Census of Governments finance, FBI Crime Data Explorer, IPUMS NHGIS, BEA, BLS, FHFA,
-  building permits, child care prices, Texas licensing); the rest are documented only.
+  BEA county income and GDP, FEMA National Risk Index, USDA Food Environment Atlas, EAC Election
+  Administration and Voting Survey, Census of Governments finance, FBI Crime Data Explorer, IPUMS
+  NHGIS, BLS, FHFA, building permits, child care prices, Texas licensing); the rest are
+  documented only.
 - LODES (jobs by workplace and employed residents, 2002-2023) counts primary jobs, each worker's
   highest-paying job, summed from census blocks: cities, tracts and unions get exact values, on
   2024 boundaries in every year. It has no national or regional totals, and states that supplied
@@ -270,6 +271,10 @@ per Quarto render, so rendering is the main cost whenever many reports change.
   NAICS reconstruction with one-year spikes (Oakland County, Michigan, 1997; New Jersey 1995) and
   are not used. Values withheld to protect employers are shown as not published, never as zero.
   The annual files take 1.9 GB in the cache (downloaded once and shared by every report).
+- County GDP (BEA, 2001-2024) is in current dollars, which add up across areas, plus BEA's real
+  GDP index for growth, which does not: combined areas and Census regions have no real growth
+  line. The industry mix uses twelve industry groups, withheld far less often than single
+  sectors. Connecticut's planning regions have GDP for 2024 only and no real GDP index.
 - Census years before the ACS (IPUMS NHGIS) cover income and poverty (1970 or 1980 to 2000),
   education, work and commuting (commuting modes 1990 and 2000). They come from the census long
   form, a sample; NHGIS publishes no margins of error for them, so they are drawn as dots and
