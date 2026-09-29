@@ -233,6 +233,9 @@ per Quarto render, so rendering is the main cost whenever many reports change.
   Index, USDA Food Environment Atlas, EAC Election Administration and Voting Survey, Census of
   Governments finance, FBI Crime Data Explorer, BEA, BLS, FHFA, building permits, child care
   prices, Texas licensing); the rest are documented only.
+- Small-area socioeconomic history starts with the ACS 2005-2009 period. IPUMS NHGIS could add
+  census years back to 1970 (and county population back to 1790), but it needs a free account and
+  API key; see `docs/nhgis.md` (not implemented).
 - Crime rates (FBI Crime Data Explorer, 2016-2025) need a free api.data.gov key in `.env`
   (`DATA_GOV_API_KEY`), sent only as a request header. The FBI publishes police agencies: a city
   is its police department (matched by name) and needs all 12 months reported in a year (Gary did

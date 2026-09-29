@@ -358,3 +358,31 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   counted without reordering rows, so colors keep entity order.
 - Key handling: api_data_gov_key.txt git-ignored; key in .env only; not found in logs, reports,
   cache or tracked files. verify: 21 of 21 sources ok; 424 ACS checks; round trip 10/10; tests 192.
+
+## 2026-09-28 22:40 (session 3, continued): county crime sums; NHGIS investigation
+
+- The user: reports may be long (they edit down); county crime = sum every police agency, with a
+  caveat; investigate IPUMS NHGIS for older historical files. NHGIS research runs in a separate
+  agent (web only, no account or key); county crime is implemented here.
+- County crime (done ~23:10): agency/byStateAbbr lists every agency by county name ("CASS,
+  CLAY, JACKSON, PLATTE" for KCPD); nationally 19,636 agencies, every FBI county name matches a
+  Census 2024 name after dropping "County"/"Parish"/... and punctuation, except "NOT SPECIFIED"
+  and "UNMAPPED COUNTY" (statewide agencies, NYPD, DC police) and Alaska's retired Valdez-Cordova.
+  Connecticut is already listed by planning region. All 653 multi-county agencies are city
+  departments; 636 match one Census place (divided by place-by-county population), 17 fall back
+  to county populations. State police are listed by county in 17 states (posts) and in no county
+  elsewhere. POP for a county is the agencies' own populations (within 0.96-1.01 of PEP except
+  Connecticut, 0.87, where state troopers police some towns). Rule: a county year needs agencies
+  serving 75% of those residents to report 12 months (FBI CIUS Table 6 includes MSAs with 75% of
+  agencies reporting and the principal city reporting 12 months). Lake County IN: 2020 57% and
+  2021 75% -> left out (Gary missing); 2025 377.1 violent per 100,000, coverage 97%. Wyandotte
+  KS: KCK PD absent 2016-2022; its 2023 months hold almost nothing (180 offenses vs about 1,700)
+  though marked reported -> Wyandotte 2023 is far too low (documented, not corrected). Place parts
+  (Austin's parts outside Travis) = the city department times the part's population share, so
+  travis-austin now has values (2025: 377.2 violent, 2,631.0 property per 100,000). Requests
+  only for the offenses a metric needs. Tests 200 (Kent County DE fixture, 26 files, 38 KB).
+- NHGIS (done ~23:20, agent research + spot checks): free account + API key (metadata API 401
+  without key; crosswalk downloads redirect to login); ipumsr 0.10.0; terms forbid
+  redistribution without permission. Time series codes, years and levels checked against
+  NHGIS_Time_Series_Tables_Lists.xlsx. Findings and ranked additions in docs/nhgis.md; source
+  row ipums_nhgis in catalog/sources.csv (121 sources).

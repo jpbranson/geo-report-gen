@@ -34,7 +34,7 @@ Key decisions
 
 ## Checklist
 
-Status as of 2026-09-28 22:35 (session 3; details in FLIGHT_LOG.md). `[x]` done and exercised by the
+Status as of 2026-09-28 23:20 (session 3; details in FLIGHT_LOG.md). `[x]` done and exercised by the
 sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
 
 - [x] Environment: renv library + `renv.lock`, Quarto discovery, `.env` for key/contact (never logged)
@@ -48,7 +48,7 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
       county counts, LAUS, BEA CAINC1, CPI, building permits, FHFA HPI, NDCP, CBP (all industries), Texas HHSC,
       SAIPE, SAHIE, CDC PLACES, FEMA National Risk Index, USDA Food Environment Atlas, EAC EAVS,
       Census of Governments finance, FBI Crime Data Explorer
-- [x] Catalog: tables (17 subjects / 82 subtopics, 120 sources, 445 metrics, 219 operational), the
+- [x] Catalog: tables (17 subjects / 82 subtopics, 121 sources, 445 metrics, 219 operational), the
       browsable page (`gr.R catalog --html`) with scope and gaps, live `gr.R verify` (21 of 21 ok;
       424 ACS recipe x release checks, no gaps)
 - [x] Content: manifests, block library, 3 profiles, scoped text, templates, cited history events,
@@ -61,7 +61,7 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
       logs, build manifests; cold/warm/resumed benchmark and invalidation checks (README, docs/)
 - [x] Demos 1-11: sample reports, demos/round_trip.R (10/10), benchmark, README; PDF via Typst works
       (basic page layout, documented)
-- [x] Tests: 192 expectations pass offline with fixtures (`gr.R test`)
+- [x] Tests: 200 expectations pass offline with fixtures (`gr.R test`)
 - [x] Docs and lean review: README complete; dead code removed; R/blocks.R, R/geography.R and
       R/compose.R restructured, each with every report's output proven identical
 
@@ -159,3 +159,20 @@ industries, households, civic, public safety and public finance had none. Now 13
 3. [x] FBI Crime Data Explorer API (api.data.gov key in .env as DATA_GOV_API_KEY, sent only as
        a request header, never logged)
 4. [x] Checked back with the user (22:35)
+
+## Step agreed with the user 2026-09-28 22:40: county crime and an NHGIS investigation
+
+Reports may keep growing (the user edits down), so every new block goes into the profiles.
+1. [x] County crime rates: sum every police agency the FBI lists in the county (city police,
+       sheriff, county, university, state police posts, tribal), with a caveat on overlap,
+       multi-county agencies and partial reporting. Done: R/providers/fbi.R lists every agency by
+       the FBI's county names (all match Census names except statewide agencies); a city
+       department in several counties is divided by Census place-by-county population (636 of
+       653 match a place; the rest by county population); a county year needs agencies serving
+       75% of residents (after the FBI's 75% rule for metropolitan areas). Parts of a city in one
+       county use the same division, so the Travis County + Austin union now has values. Caveat
+       in the crime table and trend notes, catalog and README
+2. [x] Investigate IPUMS NHGIS for historical files older than the project's current data:
+       docs/nhgis.md and catalog row ipums_nhgis (needs a free account and API key; not
+       implemented)
+3. [x] Checked back with the user (23:25)
