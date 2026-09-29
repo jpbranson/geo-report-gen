@@ -146,3 +146,14 @@ industries, households, civic, public safety and public finance had none. Now 13
        Verified: tests 176 pass; gr.R verify 18 of 18 sources ok, 424 ACS recipe checks, no gaps;
        demos/round_trip.R 10 of 10
 5. [x] Checked back with the user (21:25)
+
+## Step agreed with the user 2026-09-28 21:30: three more sources (keys and access checked)
+
+1. [x] EAC Election Administration and Voting Survey (registration and turnout; by election
+       jurisdiction, summed to counties, states and the nation): R/providers/eavs.R, 2020 and 2024;
+       CVAP from ACS B29001; mail share left documented (method counts do not add up in some states)
+2. [ ] Census Bureau government finance individual unit files (county government for counties,
+       city government for places)
+3. [ ] FBI Crime Data Explorer API (api.data.gov key in .env as DATA_GOV_API_KEY, sent only as
+       a request header, never logged)
+4. [ ] Check back with the user

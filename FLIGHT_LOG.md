@@ -314,3 +314,21 @@ NRI, USDA Food Environment Atlas), then check back. Plan in PLAN.md.
 - PDF check (21:20): gary-in renders via Typst with all new sections. Fixed: dollar totals of $10
   million or more are shown as "$191.0 million" / "$150.1 billion" (full NRI totals overlapped in
   PDF columns); PDF tables no longer hyphenate ("Indi-ana", "Pe-riod"). Tests 177; batch clean.
+
+### 2026-09-28 ~21:30- (session 3, step 6: voting survey, government finance, FBI API)
+User: add the EAC voting survey, the county- and city-government finance files and the FBI API;
+the api.data.gov key was in api_data_gov_key.txt ("DATA_GOV_API_KEY=<40 characters>"). The file is
+now git-ignored and its line appended to .env (never printed); the user can delete the .txt file.
+- EAVS (step 1, done ~21:55): R/providers/eavs.R reads the 2020 V1.2 and 2024 V2 CSVs (2 MB zips).
+  Jurisdiction codes: county (ssccc00000), New England town (ss ccc ttttt; CT under former counties,
+  moved to planning regions by town code via ACS cousub lists), city with its own election office
+  (ss ppppp 000: Chicago -> Cook at 100%; Kansas City MO spans Cass/Clay/Jackson/Platte -> those
+  counties unavailable), Wisconsin (5-digit municipal codes, no county), Alaska (statewide),
+  Maine unorganized townships (county 099; state only), 9-digit CA codes (lost zero). -88 = does
+  not apply (ND registration), -99/blank = not reported. States sum all jurisdictions; nation,
+  regions and divisions sum states with totals and their CVAP (ACS B29001_001, 5-year ending in
+  the election year). Mail share dropped: Indiana 2024 methods sum to 146% of voters, CT 2024
+  lacks polling-place counts, all-mail jurisdictions report F1g separately.
+- 2024: Lake County IN 90.5% active registration, 57.7% turnout; Indiana 85.2/59.4; U.S. 87.3/65.4;
+  Texas 83.6/57.8; CT Capitol region 88.5/69.1. Block "voting" in a new "Civic participation"
+  section (general). Tests 183 (fixture: DE, ND, Jackson + Kansas City).

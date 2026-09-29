@@ -225,11 +225,16 @@ per Quarto render, so rendering is the main cost whenever many reports change.
 
 ## Limitations
 
-- 206 of the 440 cataloged metrics are operational (ACS detailed tables, decennial census,
+- 208 of the 441 cataloged metrics are operational (ACS detailed tables, decennial census,
   population estimates, SAIPE, SAHIE, CDC PLACES, County Business Patterns, FEMA National Risk
-  Index, USDA Food Environment Atlas, BEA, BLS, FHFA, building permits, child care prices, Texas
-  licensing); the rest are documented only. Public safety, civic participation and local public
-  finance have no operational metric yet.
+  Index, USDA Food Environment Atlas, EAC Election Administration and Voting Survey, BEA, BLS,
+  FHFA, building permits, child care prices, Texas licensing); the rest are documented only.
+  Public safety and local public finance have no operational metric yet.
+- Voter registration and turnout (EAC survey, 2020 and 2024) are totals of election
+  jurisdictions: counties, New England towns, Wisconsin municipalities and a few cities that run
+  their own elections. Counties split by such a city (Kansas City, Missouri) and Wisconsin and
+  Alaska counties have no values; the national value covers the states that reported every
+  jurisdiction. Counts by voting method are not used, because they do not add up in some states.
 - The USDA Food Environment Atlas publishes county values only (no state or national values and
   no populations behind its rates), so its table shows the county alone and combined areas get
   no value. It still uses Connecticut's former counties, so Connecticut planning regions have no

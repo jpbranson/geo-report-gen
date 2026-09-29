@@ -162,6 +162,22 @@ test_that("Food Environment Atlas: published county values, rescaled rates, supp
   expect_equal(compute_metric("low_access_population_share_fea", list(both), st)$status, "not_aggregable")
 })
 
+test_that("EAVS: totals of election jurisdictions; a city splitting counties; no registration in North Dakota", {
+  area <- function(type, geoid) entity(geoid, "study", geoid, data.frame(key = paste0(type, ":", geoid), type = type, geoid = geoid,
+                                                                         name = "", pop = NA_real_))
+  r <- compute_metric("active_registration_rate_eavs", list(area("county", "10001"), area("county", "29095"), area("state", "38"),
+                                                            area("nation", "US")), resolve_settings(), periods = 2024L)
+  expect_equal(r$value[r$entity_id == "10001"], 100 * 133534 / 140112)       # A1b / citizen voting-age population
+  expect_equal(r$status[r$entity_id == "29095"], "unavailable")              # Kansas City's own jurisdiction splits Jackson County
+  expect_equal(r$status[r$entity_id == "38"], "not_applicable")              # North Dakota has no voter registration
+  expect_match(r$method[r$entity_id == "38"], "North Dakota")
+  # The nation sums the states that have a total and their citizens: in this fixture Delaware and
+  # Missouri (only Jackson County and Kansas City are in the file), not North Dakota.
+  expect_equal(r$value[r$entity_id == "US"], 100 * (133534 + 411360 + 197476 + 255078 + 200980) / (764112 + 4685986))
+  t <- compute_metric("voter_turnout_eavs", list(area("state", "38")), resolve_settings(), periods = 2024L)
+  expect_equal(t$status, "ok")                                              # North Dakota reports its voters
+})
+
 test_that("a value the source did not publish carries the source's reason", {
   d <- long("county:1", "ESTAB_00", NA, NA, "suppressed")
   d$note <- "fewer than 3 establishments or none"
