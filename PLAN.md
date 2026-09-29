@@ -34,7 +34,7 @@ Key decisions
 
 ## Checklist
 
-Status as of 2026-09-28 21:25 (session 3; details in FLIGHT_LOG.md). `[x]` done and exercised by the
+Status as of 2026-09-28 22:35 (session 3; details in FLIGHT_LOG.md). `[x]` done and exercised by the
 sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
 
 - [x] Environment: renv library + `renv.lock`, Quarto discovery, `.env` for key/contact (never logged)
@@ -46,9 +46,10 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
       incl. overlap + part-whole dependence, status codes, constant dollars (R-CPI-U-RS)
 - [x] Providers: ACS 5-yr (2009-2024), decennial 2000/2010/2020 (1990 is not in the API), PEP, 1900-1990
       county counts, LAUS, BEA CAINC1, CPI, building permits, FHFA HPI, NDCP, CBP (all industries), Texas HHSC,
-      SAIPE, SAHIE, CDC PLACES, FEMA National Risk Index, USDA Food Environment Atlas
-- [x] Catalog: tables (17 subjects / 82 subtopics, 120 sources, 440 metrics, 206 operational), the
-      browsable page (`gr.R catalog --html`) with scope and gaps, live `gr.R verify` (18 of 18 ok;
+      SAIPE, SAHIE, CDC PLACES, FEMA National Risk Index, USDA Food Environment Atlas, EAC EAVS,
+      Census of Governments finance, FBI Crime Data Explorer
+- [x] Catalog: tables (17 subjects / 82 subtopics, 120 sources, 445 metrics, 219 operational), the
+      browsable page (`gr.R catalog --html`) with scope and gaps, live `gr.R verify` (21 of 21 ok;
       424 ACS recipe x release checks, no gaps)
 - [x] Content: manifests, block library, 3 profiles, scoped text, templates, cited history events,
       stale-fact warnings, `gr.R new` (subject/metric selection)
@@ -60,7 +61,7 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
       logs, build manifests; cold/warm/resumed benchmark and invalidation checks (README, docs/)
 - [x] Demos 1-11: sample reports, demos/round_trip.R (10/10), benchmark, README; PDF via Typst works
       (basic page layout, documented)
-- [x] Tests: 177 expectations pass offline with fixtures (`gr.R test`)
+- [x] Tests: 192 expectations pass offline with fixtures (`gr.R test`)
 - [x] Docs and lean review: README complete; dead code removed; R/blocks.R, R/geography.R and
       R/compose.R restructured, each with every report's output proven identical
 
@@ -157,4 +158,4 @@ industries, households, civic, public safety and public finance had none. Now 13
        8 metrics (property tax, taxes, long-term debt, police spending per resident), one table
 3. [x] FBI Crime Data Explorer API (api.data.gov key in .env as DATA_GOV_API_KEY, sent only as
        a request header, never logged)
-4. [ ] Check back with the user
+4. [x] Checked back with the user (22:35)
