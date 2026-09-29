@@ -215,3 +215,6 @@ city_gov_property_tax_per_capita_govfin,census_govfin,ratio,CI_T01,CI_POP,,,1000
 city_gov_taxes_per_capita_govfin,census_govfin,ratio,CI_TAX,CI_POP,,,1000,year,,
 city_gov_debt_per_capita_govfin,census_govfin,ratio,CI_DEBT,CI_POP,,,1000,year,,
 city_gov_police_per_capita_govfin,census_govfin,ratio,CI_POLICE,CI_POP,,,1000,year,,
+violent_crime_rate_fbi,fbi_cde,ratio,V,V_POP,,,100000,,,
+property_crime_rate_fbi,fbi_cde,ratio,P,P_POP,,,100000,,,
+ucr_population_coverage_fbi,fbi_cde,share,V_POP,POP,,,100,,,

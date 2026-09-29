@@ -16,10 +16,13 @@ The output of every report is an editable Quarto document (`report.qmd`) and its
    ```
    CENSUS_API_KEY=<free key from https://api.census.gov/data/key_signup.html>
    GR_HTTP_CONTACT=<your email address>
+   DATA_GOV_API_KEY=<free key from https://api.data.gov/signup/>
    ```
 
    The Census Data API needs the key for every request. BLS rejects automated downloads that
-   carry no contact, so the email is sent in the User-Agent of BLS requests, and only those.
+   carry no contact, so the email is sent in the User-Agent of BLS requests, and only those. The
+   FBI Crime Data Explorer needs the api.data.gov key, sent only as a request header (never in
+   URLs or logs); without it, the crime blocks stop with a message saying so.
 4. Run commands from the project root. On Windows, call the R 4.6 `Rscript.exe` explicitly if
    another R version is first on the PATH.
 
@@ -225,11 +228,16 @@ per Quarto render, so rendering is the main cost whenever many reports change.
 
 ## Limitations
 
-- 216 of the 445 cataloged metrics are operational (ACS detailed tables, decennial census,
+- 219 of the 445 cataloged metrics are operational (ACS detailed tables, decennial census,
   population estimates, SAIPE, SAHIE, CDC PLACES, County Business Patterns, FEMA National Risk
   Index, USDA Food Environment Atlas, EAC Election Administration and Voting Survey, Census of
-  Governments finance, BEA, BLS, FHFA, building permits, child care prices, Texas licensing); the
-  rest are documented only. Public safety has no operational metric yet.
+  Governments finance, FBI Crime Data Explorer, BEA, BLS, FHFA, building permits, child care
+  prices, Texas licensing); the rest are documented only.
+- Crime rates (FBI Crime Data Explorer, 2016-2025) need a free api.data.gov key in `.env`
+  (`DATA_GOV_API_KEY`), sent only as a request header. The FBI publishes police agencies: a city
+  is its police department (matched by name) and needs all 12 months reported in a year (Gary did
+  not report in 2021); states and the nation cover the agencies that reported. Counties are not
+  computed, because a sheriff covers only part of a county.
 - Government finances (2022 Census of Governments) describe the county government for counties
   and the city's own government for cities, not all local governments in an area. Connecticut
   has no county governments, and consolidated city-counties (Indianapolis, Wyandotte County and

@@ -30,6 +30,10 @@ plot_trend <- function(b, txt, th) {
   # share a chart with annual estimates, the counts are drawn as points and the estimates as
   # lines, so the two kinds of observation stay distinguishable.
   d$group <- paste(d$label, d$series, sep = " | ")
+  # A missing value breaks the line (a year a city did not report is not bridged): points are
+  # joined only when no missing period of the same line lies between them.
+  missing_x <- split(d$x[is.na(d$y)], d$group[is.na(d$y)])
+  d$group <- paste(d$group, mapply(function(g, x) sum(missing_x[[g]] < x), d$group, d$x))
   mixed <- any(d$kind == "point") && any(d$kind != "point")
   d$line <- !(mixed & d$kind == "point")
   d$dot <- !mixed | d$kind == "point"

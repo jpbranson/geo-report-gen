@@ -191,6 +191,20 @@ test_that("Government finance: county governments for counties, city governments
   expect_match(c$method, "describe cities")
 })
 
+test_that("FBI: a city is its police department; states cover reporting agencies; no department, no value", {
+  place <- function(geoid, name) entity(geoid, "study", name, data.frame(key = paste0("place:", geoid), type = "place", geoid = geoid,
+                                                                         name = name, pop = NA_real_))
+  de <- entity("de", "benchmark", "Delaware", data.frame(key = "state:10", type = "state", geoid = "10", name = "Delaware", pop = NA_real_))
+  st <- resolve_settings()
+  r <- compute_metric("violent_crime_rate_fbi", list(place("1021200", "Dover city, Delaware"), place("1099999", "Nowhere CDP, Delaware"), de),
+                      st, periods = 2023L)
+  expect_equal(r$value[r$entity_id == "1021200"], 1e5 * 381 / 38209)                  # Dover Police Department
+  expect_equal(r$status[r$entity_id == "1099999"], "unavailable")
+  expect_match(r$method[r$entity_id == "1099999"], "no city police department")
+  expect_equal(r$value[r$entity_id == "de"], 1e5 * 4115 / 1031579, tolerance = 1e-6)     # covered population is a mean of months
+  expect_equal(compute_metric("ucr_population_coverage_fbi", list(de), st, periods = 2023L)$value, 100 * 1031579 / 1031890, tolerance = 1e-6)
+})
+
 test_that("a value the source did not publish carries the source's reason", {
   d <- long("county:1", "ESTAB_00", NA, NA, "suppressed")
   d$note <- "fewer than 3 establishments or none"

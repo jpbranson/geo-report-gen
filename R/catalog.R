@@ -178,6 +178,11 @@ verify_sources <- function() {
     usda_ers_fea = head_check(fea_url, "usda_ers_fea"),
     eac_eavs = head_check(eavs_cycles[["2024"]][["url"]], "eac_eavs"),
     census_govfin = head_check(govfin_url, "census_govfin"),
+    fbi_cde = function() {
+      x <- fbi_get("summarized/national/V", list(from = "12-2025", to = "12-2025"))
+      paste0("FBI U.S. violent offenses reported in December 2025: ",
+             format(x$offenses$actuals[["United States Offenses"]][["12-2025"]], big.mark = ","))
+    },
     dol_ndcp = head_check("https://www.dol.gov/sites/dolgov/files/WB/NDCP2022.xlsx", "dol_ndcp"),
     census_geo = head_check("https://www2.census.gov/geo/tiger/GENZ2024/shp/cb_2024_us_county_500k.zip", "census_geo"),
     bls_laus = head_check("https://download.bls.gov/pub/time.series/la/la.area", "bls"),

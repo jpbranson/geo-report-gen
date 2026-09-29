@@ -155,6 +155,6 @@ industries, households, civic, public safety and public finance had none. Now 13
 2. [x] Census Bureau government finance individual unit files (county government for counties,
        city government for places): R/providers/govfin.R, FY2022 Census of Governments (complete);
        8 metrics (property tax, taxes, long-term debt, police spending per resident), one table
-3. [ ] FBI Crime Data Explorer API (api.data.gov key in .env as DATA_GOV_API_KEY, sent only as
+3. [x] FBI Crime Data Explorer API (api.data.gov key in .env as DATA_GOV_API_KEY, sent only as
        a request header, never logged)
 4. [ ] Check back with the user

@@ -344,3 +344,17 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   government, so kc-core's union and ct-capitol get the no-data sentence with that reason. Gary FY2022
   (2024 dollars): city property tax $572, debt $2,992 per resident; Lake County government $118, $179.
   Tests 187 (fixture: Delaware governments, 9 KB).
+- FBI Crime Data Explorer (step 3, done ~22:30): R/providers/fbi.R. Endpoints (header X-Api-Key):
+  agency/byStateAbbr/{ST} (agencies by county name; type City named "<Name> Police Department"),
+  summarized/{agency/{ori}|state/{ST}|national}/{V|P}?from=MM-YYYY&to=MM-YYYY (monthly actuals,
+  population, participated population; state responses list the state first, so series are
+  taken by name), pe/agency/{ori} (police employment; state/national return nulls -> officers
+  metric not implemented). Places match departments by normalized name; a city year needs 12 full
+  months (Gary missed 2020-2021); states/nation = reporting agencies / covered population.
+  Counties not computed (sheriffs cover part of a county). Violent-offense counts not shown for
+  states (reporting agencies only). Verified: Dover 2023 381 violent, 2,192 property (catalog
+  evidence); Connecticut's decline 229 -> 111 per 100,000 (2016 -> 2025) is in the FBI data.
+- Charts: a missing period now breaks a trend line (Gary 2019 -> 2022 was bridged); segments are
+  counted without reordering rows, so colors keep entity order.
+- Key handling: api_data_gov_key.txt git-ignored; key in .env only; not found in logs, reports,
+  cache or tracked files. verify: 21 of 21 sources ok; 424 ACS checks; round trip 10/10; tests 192.
