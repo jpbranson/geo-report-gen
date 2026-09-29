@@ -386,6 +386,29 @@ test_that("BEA GDP: current dollars add up, chained dollars do not; withheld gro
   expect_equal(ct$value[2], 1000 * 110914256)
 })
 
+test_that("Nonemployer Statistics: flagged cells are withheld, missing industries are zero, regions sum states", {
+  # Real rows of the 2023, 2021 and 2008 county, state and U.S. files: Delaware, Loving County
+  # (Texas), Connecticut, every state's total and the nation.
+  area <- function(id, keys) entity(id, "study", id, data.frame(key = keys, type = sub(":.*$", "", keys),
+                                                                geoid = sub("^[^:]*:", "", keys), name = id, pop = NA_real_))
+  st <- resolve_settings()
+  nes <- function(m, ..., year = 2023L) compute_metric(m, list(...), st, periods = year, constant_dollars = FALSE)
+  kent <- area("kent", "county:10001")
+  n <- nes("nonemployer_establishments_nes", kent, area("ks", c("county:10001", "county:10005")), area("de", "state:10"),
+           area("us", "nation:US"), area("south", "region:3"))
+  expect_equal(n$value, c(17053, 17053 + 23077, 93022, 30427808, 12949620))
+  expect_equal(nes("nonemployer_receipts_per_business_nes", kent)$value, 1000 * 1886954 / 17053)
+  expect_equal(nes("nonemployers_per_1000_residents_nes", kent)$value, 1000 * 17053 / 190123)   # BEA population
+  expect_equal(nes("nonemployer_mining_share_nes", kent)[, c("value", "status")], data.frame(value = 0, status = "ok"))  # no row
+  expect_equal(nes("childcare_nonemployer_establishments_nes", area("loving", "county:48301"))$value, 0)
+  d <- nes("nonemployer_mining_share_nes", kent, year = 2008L)
+  expect_equal(d$status, "suppressed")                                                        # flagged D in 2008
+  expect_match(d$method, "avoid disclosing")
+  capitol <- nes("nonemployer_establishments_nes", area("capitol", "county:09110"), year = c(2021L, 2023L))
+  expect_equal(capitol$status, c("unavailable", "ok"))                                        # planning regions from 2022
+  expect_equal(capitol$value[2], 76682)
+})
+
 test_that("a value the source did not publish carries the source's reason", {
   d <- long("county:1", "ESTAB_00", NA, NA, "suppressed")
   d$note <- "fewer than 3 establishments or none"

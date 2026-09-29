@@ -254,9 +254,9 @@ per Quarto render, so rendering is the main cost whenever many reports change.
 
 ## Limitations
 
-- 306 of the 515 cataloged metrics are operational (ACS detailed tables, decennial census,
-  population estimates, SAIPE, SAHIE, CDC PLACES, County Business Patterns, LEHD LODES, BLS QCEW,
-  BEA county income and GDP, FEMA National Risk Index, USDA Food Environment Atlas, EAC Election
+- 329 of the 534 cataloged metrics are operational (ACS detailed tables, decennial census,
+  population estimates, SAIPE, SAHIE, CDC PLACES, County Business Patterns, Nonemployer
+  Statistics, LEHD LODES, BLS QCEW, BEA county income and GDP, FEMA National Risk Index, USDA Food Environment Atlas, EAC Election
   Administration and Voting Survey, Census of Governments finance, FBI Crime Data Explorer, IPUMS
   NHGIS, BLS, FHFA, building permits, child care prices, Texas licensing); the rest are
   documented only.
@@ -275,6 +275,11 @@ per Quarto render, so rendering is the main cost whenever many reports change.
   GDP index for growth, which does not: combined areas and Census regions have no real growth
   line. The industry mix uses twelve industry groups, withheld far less often than single
   sectors. Connecticut's planning regions have GDP for 2024 only and no real GDP index.
+- Nonemployer Statistics (1997-2023, counties, states and the nation) count businesses without
+  paid employees, mostly the self-employed, which the job sources leave out, including home-based
+  child care. Rates use BEA's population, or the Census Bureau's estimates where BEA has none
+  (Connecticut's planning regions before 2024). Child care counts dip in 2017 nationally with no
+  documented cause.
 - Census years before the ACS (IPUMS NHGIS) cover income and poverty (1970 or 1980 to 2000),
   education, work and commuting (commuting modes 1990 and 2000). They come from the census long
   form, a sample; NHGIS publishes no margins of error for them, so they are drawn as dots and

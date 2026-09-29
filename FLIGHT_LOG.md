@@ -514,4 +514,48 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   (2017 = 100), +24.1% since 2001 vs Indiana +50.4%; U.S. $29.3 trillion, $86,143 per resident;
   Kent County DE manufacturing 2024 (D). Charts reviewed. Tests 263; verify 25 of 26 (FEMA 403);
   round trip 10/10; batch 12 ok, austin-78704 rejected as intended.
-- The three agreed sources are done; checking back with the user.
+- The three agreed sources are done; committed and pushed (f17df95).
+
+## 2026-09-29 16:24 (session 5, continued): five more sources agreed; Nonemployer Statistics
+
+- The user asked which sources have the most leverage; agreed to add five, in order (PLAN.md
+  step of 16:24): Nonemployer Statistics, FARS, NCES CCD, NOAA Storm Events, County Health
+  Rankings. The user asked that this log be kept up to date during the work so it can resume
+  after an interruption: add a line at each milestone (files touched, decisions, checks).
+- NES files inspected (~16:27): https://www2.census.gov/programs-surveys/nonemployer-statistics/
+  datasets/{YYYY}/historical-datasets/nonemp{YY}{co|st|us}.zip, one text CSV each (county 2.9-4.8
+  MB zipped). Columns ST, CTY (COUNTY in 1997; lowercase names in 2008), NAICS, ESTAB_F, ESTAB,
+  RCPTOT_N_F (noise flag G/H/J, from 2005 or so), RCPTOT_F, RCPTOT ($1,000). Flags: D withheld
+  (blank values; 1997 and 2008, most detailed rows), S below publication standards (all years,
+  4,710 rows in 2023, no D). 18 sectors (no 55 or 92); child day care is 62441. In 2008 counties
+  without withheld sectors add up exactly, so a missing row means no such businesses; 2023 totals
+  exceed sector sums by a few. Travis County TX: 51,468 (1997) -> 152,472 (2023); transportation
+  1,311 -> 18,753.
+- ~16:30 R/providers/nes.R written and tried on 1997, 2008, 2023 (2-3 s a year): bulk co/st/us
+  files (state .txt through 2007, U.S. .txt through 2015), headers normalized (ESTABF, COUNTY,
+  lowercase), LFO "-" and RCPTOT_SIZE "001" rows only, repeated rows dropped; regions and
+  divisions sum states; POPULATION from bea_cainc1(). The Census API also has NES for every year
+  (NAICS1997 ... NAICS2022 variables) but flags only through 2008 and would need about 1,600
+  requests, so the bulk files are used. U.S. child care nonemployers 488,734 (1997), 702,897
+  (2008), 533,596 (2023); 2023 county file uses Connecticut planning regions (09110).
+- ~16:31 catalog: 23 metrics (businesses, per 1,000 residents with CAINC1 population, receipts
+  per business, 18 sector shares, child care businesses and receipts per business; four research
+  rows replaced), recipes, 5 blocks (nonemployer-summary: general and economic development;
+  nonemployer-trend, nonemployer-industry-mix: economic development; childcare-nonemployers,
+  childcare-nonemployer-trend: early childhood), text records, profiles. catalog --check clean.
+- ~16:33 all 27 years loaded (cache 134 MB). D flags through 2016, only S from 2017 (3,502 rows in
+  2017, about 100-150 later); Connecticut planning regions from 2022. 2002 U.S. file names receipts
+  ECVALUE (renamed; a missing column now stops with a clear error). U.S. transportation
+  nonemployers 645,883 (1997) -> 4,057,127 (2023), steepest from 2014. sources.csv row, verify
+  check (HEAD on the latest county ZIP), Connecticut note in the metrics' limitations. Fixture:
+  real rows of 2023, 2021 and 2008 county/state/U.S. files; tests 272 pass.
+- 16:38 batch ok (12, austin-78704 rejected). Capitol Planning Region had no rate: BEA population
+  has planning regions only for 2024, NES from 2022 -> POPULATION falls back to PEP Vintage 2025
+  where BEA has none (78.1 per 1,000). Charts reviewed. Child care nonemployers dip in 2017
+  (U.S. 599,018 -> 539,456 -> 589,313; Travis 1,290 -> 1,025 -> 1,24x) with no cause in the
+  Census documentation: stated as such in the child care metrics' breaks. Documented: 2019-2020
+  coverage may be low (pandemic tax-filing delays), now in every NES metric's breaks.
+- 16:45 done: batch 12 ok (austin-78704 rejected as intended); verify 26 of 27 (FEMA 403 in
+  Docker); round trip 10/10; tests 272; catalog 534 metrics, 329 operational. README and PLAN
+  updated. Not committed yet (the user commits on request).
+- Resume point: NES done; next is FARS (PLAN.md step of 16:24, item 2) once the user agrees.

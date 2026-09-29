@@ -34,7 +34,7 @@ Key decisions
 
 ## Checklist
 
-Status as of 2026-09-29 16:15 (session 5; details in FLIGHT_LOG.md). `[x]` done and exercised by the
+Status as of 2026-09-29 16:45 (session 5; details in FLIGHT_LOG.md). `[x]` done and exercised by the
 sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
 
 - [x] Environment: renv library + `renv.lock`, Quarto discovery, `.env` for key/contact (never logged)
@@ -46,11 +46,11 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
       incl. overlap + part-whole dependence, status codes, constant dollars (R-CPI-U-RS)
 - [x] Providers: ACS 5-yr (2009-2024), decennial 2000/2010/2020 (1990 is not in the API), PEP, 1900-1990
       county counts, LAUS, BEA CAINC1 and county GDP, CPI, building permits, FHFA HPI, NDCP, CBP (all industries), Texas HHSC,
-      SAIPE, SAHIE, CDC PLACES, LEHD LODES, BLS QCEW, FEMA National Risk Index, USDA Food Environment Atlas, EAC EAVS,
+      SAIPE, SAHIE, CDC PLACES, Nonemployer Statistics, LEHD LODES, BLS QCEW, FEMA National Risk Index, USDA Food Environment Atlas, EAC EAVS,
       Census of Governments finance, FBI Crime Data Explorer, IPUMS NHGIS (census years
       1790-2000, County Business Patterns 1970-1997)
-- [x] Catalog: tables (17 subjects / 83 subtopics, 122 sources, 515 metrics, 306 operational), the
-      browsable page (`gr.R catalog --html`) with scope and gaps, live `gr.R verify` (26 sources;
+- [x] Catalog: tables (17 subjects / 83 subtopics, 122 sources, 534 metrics, 329 operational), the
+      browsable page (`gr.R catalog --html`) with scope and gaps, live `gr.R verify` (27 sources;
       424 ACS recipe x release checks, no gaps)
 - [x] Content: manifests, block library, 3 profiles, scoped text, templates, cited history events,
       stale-fact warnings, `gr.R new` (subject/metric selection)
@@ -62,7 +62,7 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
       logs, build manifests; cold/warm/resumed benchmark and invalidation checks (README, docs/)
 - [x] Demos 1-11: sample reports, demos/round_trip.R (10/10), benchmark, README; PDF via Typst works
       (basic page layout, documented)
-- [x] Tests: 263 expectations pass offline with fixtures (`gr.R test`)
+- [x] Tests: 272 expectations pass offline with fixtures (`gr.R test`)
 - [x] Docs and lean review: README complete; dead code removed; R/blocks.R, R/geography.R and
       R/compose.R restructured, each with every report's output proven identical
 
@@ -271,3 +271,34 @@ recipes and blocks. As before, every new block goes into the profiles.
        Dollar amounts from $1 trillion print as trillions
 4. [x] Verified after each source (tests 263; verify 25 of 26, FEMA 403 in Docker; round trip 10/10;
        batch 12 ok, austin-78704 rejected as intended); checking back with the user (16:15)
+
+## Step agreed with the user 2026-09-29 16:24: five more sources, in order
+
+Ranked by gap filled, geography, history and effort (catalog 16:20: education has 5 operational
+metrics, public safety 3, civic participation 2; nothing measures deaths, school enrollment or
+self-employment). Every new block goes into the profiles; FLIGHT_LOG.md is kept as a running log
+so work can resume after an interruption.
+1. [x] Census Nonemployer Statistics (census_nes), done 16:45: R/providers/nes.R reads the bulk county,
+       state and U.S. files for 1997-2023 (names and headers vary by year); flagged cells (D through
+       2016, S) are suppressed, missing industries are zero; regions sum states; rates use BEA
+       population with PEP where BEA has none. 23 metrics (businesses, per 1,000 residents,
+       receipts per business, 18 sectors, child care businesses and receipts per business); blocks
+       nonemployer-summary (general, economic development), nonemployer-trend and
+       nonemployer-industry-mix (economic development), childcare-nonemployers and
+       childcare-nonemployer-trend (early childhood). Tests 272; verify 26 of 27 (FEMA 403);
+       round trip 10/10; batch 12 ok. Cache 134 MB
+2. [ ] NHTSA FARS (nhtsa_fars), 1975-2023: traffic deaths, pedestrians and cyclists; crash
+       coordinates give exact counts for cities, tracts and unions; rates need population;
+       multi-year sums for small places. Keyless national ZIPs (the CrashAPI refused scripts)
+3. [ ] NCES Common Core of Data (nces_ccd), 1986-2025: public school enrollment by grade (public
+       pre-K for early childhood), schools, student-teacher ratios; built from school locations
+       (EDGE geocodes) since districts are not a supported geography; large files (school
+       membership about 190 MB a year)
+4. [ ] NOAA Storm Events (noaa_storm_events), 1950-present: storm deaths, injuries and damage by
+       event type and year for counties; zone-based events (43% in 2024) need NOAA's zone-county
+       correlation; damage is rough and nominal
+5. [ ] County Health Rankings (uwphi_chrr), 2010-2025, counties: premature death, life expectancy,
+       injury deaths and other county measures; secondary compilation with pooled years; terms
+       allow non-profit use (commercial use needs written consent)
+6. [ ] Verify (tests, gr.R verify, demos/round_trip.R, batch) after each source; check back with
+       the user after all five

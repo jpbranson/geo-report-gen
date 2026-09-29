@@ -305,3 +305,26 @@ gdp_education_health_share_bea,bea_cagdp,share,GDP_EDUCATION_HEALTH,GDP_ALL,,,10
 gdp_leisure_share_bea,bea_cagdp,share,GDP_LEISURE,GDP_ALL,,,100,,gdp_industry_bea,"Arts, recreation, lodging and food services"
 gdp_other_services_share_bea,bea_cagdp,share,GDP_OTHER_SERVICES,GDP_ALL,,,100,,gdp_industry_bea,Other services
 gdp_government_share_bea,bea_cagdp,share,GDP_GOVERNMENT,GDP_ALL,,,100,,gdp_industry_bea,Government
+nonemployer_establishments_nes,census_nes,count,ESTAB_00,,,,1,,,
+nonemployers_per_1000_residents_nes,census_nes,ratio,ESTAB_00,POPULATION,,,1000,,,
+nonemployer_receipts_per_business_nes,census_nes,ratio,RCPTOT_00,ESTAB_00,,,1,year,,
+nonemployer_agriculture_share_nes,census_nes,share,ESTAB_11,ESTAB_00,,,100,,nonemployer_industry_nes,"Agriculture, forestry, fishing and hunting"
+nonemployer_mining_share_nes,census_nes,share,ESTAB_21,ESTAB_00,,,100,,nonemployer_industry_nes,"Mining, quarrying, oil and gas"
+nonemployer_utilities_share_nes,census_nes,share,ESTAB_22,ESTAB_00,,,100,,nonemployer_industry_nes,Utilities
+nonemployer_construction_share_nes,census_nes,share,ESTAB_23,ESTAB_00,,,100,,nonemployer_industry_nes,Construction
+nonemployer_manufacturing_share_nes,census_nes,share,ESTAB_31-33,ESTAB_00,,,100,,nonemployer_industry_nes,Manufacturing
+nonemployer_wholesale_share_nes,census_nes,share,ESTAB_42,ESTAB_00,,,100,,nonemployer_industry_nes,Wholesale trade
+nonemployer_retail_share_nes,census_nes,share,ESTAB_44-45,ESTAB_00,,,100,,nonemployer_industry_nes,Retail trade
+nonemployer_transportation_share_nes,census_nes,share,ESTAB_48-49,ESTAB_00,,,100,,nonemployer_industry_nes,Transportation and warehousing
+nonemployer_information_share_nes,census_nes,share,ESTAB_51,ESTAB_00,,,100,,nonemployer_industry_nes,Information
+nonemployer_finance_share_nes,census_nes,share,ESTAB_52,ESTAB_00,,,100,,nonemployer_industry_nes,Finance and insurance
+nonemployer_real_estate_share_nes,census_nes,share,ESTAB_53,ESTAB_00,,,100,,nonemployer_industry_nes,"Real estate, rental and leasing"
+nonemployer_professional_share_nes,census_nes,share,ESTAB_54,ESTAB_00,,,100,,nonemployer_industry_nes,"Professional, scientific and technical services"
+nonemployer_administrative_share_nes,census_nes,share,ESTAB_56,ESTAB_00,,,100,,nonemployer_industry_nes,"Administrative, support and waste services"
+nonemployer_education_share_nes,census_nes,share,ESTAB_61,ESTAB_00,,,100,,nonemployer_industry_nes,Educational services
+nonemployer_health_share_nes,census_nes,share,ESTAB_62,ESTAB_00,,,100,,nonemployer_industry_nes,Health care and social assistance
+nonemployer_arts_share_nes,census_nes,share,ESTAB_71,ESTAB_00,,,100,,nonemployer_industry_nes,"Arts, entertainment and recreation"
+nonemployer_food_share_nes,census_nes,share,ESTAB_72,ESTAB_00,,,100,,nonemployer_industry_nes,Accommodation and food services
+nonemployer_other_services_share_nes,census_nes,share,ESTAB_81,ESTAB_00,,,100,,nonemployer_industry_nes,Other services
+childcare_nonemployer_establishments_nes,census_nes,count,ESTAB_62441,,,,1,,,
+childcare_nonemployer_receipts_per_business_nes,census_nes,ratio,RCPTOT_62441,ESTAB_62441,,,1,year,,
