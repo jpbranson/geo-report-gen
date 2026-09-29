@@ -489,10 +489,13 @@ method_note <- function(res, metric_id, ctx, settings) {
   prov <- get_provider(recipe_for(metric_id)$source_id)
   notes <- character()
   if (identical(prov$period_kind, "multiyear")) notes <- c(notes, phrase(ctx, "note_multiyear", list()))
-  # A city's values over time follow its boundaries at each date, so annexations are part of change.
+  # A city's values over time follow its boundaries at each date, so annexations are part of change,
+  # unless the source assigns every year to the same boundaries (LODES census blocks).
   legal_area <- any(ctx$study$pieces$type %in% c("place", "place_part", "cousub")) &&
     length(unique(res$period[res$entity_id == "study"])) > 1
-  if (legal_area) notes <- c(notes, phrase(ctx, "note_legal_area", list()))
+  if (legal_area && !is.null(prov$fixed_boundaries)) {
+    notes <- c(notes, phrase(ctx, "note_fixed_area", list(boundary_year = prov$fixed_boundaries)))
+  } else if (legal_area) notes <- c(notes, phrase(ctx, "note_legal_area", list()))
   if (any(grepl("interpolated", res$method))) notes <- c(notes, phrase(ctx, "note_interpolated", list()))
   if (any(res$status == "unreliable")) {
     notes <- c(notes, phrase(ctx, "note_unreliable", list(cv = settings$cv_unreliable)))

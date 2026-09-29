@@ -193,6 +193,12 @@ verify_sources <- function() {
       paste0("NHGIS dataset 1988_1997_CBPa (", x$description, "): ", length(x$years), " years, table NT001 ",
              x$dataTables[[1]]$description)
     },
+    census_lehd_lodes = function() {
+      resp <- http_perform(http_request(paste(lodes_base, "de", "version.txt", sep = "/"), "census_lodes"))
+      check_status(resp, "LODES")
+      info <- trimws(strsplit(httr2::resp_body_string(resp), "\n")[[1]])
+      paste0("LODES Delaware: ", paste(grep("Vintage|Version", info, value = TRUE), collapse = "; "))
+    },
     dol_ndcp = head_check("https://www.dol.gov/sites/dolgov/files/WB/NDCP2022.xlsx", "dol_ndcp"),
     census_geo = head_check("https://www2.census.gov/geo/tiger/GENZ2024/shp/cb_2024_us_county_500k.zip", "census_geo"),
     bls_laus = head_check("https://download.bls.gov/pub/time.series/la/la.area", "bls"),

@@ -301,6 +301,34 @@ test_that("FBI: a county adds up every agency listed in it, dividing departments
                1e5 * y$offenses[y$year == 2023] / y$covered[y$year == 2023])
 })
 
+test_that("LODES: areas sum their census blocks; state-years without job data and the nation are unavailable", {
+  # Real Delaware 2023 rows for a few blocks in Dover, rural Kent County and Wilmington, plus
+  # crosswalk rows of Magnolia, a town without jobs or residents in the fixture.
+  area <- function(id, keys) entity(id, "study", id, data.frame(key = keys, type = sub(":.*$", "", keys),
+                                                                geoid = sub("^[^:]*:", "", keys), name = id, pop = NA_real_))
+  dover <- area("dover", "place:1021200")
+  st <- resolve_settings()
+  jobs <- function(...) compute_metric("jobs_total_lodes", list(...), st, periods = 2023L)
+  expect_equal(jobs(dover)$value, 263)
+  expect_equal(jobs(area("kent", "county:10001"), area("de", "state:10"))$value, c(263 + 43, 263 + 43 + 14))
+  expect_equal(jobs(area("part", "place_part:1021200-10001"))$value, 263)                  # Dover lies in Kent County
+  expect_equal(jobs(area("u", c("place:1021200", "county:10003")))$value, 263 + 14)        # a union of pieces
+  expect_equal(jobs(area("magnolia", "place:1044430"))[, c("value", "status")], data.frame(value = 0, status = "ok"))
+  none <- jobs(area("nowhere", "place:1099999"))
+  expect_equal(none$status, "unavailable")
+  expect_match(none$method, "not an area in the LODES crosswalk")
+  expect_equal(compute_metric("jobs_to_employed_residents_ratio_lodes", list(dover), st, periods = 2023L)$value, 100 * 263 / 405)
+  expect_equal(compute_metric("jobs_low_earnings_share_lodes", list(dover), st, periods = 2023L)$value, 100 * 82 / 263)
+  # Washington, DC, supplied no job data before 2010: nothing is downloaded (the tests run offline).
+  dc <- area("dc", "county:11001")
+  expect_equal(compute_metric("jobs_total_lodes", list(dc), st, periods = 2005L)$status, "unavailable")
+  res <- compute_metric("employed_residents_lodes", list(dc), st, periods = 2005L)
+  expect_match(res$method, "no job data from District of Columbia for 2005 \\(only residents working in other states")
+  us <- jobs(area("us", "nation:US"))
+  expect_equal(us$status, "not_applicable")
+  expect_match(us$method, "does not publish data for the nation")
+})
+
 test_that("a value the source did not publish carries the source's reason", {
   d <- long("county:1", "ESTAB_00", NA, NA, "suppressed")
   d$note <- "fewer than 3 establishments or none"

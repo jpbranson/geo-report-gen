@@ -235,3 +235,29 @@ pop_census_nhgis,ipums_nhgis,count,1790:A00AA; 1800:A00AA; 1810:A00AA; 1820:A00A
 employment_cbp_sic,ipums_nhgis_cbp,count,SIC_EMP,,,,1,,,
 establishments_cbp_sic,ipums_nhgis_cbp,count,SIC_ESTAB,,,,1,,,
 annual_payroll_per_employee_cbp_sic,ipums_nhgis_cbp,ratio,SIC_PAYANN,SIC_EMP,,,1,year,,
+jobs_total_lodes,census_lehd_lodes,count,W_C000,,,,1,,,
+employed_residents_lodes,census_lehd_lodes,count,R_C000,,,,1,,,
+jobs_to_employed_residents_ratio_lodes,census_lehd_lodes,ratio,W_C000,R_C000,,,100,,,
+jobs_low_earnings_share_lodes,census_lehd_lodes,share,W_CE01,W_C000,,,100,,jobs_earnings_lodes,"$1,250 a month or less"
+jobs_mid_earnings_share_lodes,census_lehd_lodes,share,W_CE02,W_C000,,,100,,jobs_earnings_lodes,"$1,251 to $3,333 a month"
+jobs_high_earnings_share_lodes,census_lehd_lodes,share,W_CE03,W_C000,,,100,,jobs_earnings_lodes,"More than $3,333 a month"
+jobs_agriculture_share_lodes,census_lehd_lodes,share,W_CNS01,W_C000,,,100,,jobs_industry_lodes,"Agriculture, forestry, fishing and hunting"
+jobs_mining_share_lodes,census_lehd_lodes,share,W_CNS02,W_C000,,,100,,jobs_industry_lodes,"Mining, quarrying, oil and gas"
+jobs_utilities_share_lodes,census_lehd_lodes,share,W_CNS03,W_C000,,,100,,jobs_industry_lodes,Utilities
+jobs_construction_share_lodes,census_lehd_lodes,share,W_CNS04,W_C000,,,100,,jobs_industry_lodes,Construction
+jobs_manufacturing_share_lodes,census_lehd_lodes,share,W_CNS05,W_C000,,,100,,jobs_industry_lodes,Manufacturing
+jobs_wholesale_share_lodes,census_lehd_lodes,share,W_CNS06,W_C000,,,100,,jobs_industry_lodes,Wholesale trade
+jobs_retail_share_lodes,census_lehd_lodes,share,W_CNS07,W_C000,,,100,,jobs_industry_lodes,Retail trade
+jobs_transportation_share_lodes,census_lehd_lodes,share,W_CNS08,W_C000,,,100,,jobs_industry_lodes,Transportation and warehousing
+jobs_information_share_lodes,census_lehd_lodes,share,W_CNS09,W_C000,,,100,,jobs_industry_lodes,Information
+jobs_finance_share_lodes,census_lehd_lodes,share,W_CNS10,W_C000,,,100,,jobs_industry_lodes,Finance and insurance
+jobs_real_estate_share_lodes,census_lehd_lodes,share,W_CNS11,W_C000,,,100,,jobs_industry_lodes,"Real estate, rental and leasing"
+jobs_professional_share_lodes,census_lehd_lodes,share,W_CNS12,W_C000,,,100,,jobs_industry_lodes,"Professional, scientific and technical services"
+jobs_management_share_lodes,census_lehd_lodes,share,W_CNS13,W_C000,,,100,,jobs_industry_lodes,Management of companies
+jobs_administrative_share_lodes,census_lehd_lodes,share,W_CNS14,W_C000,,,100,,jobs_industry_lodes,"Administrative, support and waste services"
+jobs_education_share_lodes,census_lehd_lodes,share,W_CNS15,W_C000,,,100,,jobs_industry_lodes,Educational services
+jobs_health_share_lodes,census_lehd_lodes,share,W_CNS16,W_C000,,,100,,jobs_industry_lodes,Health care and social assistance
+jobs_arts_share_lodes,census_lehd_lodes,share,W_CNS17,W_C000,,,100,,jobs_industry_lodes,"Arts, entertainment and recreation"
+jobs_food_share_lodes,census_lehd_lodes,share,W_CNS18,W_C000,,,100,,jobs_industry_lodes,Accommodation and food services
+jobs_other_services_share_lodes,census_lehd_lodes,share,W_CNS19,W_C000,,,100,,jobs_industry_lodes,Other services
+jobs_public_administration_share_lodes,census_lehd_lodes,share,W_CNS20,W_C000,,,100,,jobs_industry_lodes,Public administration

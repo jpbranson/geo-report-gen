@@ -34,7 +34,7 @@ Key decisions
 
 ## Checklist
 
-Status as of 2026-09-29 01:00 (session 3; details in FLIGHT_LOG.md). `[x]` done and exercised by the
+Status as of 2026-09-29 15:10 (session 5; details in FLIGHT_LOG.md). `[x]` done and exercised by the
 sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
 
 - [x] Environment: renv library + `renv.lock`, Quarto discovery, `.env` for key/contact (never logged)
@@ -46,12 +46,12 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
       incl. overlap + part-whole dependence, status codes, constant dollars (R-CPI-U-RS)
 - [x] Providers: ACS 5-yr (2009-2024), decennial 2000/2010/2020 (1990 is not in the API), PEP, 1900-1990
       county counts, LAUS, BEA CAINC1, CPI, building permits, FHFA HPI, NDCP, CBP (all industries), Texas HHSC,
-      SAIPE, SAHIE, CDC PLACES, FEMA National Risk Index, USDA Food Environment Atlas, EAC EAVS,
+      SAIPE, SAHIE, CDC PLACES, LEHD LODES, FEMA National Risk Index, USDA Food Environment Atlas, EAC EAVS,
       Census of Governments finance, FBI Crime Data Explorer, IPUMS NHGIS (census years
       1790-2000, County Business Patterns 1970-1997)
-- [x] Catalog: tables (17 subjects / 82 subtopics, 122 sources, 462 metrics, 236 operational), the
-      browsable page (`gr.R catalog --html`) with scope and gaps, live `gr.R verify` (23 sources
-      ok; 424 ACS recipe x release checks, no gaps)
+- [x] Catalog: tables (17 subjects / 82 subtopics, 122 sources, 481 metrics, 262 operational), the
+      browsable page (`gr.R catalog --html`) with scope and gaps, live `gr.R verify` (24 sources;
+      424 ACS recipe x release checks, no gaps)
 - [x] Content: manifests, block library, 3 profiles, scoped text, templates, cited history events,
       stale-fact warnings, `gr.R new` (subject/metric selection)
 - [x] Authoring: inline harvest, bulk CSV export/import and conflict detection, covered by tests and
@@ -62,7 +62,7 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
       logs, build manifests; cold/warm/resumed benchmark and invalidation checks (README, docs/)
 - [x] Demos 1-11: sample reports, demos/round_trip.R (10/10), benchmark, README; PDF via Typst works
       (basic page layout, documented)
-- [x] Tests: 226 expectations pass offline with fixtures (`gr.R test`)
+- [x] Tests: 239 expectations pass offline with fixtures (`gr.R test`)
 - [x] Docs and lean review: README complete; dead code removed; R/blocks.R, R/geography.R and
       R/compose.R restructured, each with every report's output proven identical
 
@@ -228,20 +228,25 @@ Reports may keep growing (the user edits down), so every new block goes into the
 2. [x] Verified on amd64 and arm64: tests, byte-identical report values and text, PDF, preview
 3. [x] Portable folder (arm64 image, cache and reports, setup steps); Docker files pushed to GitHub
 
-## Step agreed with the user 2026-09-29 14:35: three jobs and output sources, in order (not started)
+## Step agreed with the user 2026-09-29 14:35: three jobs and output sources, in order
 
 All three are cataloged and their sample downloads worked (2026-09-28); each needs a provider,
 recipes and blocks. As before, every new block goes into the profiles.
-1. [ ] LEHD LODES 8.4 (census_lehd_lodes), 2002-2023: jobs located in the area and employed
-       residents, from the block-level WAC and RAC files. Blocks nest in every area, so places,
-       tracts and unions get values, not just counties (the state crosswalk gives each 2020
-       block's county, place, county subdivision and tract; check its geography vintage against
-       boundary_vintage). Cataloged metrics: jobs, low-earnings share, jobs by sector, employed
-       residents, jobs per employed resident; the two commuting shares need the OD files, which
-       are much larger (check sizes first). To settle: all jobs (JT00) or primary jobs (JT01);
-       state-years without WAC files (MA 2002-2010, MI before 2022, AK before 2017, ...) are
-       unavailable with the reason. No margins of error; say that the residence side is partly
-       modeled
+1. [x] LEHD LODES 8.4 (census_lehd_lodes), 2002-2023 (done 15:10): R/providers/lodes.R sums
+       block-level WAC and RAC files through each state's crosswalk (2020 blocks, 2024
+       boundaries) to states, counties, places and place parts, county subdivisions, tracts,
+       block groups, ZCTAs and metro areas; unions are exact. Settled: primary jobs (JT01)
+       throughout, so jobs and employed residents both count workers. No national or regional
+       totals (not published; a sum of states is incomplete in most years). State-years without
+       job data (AK 2017-2023, MI 2022-2023, DC 2002-2009, MA 2002-2010, AR, AZ, MS and NH in
+       2002-2003) are unavailable with the reason; their stub files are ignored. 26 metrics (jobs,
+       employed residents, jobs per 100 employed residents, 3 earnings bands, 20 sectors); blocks
+       jobs-and-workers, primary-jobs-trend, jobs-per-resident-trend, primary-jobs-industry-mix,
+       job-earnings-mix, jobs-per-resident-map (general: 3, economic development: 6); history
+       event for federal jobs from 2010; a provider's fixed_boundaries replaces the annexation
+       note. Verified: tests 239; verify 23 of 24 (FEMA 403 in Docker, as before); round trip
+       10/10; batch 12 reports ok, austin-78704 rejected as intended. Commuting shares (OD files,
+       83 MB a year for California) left for later
 2. [ ] BLS QCEW (bls_qcew): covered jobs, establishments and average annual pay, all industries
        and by NAICS sector, for counties, states and the nation, annual 1990-2025 (bulk ZIPs).
        Workplace-based like CBP, but with wages and two years newer. Nondisclosed cells ("N")

@@ -452,3 +452,25 @@ now git-ignored and its line appended to .env (never printed); the user can dele
 
 - On the Mac, the user added and built madison-ms (place:2844520, general profile) with Docker.
 - Agreed next step, not started: LEHD LODES, BLS QCEW, BEA county GDP, in that order (PLAN.md).
+
+## 2026-09-29 14:40 (session 5, continued): LODES (done 15:10)
+
+- Docs read: LODES tech doc 8.4 (Rev. 20251203), OnTheMap data overview (OTM20251202; LODES is
+  partially synthetic; primary jobs equal workers; jobs held at the start of Q2), federal
+  employment note (federal jobs from 2010, in All Jobs and Primary Jobs; some agencies excluded).
+- Quirks: files for state-years without job data exist as stubs (ma_wac_S000_JT01_2005 holds
+  5 jobs; ma_od_main files about 150 bytes), so coverage comes from the tech doc's table, not
+  from file existence; crosswalk codes outside an area are all nines; paths use lowercase postal
+  codes. Crosswalk codes are "current" (2024 TIGER), matching boundary_vintage 2024; CT uses the
+  planning regions (county:09110 works); Indianapolis is 1836003 (balance).
+- Decisions: primary jobs (JT01) for everything; nation, regions and divisions not offered;
+  jobs per 100 employed residents (one decimal hid differences near 1); OD commuting flows
+  deferred.
+- Checks: Madison MS 4,575 primary jobs (2004; no MS job data 2002-2003) -> 9,400 (2023);
+  Gary 35,027 (2002) -> 22,661 (2023) while Lake County +0.8%; Kansas 1,300,916 and Missouri
+  2,664,843 primary jobs (2023); Texas 100.0 jobs per 100 employed residents; tx-cities: Houston
+  1,789,039. Charts reviewed (trend with the 2010 break label, 20-sector bars, Gary tract map).
+- Cache: 624 MB for six states (Texas 355 MB: 289 MB downloads, 54 MB derived tables); the first
+  Texas build took 287 s (45 downloads). Tests 239; verify 23 of 24 (FEMA 403 in Docker);
+  round trip 10/10; batch 12 ok, austin-78704 rejected as intended.
+- Next: BLS QCEW (PLAN.md step 2).
