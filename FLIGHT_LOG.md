@@ -199,3 +199,43 @@ User: do the readability pass on geography.R and compose.R.
   the intended ones (3 contains NA -> FALSE, 8 find results without `spec`); tests 117 pass; batch
   after the one-time re-render: all 11 up to date, 0 requests (austin-78704 is the intended
   rejection). Lines over 120 characters: geography.R 10 -> 0, compose.R 9 -> 0.
+- Committed a8278fa. User then asked to keep compose.R's extra lines (legibility over line count).
+
+### 2026-09-28 ~18:25- (session 3, step 4: expand metric coverage)
+User: expand the metric coverage next. Plan in PLAN.md (ACS recipes, then SAIPE/SAHIE, then check
+back before new external sources).
+- Survey: 48/398 operational; 83 cataloged ACS metrics without recipes, ~20 of them duplicates of
+  operational metrics or distribution views (research merge leftovers). ACS provider is generic
+  (any B/C table, all geographies; tables missing in old releases -> "unavailable").
+- 2024 group metadata fetched and reviewed for 48 tables (scratchpad acs_labels.R, labels1-3.txt);
+  all planned variable IDs confirmed.
+- Code so far: theme.R unit_kind() accepts descriptive units (prefix percent/dollars, "x per y" ->
+  ratio) and new kinds year (no thousands separator) and coefficient (3 decimals); fmt_change gives
+  differences for those; blocks.R uses unit_kind for dollars/percent checks; stats.R
+  parse_bin_label ends "10.0 to 14.9 percent" at 15.0 (was 15.9); tests added.
+- Catalog edits by one-time scratchpad scripts (catalog_edit.R, catalog_history.R, catalog_breaks.R,
+  catalog_defs.R, catalog_sae.R, text_records.R): 20 duplicate/view rows merged (breaks carried
+  over), 21 category rows added (13 industries, 5 occupation groups, commute "other", 2 household
+  types), 83 ACS recipes, 23 blocks, clean labels/sentence labels, reader-facing definitions and
+  breaks (formulas stay in `variables`; maintainer detail in `limitations`), plain table lists.
+- Release-by-release label check (label_drift.R, first_release.R) found real meaning changes:
+  C24010 and B21001 lines differ before 2006-2010; B27010/C27007/B18135 age bands under 18 -> under
+  19 from 2013-2017; B08301 rail lines reordered from 2015-2019 (sum unchanged); taxi line includes
+  ride-hailing in 2020-2024. Fix: metric_periods() drops periods starting before the catalog's
+  history_start (first comparable period, "YYYY-YYYY"); set for every implemented ACS metric.
+  Existing reports only lose "not published" rows for 2005-2009 (and 2010-2014 broadband).
+- `verify` now checks each ACS recipe only in the releases it uses: 424 checks, no gaps; 15/15
+  sources ok (SAIPE, SAHIE added).
+- SAIPE/SAHIE provider R/providers/small_area.R (Census API timeseries, key; one request per
+  dataset and scope returns all years; `for=us:*` works for the nation). SAHIE AGECAT 0 = under 65,
+  IPRCAT 0 = all incomes, 3 = <=138% of poverty. Comparable from 2005 (SAIPE, CPS->ACS inputs) and
+  2008 (SAHIE). Provider flag combine_moe = FALSE: combined areas get values, no MOE (method note).
+  Test fixture: Delaware counties (8.9 KB). model_interval uncertainty is tested like survey MOEs.
+- Charts: composition viz "bar" (industry mix: bar per category and area, study first, taller
+  figure); legends wrap at 28 characters (race legend now wraps "Two or more races, not
+  Hispanic"). Econ-dev profile does not use income-annual (SAIPE medians cannot be combined and
+  both econ-dev samples are unions); the block stays in the library.
+- content/text.csv was re-saved by save_text_records(), which sorts by field id; committed as a
+  separate pure-reorder commit before the additions.
+- 19:15: tests 138 pass; batch (online) 480 s / 309 requests for the new tables, then offline
+  127 s, 0 requests, 11/12 (intended rejection); catalog page renders; no build warnings.

@@ -35,6 +35,22 @@ test_that("ACS distribution labels become numeric bins", {
   expect_equal(parse_bin_label("Estimate!!Total:!!Less than $10,000"), c(0, 10000))
   expect_equal(parse_bin_label("Estimate!!Total:!!$10,000 to $14,999"), c(10000, 15000))
   expect_equal(parse_bin_label("Estimate!!Total:!!$200,000 or more"), c(200000, Inf))
+  expect_equal(parse_bin_label("Estimate!!Total:!!10.0 to 14.9 percent"), c(10, 15))
+  expect_equal(parse_bin_label("Estimate!!Total:!!Built 2010 to 2019"), c(2010, 2020))
+  expect_equal(parse_bin_label("Estimate!!Total:!!Built 1939 or earlier"), c(-Inf, 1940))
+  expect_true(all(is.na(parse_bin_label("Estimate!!Total:!!Not computed"))))
+})
+
+test_that("values are formatted by the kind of unit, including descriptive catalog units", {
+  th <- load_theme("default")
+  expect_equal(fmt_value(12.34, "percent of households", th), "12.3%")
+  expect_equal(fmt_value(52345, "dollars (final-year inflation-adjusted)", th), "$52,345")
+  expect_equal(fmt_value(2.514, "persons per household", th), "2.5")
+  expect_equal(fmt_value(1978.4, "year", th), "1978")
+  expect_equal(fmt_value(0.4712, "coefficient", th), "0.471")
+  expect_equal(fmt_value(12345, "households", th), "12,345")
+  expect_equal(fmt_change(1981, 1978, "year", th)$text, "+3 years")
+  expect_equal(fmt_change(22.5, 20, "percent", th)$text, "+2.5 percentage points")
 })
 
 test_that("period overlap, growth rates, reliability and inflation factors", {

@@ -109,12 +109,15 @@ theme_scss <- function(th) {
 
 # ---- Number formats ----------------------------------------------------------------------
 
-# Units vocabulary (catalog/metrics.csv `units`): percent, dollars, persons, households,
-# housing_units, children, establishments, jobs, units, years, minutes, index, ratio.
+# How a metric's units (catalog/metrics.csv `units`, which may be descriptive, e.g. "percent
+# of households" or "persons per household") are formatted: percent, dollars, years (ages,
+# durations), year (calendar year), minutes, index, coefficient (0-1, e.g. the Gini index),
+# ratio (any "x per y"), otherwise a count (persons, households, housing units...).
 unit_kind <- function(units) {
-  if (units %in% c("percent")) return("percent")
-  if (units %in% c("dollars")) return("dollars")
-  if (units %in% c("years", "minutes", "ratio", "index")) return(units)
+  if (startsWith(units, "percent")) return("percent")
+  if (startsWith(units, "dollars")) return("dollars")
+  if (units %in% c("years", "year", "minutes", "ratio", "index", "coefficient")) return(units)
+  if (grepl(" per ", units, fixed = TRUE)) return("ratio")
   "count"
 }
 
@@ -127,8 +130,10 @@ fmt_value <- function(x, units, th, bound = NA) {
       percent = paste0(formatC(v, format = "f", digits = theme_num(th, "digits_percent"), big.mark = ","), "%"),
       dollars = paste0(if (v < 0) "-" else "", "$", formatC(abs(v), format = "f", digits = theme_num(th, "digits_dollars"), big.mark = ",")),
       years = formatC(v, format = "f", digits = 1),
+      year = formatC(round(v), format = "d"),
       minutes = formatC(v, format = "f", digits = 1),
       index = formatC(v, format = "f", digits = 1, big.mark = ","),
+      coefficient = formatC(v, format = "f", digits = 3),
       ratio = formatC(v, format = "f", digits = theme_num(th, "digits_ratio"), big.mark = ","),
       formatC(round(v), format = "d", big.mark = ","))
     b <- if (length(bound) >= i) bound[i] else NA
@@ -148,21 +153,26 @@ fmt_moe <- function(moe, units, th) {
     paste0("±", switch(kind,
       percent = formatC(m, format = "f", digits = theme_num(th, "digits_percent")),
       dollars = paste0("$", formatC(m, format = "f", digits = theme_num(th, "digits_dollars"), big.mark = ",")),
-      count = formatC(round(m), format = "d", big.mark = ","),
+      count = , year = formatC(round(m), format = "d", big.mark = ","),
+      coefficient = formatC(m, format = "f", digits = 3),
       formatC(m, format = "f", digits = 1, big.mark = ",")))
   }, "")
 }
 
-# Difference between two values of a metric: percentage points for percentages, percent
-# change otherwise. Returns the formatted string and which kind it is.
+# Difference between two values of a metric: percentage points for percentages, the plain
+# difference for calendar years and coefficients, percent change otherwise. Returns the
+# formatted string and which kind it is.
 fmt_change <- function(new, old, units, th) {
   if (is.na(new) || is.na(old)) return(list(text = "–", kind = NA))
-  if (unit_kind(units) == "percent") {
-    d <- new - old
-    return(list(text = paste0(if (d > 0) "+" else if (d < 0) "−" else "",
-                              formatC(abs(d), format = "f", digits = theme_num(th, "digits_percent")),
+  kind <- unit_kind(units)
+  d <- new - old
+  sign <- if (d > 0) "+" else if (d < 0) "−" else ""
+  if (kind == "percent") {
+    return(list(text = paste0(sign, formatC(abs(d), format = "f", digits = theme_num(th, "digits_percent")),
                               " percentage points"), kind = "points"))
   }
+  if (kind == "year") return(list(text = paste0(sign, round(abs(d)), " years"), kind = "difference"))
+  if (kind == "coefficient") return(list(text = paste0(sign, formatC(abs(d), format = "f", digits = 3)), kind = "difference"))
   if (old == 0) return(list(text = "–", kind = NA))
   pct <- 100 * (new / old - 1)
   list(text = paste0(if (pct > 0) "+" else if (pct < 0) "−" else "", formatC(abs(pct), format = "f", digits = 1), "%"),
@@ -175,5 +185,7 @@ axis_labeller <- function(units) {
     percent = function(x) paste0(scales::number(x, accuracy = 1, big.mark = ","), "%"),
     dollars = scales::label_dollar(accuracy = 1),
     years = , minutes = , ratio = , index = scales::label_number(accuracy = 0.1, big.mark = ","),
+    year = scales::label_number(accuracy = 1, big.mark = ""),
+    coefficient = scales::label_number(accuracy = 0.01),
     scales::label_comma(accuracy = 1))
 }

@@ -47,3 +47,92 @@ childcare_establishments_cbp,census_cbp,count,ESTAB,,,,1,,,
 childcare_capacity_tx,tx_hhsc,count,capacity,,,,1,,,
 unemployment_rate_laus,bls_laus,share,unemployed,labor_force,rate,,100,,,
 labor_force_laus,bls_laus,count,labor_force,,,,1,,,
+children_under3_acs,census_acs5,count,B09001_003,,,,1,,,
+children_age3_4_acs,census_acs5,count,B09001_004,,,,1,,,
+children_under18_acs,census_acs5,count,B09001_001,,,,1,,,
+children_under6_all_parents_lf_count_acs,census_acs5,count,B23008_004+B23008_010+B23008_013,,,,1,,,
+children_6_17_all_parents_lf_share_acs,census_acs5,share,B23008_017+B23008_023+B23008_026,B23008_015,,,100,,,
+child_poverty_rate_under5_acs,census_acs5,share,B17001_004+B17001_018,B17001_004+B17001_018+B17001_033+B17001_047,,,100,,,
+child_poverty_rate_under6_acs,census_acs5,share,B17020_003,B17020_003+B17020_011,,,100,,,
+preschool_enrollment_rate_age3_4_acs,census_acs5,share,B14003_004+B14003_013+B14003_032+B14003_041,B14003_004+B14003_013+B14003_022+B14003_032+B14003_041+B14003_050,,,100,,,
+preschool_public_share_age3_4_acs,census_acs5,share,B14003_004+B14003_032,B14003_004+B14003_013+B14003_032+B14003_041,,,100,,,
+attainment_hs_plus_acs,census_acs5,share,B15003_017+B15003_018+B15003_019+B15003_020+B15003_021+B15003_022+B15003_023+B15003_024+B15003_025,B15003_001,,,100,,,
+k12_enrollment_acs,census_acs5,count,B14001_004+B14001_005+B14001_006+B14001_007,,,,1,,,
+college_enrollment_acs,census_acs5,count,B14001_008+B14001_009,,,,1,,,
+commute_drove_alone_share_acs,census_acs5,share,B08301_003,B08301_001,,,100,,commute_mode,Drove alone
+commute_carpool_share_acs,census_acs5,share,B08301_004,B08301_001,,,100,,commute_mode,Carpooled
+commute_public_transit_share_acs,census_acs5,share,B08301_010,B08301_001,,,100,,commute_mode,Public transportation
+commute_walk_share_acs,census_acs5,share,B08301_019,B08301_001,,,100,,commute_mode,Walked
+commute_bicycle_share_acs,census_acs5,share,B08301_018,B08301_001,,,100,,commute_mode,Bicycle
+commute_other_share_acs,census_acs5,share,B08301_016+B08301_017+B08301_020,B08301_001,,,100,,commute_mode,"Taxi, motorcycle or other"
+work_from_home_share_acs,census_acs5,share,B08301_021,B08301_001,,,100,,commute_mode,Worked from home
+commute_rail_transit_share_acs,census_acs5,share,B08301_012+B08301_013+B08301_014,B08301_001,,,100,,,
+commute_60plus_min_share_acs,census_acs5,share,B08303_012+B08303_013,B08303_001,,,100,,,
+households_no_vehicle_share_acs,census_acs5,share,B08201_002,B08201_001,,,100,,,
+renter_households_no_vehicle_share_acs,census_acs5,share,B25044_010,B25044_009,,,100,,,
+vehicles_per_household_acs,census_acs5,ratio,B25046_001,B25044_001,,,1,,,
+households_fixed_broadband_share_acs,census_acs5,share,B28002_007,B28002_001,,,100,,,
+households_cellular_data_only_share_acs,census_acs5,share,B28002_006,B28002_001,,,100,,,
+households_without_internet_subscription_share_acs,census_acs5,share,B28002_012+B28002_013,B28002_001,,,100,,,
+households_no_computer_share_acs,census_acs5,share,B28001_011,B28001_001,,,100,,,
+households_smartphone_only_share_acs,census_acs5,share,B28001_006,B28001_001,,,100,,,
+employment_population_ratio_acs,census_acs5,share,B23025_004,B23025_001,,,100,,,
+median_earnings_acs,census_acs5,median,,,B20017_001,,1,period_end,,
+mean_household_income_acs,census_acs5,ratio,B19025_001,B19001_001,,,1,period_end,,
+gini_index_acs,census_acs5,value,B19083_001,,,,1,,,
+below_200pct_poverty_share_acs,census_acs5,share,C17002_002+C17002_003+C17002_004+C17002_005+C17002_006+C17002_007,C17002_001,,,100,,,
+public_assistance_income_households_acs,census_acs5,share,B19057_002,B19057_001,,,100,,,
+ssi_households_acs,census_acs5,share,B19056_002,B19056_001,,,100,,,
+snap_receipt_among_poverty_households_acs,census_acs5,share,B22003_003,B22003_003+B22003_006,,,100,,,
+uninsured_rate_acs,census_acs5,share,B27010_017+B27010_033+B27010_050+B27010_066,B27010_001,,,100,,,
+uninsured_rate_children_acs,census_acs5,share,B27010_017,B27010_002,,,100,,,
+medicaid_means_tested_coverage_acs,census_acs5,share,C27007_004+C27007_007+C27007_010+C27007_014+C27007_017+C27007_020,C27007_001,,,100,,,
+disability_rate_acs,census_acs5,share,B18101_004+B18101_007+B18101_010+B18101_013+B18101_016+B18101_019+B18101_023+B18101_026+B18101_029+B18101_032+B18101_035+B18101_038,B18101_001,,,100,,,
+disability_two_or_more_types_acs,census_acs5,share,C18108_004+C18108_008+C18108_012,C18108_001,,,100,,,
+disability_uninsured_19_64_acs,census_acs5,share,B18135_018,B18135_014,,,100,,,
+rental_vacancy_rate_acs,census_acs5,share,B25004_002,B25003_003+B25004_002+B25004_003,,,100,,,
+homeowner_vacancy_rate_acs,census_acs5,share,B25004_004,B25003_002+B25004_004+B25004_005,,,100,,,
+seasonal_vacant_share_acs,census_acs5,share,B25004_006,B25002_001,,,100,,,
+single_family_detached_share_acs,census_acs5,share,B25024_002,B25024_001,,,100,,,
+multifamily_5plus_share_acs,census_acs5,share,B25024_006+B25024_007+B25024_008+B25024_009,B25024_001,,,100,,,
+median_year_built_acs,census_acs5,median,,,B25035_001,B25034,1,,,
+renter_severe_cost_burden_50plus_acs,census_acs5,share,B25070_010,B25070_002+B25070_003+B25070_004+B25070_005+B25070_006+B25070_007+B25070_008+B25070_009+B25070_010,,,100,,,
+median_rent_pct_income_acs,census_acs5,median,,,B25071_001,B25070,1,,,
+owner_cost_burden_30plus_acs,census_acs5,share,B25091_008+B25091_009+B25091_010+B25091_011+B25091_019+B25091_020+B25091_021+B25091_022,B25091_003+B25091_004+B25091_005+B25091_006+B25091_007+B25091_008+B25091_009+B25091_010+B25091_011+B25091_014+B25091_015+B25091_016+B25091_017+B25091_018+B25091_019+B25091_020+B25091_021+B25091_022,,,100,,,
+population_under18_share_acs,census_acs5,share,B01001_003+B01001_004+B01001_005+B01001_006+B01001_027+B01001_028+B01001_029+B01001_030,B01001_001,,,100,,,
+foreign_born_share_acs,census_acs5,share,B05002_013,B05002_001,,,100,,,
+moved_past_year_share_acs,census_acs5,share,B07003_007+B07003_010+B07003_013+B07003_016,B07003_001,,,100,,,
+limited_english_share_acs,census_acs5,share,C16001_005+C16001_008+C16001_011+C16001_014+C16001_017+C16001_020+C16001_023+C16001_026+C16001_029+C16001_032+C16001_035+C16001_038,C16001_001,,,100,,,
+veteran_share_acs,census_acs5,share,B21001_002,B21001_001,,,100,,,
+households_total_acs,census_acs5,count,B11001_001,,,,1,,,
+family_households_share_acs,census_acs5,share,B11001_002,B11001_001,,,100,,,
+married_couple_households_share_acs,census_acs5,share,B11001_003,B11001_001,,,100,,household_type,Married couples
+household_other_family_share_acs,census_acs5,share,B11001_004,B11001_001,,,100,,household_type,Other families
+living_alone_share_acs,census_acs5,share,B11001_008,B11001_001,,,100,,household_type,Living alone
+household_other_nonfamily_share_acs,census_acs5,share,B11001_009,B11001_001,,,100,,household_type,Other nonfamily households
+average_household_size_acs,census_acs5,ratio,B25008_001,B25003_001,B25010_001,,1,,,
+grandparent_responsible_households_acs,census_acs5,share,B10063_003,B10063_001,,,100,,,
+industry_agriculture_share_acs,census_acs5,share,C24030_003+C24030_030,C24030_001,,,100,,industry,"Agriculture, forestry, fishing and mining"
+industry_construction_share_acs,census_acs5,share,C24030_006+C24030_033,C24030_001,,,100,,industry,Construction
+industry_manufacturing_share_acs,census_acs5,share,C24030_007+C24030_034,C24030_001,,,100,,industry,Manufacturing
+industry_wholesale_share_acs,census_acs5,share,C24030_008+C24030_035,C24030_001,,,100,,industry,Wholesale trade
+industry_retail_share_acs,census_acs5,share,C24030_009+C24030_036,C24030_001,,,100,,industry,Retail trade
+industry_transportation_share_acs,census_acs5,share,C24030_010+C24030_037,C24030_001,,,100,,industry,"Transportation, warehousing and utilities"
+industry_information_share_acs,census_acs5,share,C24030_013+C24030_040,C24030_001,,,100,,industry,Information
+industry_finance_share_acs,census_acs5,share,C24030_014+C24030_041,C24030_001,,,100,,industry,"Finance, insurance and real estate"
+industry_professional_share_acs,census_acs5,share,C24030_017+C24030_044,C24030_001,,,100,,industry,"Professional, management and administrative services"
+industry_education_health_share_acs,census_acs5,share,C24030_021+C24030_048,C24030_001,,,100,,industry,"Education, health care and social assistance"
+industry_arts_food_share_acs,census_acs5,share,C24030_024+C24030_051,C24030_001,,,100,,industry,"Arts, entertainment, accommodation and food"
+industry_other_services_share_acs,census_acs5,share,C24030_027+C24030_054,C24030_001,,,100,,industry,Other services
+industry_public_admin_share_acs,census_acs5,share,C24030_028+C24030_055,C24030_001,,,100,,industry,Public administration
+occupation_management_share_acs,census_acs5,share,C24010_003+C24010_039,C24010_001,,,100,,occupation,"Management, business, science and arts"
+occupation_service_share_acs,census_acs5,share,C24010_019+C24010_055,C24010_001,,,100,,occupation,Service
+occupation_sales_office_share_acs,census_acs5,share,C24010_027+C24010_063,C24010_001,,,100,,occupation,Sales and office
+occupation_construction_share_acs,census_acs5,share,C24010_030+C24010_066,C24010_001,,,100,,occupation,"Natural resources, construction and maintenance"
+occupation_production_share_acs,census_acs5,share,C24010_034+C24010_070,C24010_001,,,100,,occupation,"Production, transportation and material moving"
+poverty_rate_saipe,census_saipe,share,SAEPOVALL,SAEPOVU_ALL,SAEPOVRTALL,,100,,,
+people_in_poverty_saipe,census_saipe,count,SAEPOVALL,,,,1,,,
+child_poverty_rate_saipe,census_saipe,share,SAEPOV0_17,SAEPOVU_0_17,SAEPOVRT0_17,,100,,,
+median_household_income_saipe,census_saipe,median,,,SAEMHI,,1,year,,
+uninsured_rate_under65_sahie,census_sahie,share,NUI,NIPR,PCTUI,,100,,,
+uninsured_rate_low_income_sahie,census_sahie,share,NUI_LOW,NIPR_LOW,PCTUI_LOW,,100,,,

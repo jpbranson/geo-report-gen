@@ -34,7 +34,7 @@ Key decisions
 
 ## Checklist
 
-Status as of 2026-09-28 18:20 (session 3; details in FLIGHT_LOG.md). `[x]` done and exercised by the
+Status as of 2026-09-28 19:20 (session 3; details in FLIGHT_LOG.md). `[x]` done and exercised by the
 sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
 
 - [x] Environment: renv library + `renv.lock`, Quarto discovery, `.env` for key/contact (never logged)
@@ -45,9 +45,11 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
 - [x] Statistics: counts, shares, ratios, medians from distributions, MOE propagation, significance tests
       incl. overlap + part-whole dependence, status codes, constant dollars (R-CPI-U-RS)
 - [x] Providers: ACS 5-yr (2009-2024), decennial 2000/2010/2020 (1990 is not in the API), PEP, 1900-1990
-      county counts, LAUS, BEA CAINC1, CPI, building permits, FHFA HPI, NDCP, CBP 624410, Texas HHSC
-- [x] Catalog: tables (17 subjects / 82 subtopics, 120 sources, 398 metrics, 48 operational), the
-      browsable page (`gr.R catalog --html`) with scope and gaps, live `gr.R verify` (13 of 13 ok)
+      county counts, LAUS, BEA CAINC1, CPI, building permits, FHFA HPI, NDCP, CBP 624410, Texas HHSC,
+      SAIPE, SAHIE
+- [x] Catalog: tables (17 subjects / 82 subtopics, 120 sources, 399 metrics, 137 operational), the
+      browsable page (`gr.R catalog --html`) with scope and gaps, live `gr.R verify` (15 of 15 ok;
+      424 ACS recipe x release checks, no gaps)
 - [x] Content: manifests, block library, 3 profiles, scoped text, templates, cited history events,
       stale-fact warnings, `gr.R new` (subject/metric selection)
 - [x] Authoring: inline harvest, bulk CSV export/import and conflict detection, covered by tests and
@@ -58,7 +60,7 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
       logs, build manifests; cold/warm/resumed benchmark and invalidation checks (README, docs/)
 - [x] Demos 1-11: sample reports, demos/round_trip.R (10/10), benchmark, README; PDF via Typst works
       (basic page layout, documented)
-- [x] Tests: 117 expectations pass offline with fixtures (`gr.R test`)
+- [x] Tests: 138 expectations pass offline with fixtures (`gr.R test`)
 - [x] Docs and lean review: README complete; dead code removed; R/blocks.R, R/geography.R and
       R/compose.R restructured, each with every report's output proven identical
 
@@ -89,3 +91,23 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
 - [x] Proof: 328 fingerprints (snapshot files byte-identical, values.json, qmd_base.json, report.qmd,
       every block) 0 differences; 213 geography probes (specs, names, parents, relations, unions,
       benchmarks, errors) identical except two intended changes; 117 tests; batch up to date
+
+## Step agreed with the user 2026-09-28 18:25: expand metric coverage (steps 1-2 done 19:20; checking back)
+
+Starting point: 48 of 398 cataloged metrics operational; health, food access, environment,
+industries, households, civic, public safety and public finance had none. Now 137 of 399.
+1. [x] ACS: 20 research-catalog rows that duplicated operational metrics or were views of them
+       merged away; 83 recipes (variable IDs from the API group metadata, labels reviewed in 2009,
+       2014, 2019 and 2024) for households and families, health insurance and disability, broadband
+       and computers, commute mode and vehicles, school enrollment and attainment, industry and
+       occupation of residents, earnings, income support, housing stock and cost burden, nativity,
+       language, mobility, veterans; 23 blocks placed in the three profiles. The catalog's
+       `history_start` now limits computed periods, so line numbers that meant something else in
+       older releases (occupation and veterans before 2006-2010, children's insurance before
+       2013-2017) are never read. Formatting for calendar years, coefficients and "x per y" units;
+       bar layout for compositions with many categories; legends wrap
+2. [x] SAIPE and SAHIE (R/providers/small_area.R): annual poverty, child poverty, median household
+       income (comparable from 2005) and uninsured rates under 65 (from 2008) for counties, states
+       and the nation; combined areas get values without a margin of error; 4 blocks
+3. [ ] Check back with the user before new external sources (CDC PLACES, USDA food environment,
+       FEMA National Risk Index, business patterns by sector, QCEW)

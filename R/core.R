@@ -120,7 +120,7 @@ read_table <- function(path) {
 write_table <- function(df, path) {
   dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
   tmp <- paste0(path, ".tmp-", Sys.getpid())
-  readr::write_excel_csv(df, tmp, na = "")
+  readr::write_excel_csv(df, tmp, na = "", quote = "needed")
   replace_file(tmp, path)
 }
 
@@ -156,12 +156,16 @@ write_json_file <- function(x, path) {
 # ---- Provider registry ------------------------------------------------------------
 
 # Data providers register themselves here (see R/providers/). A provider is a list with:
+#   name       source name for notes and the sources appendix
 #   fetch(variables, pieces, periods, options) -> long data: geo, period, period_start,
 #       period_end, variable, estimate, moe, status, bound, source_id
 #   geo_types  geography types the source publishes
 #   periods(settings, recipe) -> the periods available/selected for a metric
 #   period_label(period) -> display label (e.g. "2020-2024" for an ACS release)
-#   describe   source name and release notes for the sources appendix
+#   period_kind  "multiyear", "annual", "point" or "snapshot"
+#   optional: series (label of the series a value belongs to), availability_note (which
+#   geographies are published), combine_moe = FALSE (margins of error of several areas
+#   cannot be combined, as for model-based estimates)
 provider_registry <- new.env(parent = emptyenv())
 
 register_provider <- function(id, provider) {

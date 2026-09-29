@@ -349,7 +349,8 @@ figure_chunk <- function(r, b, track, th) {
     labels <- lapply(names(b$labels), function(m) track(field(paste0("label.", m))))
     opts <- c(opts, chunk_option("gr-labels", stats::setNames(labels, names(b$labels))))
   }
-  if (identical(r$kind, "map") || identical(r$kind, "locator")) {
+  # Maps and bar charts of many categories get the taller map height.
+  if (r$kind %in% c("map", "locator") || (identical(r$kind, "composition") && identical(r$viz, "bar"))) {
     opts <- c(opts, paste0("#| fig-height: ", th$map_height))
   }
   c("```{r}", opts, paste0("gr_block(gr, ", yaml_str(r$id), ")"), "```", "")

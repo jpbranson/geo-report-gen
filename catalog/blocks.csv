@@ -40,3 +40,30 @@ childcare-prices,childcare,metric,childcare_price_center_infant_ndcp,time+parent
 childcare-affordability,childcare,metric,childcare_price_infant_share_income_ndcp,time+parents,line,history_start=2008,Infant care price as a share of median family income
 childcare-establishments,childcare,metric,childcare_establishments_cbp,time,line,history_start=1998,Child day care establishments with employees (not slots)
 childcare-capacity,childcare,facts,childcare_capacity_tx;children_under5_acs,parents,table,,Licensed capacity (Texas) alongside children under 5
+people-characteristics,demographics,facts,foreign_born_share_acs;limited_english_share_acs;moved_past_year_share_acs;veteran_share_acs;population_under18_share_acs;age_65plus_share_acs,parents,table,,Selected characteristics of residents against benchmarks
+household-types,households_families,composition,group:household_type,time,stacked_bar,,Household types over non-overlapping ACS periods
+household-size,households_families,metric,average_household_size_acs,time+parents,line,,Average household size
+health-insurance,health,metric,uninsured_rate_acs,time+parents,line,,Residents without health insurance (the ACS asks about coverage from 2008)
+uninsured-children,health,metric,uninsured_rate_children_acs,time+parents,line,,Children under 19 without health insurance
+disability,health,metric,disability_rate_acs,time+parents,line,,Residents with a disability (questions revised in 2008)
+health-coverage,health,facts,uninsured_rate_acs;uninsured_rate_children_acs;medicaid_means_tested_coverage_acs;disability_rate_acs;disability_uninsured_19_64_acs,parents,table,,Health insurance coverage and disability against benchmarks
+commute-mode,transportation,composition,group:commute_mode,time,stacked_bar,,How workers get to work over non-overlapping ACS periods
+getting-around,transportation,facts,mean_commute_minutes_acs;commute_60plus_min_share_acs;households_no_vehicle_share_acs;renter_households_no_vehicle_share_acs;vehicles_per_household_acs,parents,table,,Commute times and vehicle availability against benchmarks
+internet-access,broadband,facts,broadband_households_share_acs;households_fixed_broadband_share_acs;households_cellular_data_only_share_acs;households_without_internet_subscription_share_acs;households_no_computer_share_acs;households_smartphone_only_share_acs,parents,table,,Internet subscriptions and computers (latest period; short history)
+industry-mix,industries_business,composition,group:industry,parents,bar,,"Industries of employed residents (where residents work, not jobs located in the area)"
+occupation-mix,employment_labor,composition,group:occupation,parents,stacked_bar,,Occupations of employed residents against benchmarks
+earnings,employment_labor,metric,median_earnings_acs,time+parents,line,,Median earnings of workers in constant dollars
+employment-ratio,employment_labor,metric,employment_population_ratio_acs,time+parents,line,,Employment-population ratio
+inequality,income_poverty_hardship,metric,gini_index_acs,parents,dot,,Gini index of household income inequality
+economic-security,income_poverty_hardship,facts,below_200pct_poverty_share_acs;snap_households_share_acs;snap_receipt_among_poverty_households_acs;public_assistance_income_households_acs;ssi_households_acs,parents,table,,Low income and income support against benchmarks
+housing-stock,housing,facts,single_family_detached_share_acs;multifamily_5plus_share_acs;median_year_built_acs;rental_vacancy_rate_acs;homeowner_vacancy_rate_acs;seasonal_vacant_share_acs,parents,table,,Housing stock and vacancy against benchmarks
+owner-burden,housing,metric,owner_cost_burden_30plus_acs,time+parents,line,,Homeowners paying 30% or more of income on housing costs
+rent-distribution,housing,distribution,median_gross_rent_acs,distribution,bar,,Gross rent distribution (study area vs widest containing benchmark)
+children-ages,children_early_childhood,facts,children_under3_acs;children_age3_4_acs;children_under18_acs;children_under6_all_parents_lf_count_acs,parents,table,,Children by age and children under 6 whose parents all work
+child-poverty-young,children_early_childhood,metric,child_poverty_rate_under6_acs,time+parents,line,,Poverty rate for children under 6
+preschool-enrollment,children_early_childhood,metric,preschool_enrollment_rate_age3_4_acs,time+parents,line,,Children aged 3 and 4 enrolled in school (not a measure of child care)
+school-age-working-parents,childcare,metric,children_6_17_all_parents_lf_share_acs,parents,dot,,Children 6 to 17 whose parents all work (potential need for care outside school hours)
+poverty-annual,income_poverty_hardship,metric,poverty_rate_saipe,time+parents,line,,"Poverty rate each year since 2005 (model-based estimates for counties, states and the nation)"
+child-poverty-annual,children_early_childhood,metric,child_poverty_rate_saipe,time+parents,line,,"Child poverty rate each year since 2005 (model-based estimates for counties, states and the nation)"
+income-annual,income_poverty_hardship,metric,median_household_income_saipe,time+parents,line,,Median household income each year since 2005 in constant dollars (model-based estimates)
+uninsured-annual,health,metric,uninsured_rate_under65_sahie,time+parents,line,,"Uninsured rate under 65 each year since 2008 (model-based estimates for counties, states and the nation)"

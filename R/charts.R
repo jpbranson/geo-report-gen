@@ -148,6 +148,7 @@ render_block_composition <- function(b, txt, th) {
   d$row <- if (by_entity) d$label else d$period_label
   row_levels <- if (by_entity) rev(unique(d$label)) else rev(unique(d$period_label[order(d$period_end)]))
   d$row <- factor(d$row, levels = row_levels)
+  if (identical(b$viz, "bar")) return(composition_bars(d, txt, th, by_entity))
   cols <- category_colors(th, shown_cats)
   fam <- chart_font(th)
   # Categories run left to right in catalog order (first category at the left), the same
@@ -157,10 +158,33 @@ render_block_composition <- function(b, txt, th) {
     geom_col(width = 0.65, color = th$color_background, linewidth = 0.3, position = position_stack(reverse = TRUE)) +
     geom_text(aes(label = shown), position = position_stack(vjust = 0.5, reverse = TRUE),
               size = 2.8, color = "white", family = fam) +
-    scale_fill_manual(values = cols, name = txt$legend_title) +
+    scale_fill_manual(values = cols, name = txt$legend_title, labels = wrap_label) +
     scale_x_continuous(labels = function(x) paste0(x, "%"), expand = expansion(mult = c(0, 0.01))) +
     labs(x = txt$y_label, y = NULL) +
-    guides(fill = guide_legend(ncol = if (max(nchar(shown_cats)) > 18) 2 else 3, byrow = TRUE)) +
+    guides(fill = legend_columns(shown_cats)) +
+    gr_ggtheme(th) + theme(panel.grid.major.y = element_blank())
+}
+
+# Legend entries wrap after about 28 characters, so two columns always fit the plot width.
+wrap_label <- function(x) vapply(x, function(s) paste(strwrap(s, 28), collapse = "\n"), "", USE.NAMES = FALSE)
+legend_columns <- function(labels) guide_legend(ncol = if (max(nchar(labels)) > 18) 2 else 3, byrow = TRUE)
+
+# Compositions with more categories than the palette has colors (viz = "bar"): one bar per
+# category for each area (or period), colored as the areas are in other charts; categories
+# keep catalog order from the top.
+composition_bars <- function(d, txt, th, by_entity) {
+  groups <- rev(levels(d$row))
+  cols <- if (by_entity) {
+    ids <- d$entity_id[match(groups, as.character(d$row))]
+    entity_colors(th, groups, ifelse(grepl("^bm", ids), "benchmark", "study"))
+  } else stats::setNames(grDevices::colorRampPalette(c(th$color_muted, th$color_accent))(length(groups)), groups)
+  d$category <- factor(d$category, levels = rev(levels(d$category)))
+  ggplot(d, aes(x = value, y = category, fill = row)) +
+    geom_col(position = position_dodge2(padding = 0.15), width = 0.8) +
+    scale_fill_manual(values = cols, breaks = groups, name = txt$legend_title, labels = wrap_label) +
+    scale_x_continuous(labels = function(x) paste0(x, "%"), expand = expansion(mult = c(0, 0.05))) +
+    labs(x = txt$y_label, y = NULL) +
+    guides(fill = legend_columns(groups)) +
     gr_ggtheme(th) + theme(panel.grid.major.y = element_blank())
 }
 

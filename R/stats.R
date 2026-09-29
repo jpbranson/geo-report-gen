@@ -90,11 +90,15 @@ median_from_bins <- function(counts, lower, upper) {
 # "$200,000 or more", "Built 1939 or earlier" into numeric [lower, upper) bounds.
 parse_bin_label <- function(label) {
   last <- sub("^.*!!", "", label)
-  nums <- as.numeric(gsub(",", "", regmatches(last, gregexpr("[0-9][0-9,]*(\\.[0-9]+)?", last))[[1]]))
+  raw <- regmatches(last, gregexpr("[0-9][0-9,]*(\\.[0-9]+)?", last))[[1]]
+  nums <- as.numeric(gsub(",", "", raw))
+  # A bin ends where the next one starts, one unit of the label's precision above its last
+  # value: "$14,999" -> 15,000; "14.9 percent" -> 15.0.
+  next_value <- function(i) nums[i] + 10^-nchar(sub("^[^.]*\\.?", "", raw[i]))
   if (grepl("less than|under", last, ignore.case = TRUE) && length(nums) >= 1) return(c(0, nums[1]))
   if (grepl("or more|and over|or later|\\+", last, ignore.case = TRUE) && length(nums) >= 1) return(c(nums[1], Inf))
-  if (grepl("or earlier|and under", last, ignore.case = TRUE) && length(nums) >= 1) return(c(-Inf, nums[1] + 1))
-  if (grepl(" to | - ", last) && length(nums) >= 2) return(c(nums[1], nums[2] + 1))
+  if (grepl("or earlier|and under", last, ignore.case = TRUE) && length(nums) >= 1) return(c(-Inf, next_value(1)))
+  if (grepl(" to | - ", last) && length(nums) >= 2) return(c(nums[1], next_value(2)))
   c(NA_real_, NA_real_)
 }
 

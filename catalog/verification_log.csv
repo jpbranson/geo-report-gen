@@ -1,15 +1,31 @@
-﻿"date","source_id","result","evidence"
-"2026-09-28 16:46","census_acs5","ok","2020-2024 ACS U.S. population: 334,922,499"
-"2026-09-28 16:46","census_dec","ok","2020 Census U.S. population: 331,449,281"
-"2026-09-28 16:46","census_cbp","ok","2023 U.S. child day care establishments: 82,162"
-"2026-09-28 16:46","tx_hhsc","ok","Texas HHSC operations records: 14976"
-"2026-09-28 16:46","census_pep","ok","HTTP 200, 53555 bytes: NST-EST2025-ALLDATA.csv"
-"2026-09-28 16:46","census_hist","ok","HTTP 200, 20 bytes: cencounts.csv"
-"2026-09-28 16:46","bea_cainc","ok","HTTP 200, 3467441 bytes: CAINC1.zip"
-"2026-09-28 16:46","fhfa_hpi","ok","HTTP 200, 5334194 bytes: hpi_at_county.xlsx"
-"2026-09-28 16:46","census_bps","ok","HTTP 200, ? bytes: co2025a.txt"
-"2026-09-28 16:46","dol_ndcp","ok","HTTP 200, 91691849 bytes: NDCP2022.xlsx"
-"2026-09-28 16:46","census_geo","ok","HTTP 200, 11626066 bytes: cb_2024_us_county_500k.zip"
-"2026-09-28 16:46","bls_laus","ok","HTTP 200, 439599 bytes: la.area"
-"2026-09-28 16:46","bls_r_cpi_u_rs","ok","HTTP 200, 13916 bytes: r-cpi-u-rs-allitems.xlsx"
-"2026-09-28 16:46","census_acs5_recipes","checked","132 recipe x release checks; releases lacking a recipe's variables: child_poverty_rate_acs 2009, labor_force_participation_acs 2009, unemployment_rate_acs 2009, bachelors_plus_share_acs 2009, mean_commute_minutes_acs 2009, broadband_households_share_acs 2009, broadband_households_share_acs 2014"
+﻿date,source_id,result,evidence
+2026-09-28 16:46,census_acs5,ok,"2020-2024 ACS U.S. population: 334,922,499"
+2026-09-28 16:46,census_dec,ok,"2020 Census U.S. population: 331,449,281"
+2026-09-28 16:46,census_cbp,ok,"2023 U.S. child day care establishments: 82,162"
+2026-09-28 16:46,tx_hhsc,ok,Texas HHSC operations records: 14976
+2026-09-28 16:46,census_pep,ok,"HTTP 200, 53555 bytes: NST-EST2025-ALLDATA.csv"
+2026-09-28 16:46,census_hist,ok,"HTTP 200, 20 bytes: cencounts.csv"
+2026-09-28 16:46,bea_cainc,ok,"HTTP 200, 3467441 bytes: CAINC1.zip"
+2026-09-28 16:46,fhfa_hpi,ok,"HTTP 200, 5334194 bytes: hpi_at_county.xlsx"
+2026-09-28 16:46,census_bps,ok,"HTTP 200, ? bytes: co2025a.txt"
+2026-09-28 16:46,dol_ndcp,ok,"HTTP 200, 91691849 bytes: NDCP2022.xlsx"
+2026-09-28 16:46,census_geo,ok,"HTTP 200, 11626066 bytes: cb_2024_us_county_500k.zip"
+2026-09-28 16:46,bls_laus,ok,"HTTP 200, 439599 bytes: la.area"
+2026-09-28 16:46,bls_r_cpi_u_rs,ok,"HTTP 200, 13916 bytes: r-cpi-u-rs-allitems.xlsx"
+2026-09-28 16:46,census_acs5_recipes,checked,"132 recipe x release checks; releases lacking a recipe's variables: child_poverty_rate_acs 2009, labor_force_participation_acs 2009, unemployment_rate_acs 2009, bachelors_plus_share_acs 2009, mean_commute_minutes_acs 2009, broadband_households_share_acs 2009, broadband_households_share_acs 2014"
+2026-09-28 19:12,census_acs5,ok,"2020-2024 ACS U.S. population: 334,922,499"
+2026-09-28 19:12,census_dec,ok,"2020 Census U.S. population: 331,449,281"
+2026-09-28 19:12,census_cbp,ok,"2023 U.S. child day care establishments: 82,162"
+2026-09-28 19:12,census_saipe,ok,2024 SAIPE U.S. poverty rate: 12.1
+2026-09-28 19:12,census_sahie,ok,2024 SAHIE U.S. uninsured rate under 65: 9.8
+2026-09-28 19:12,tx_hhsc,ok,Texas HHSC operations records: 14976
+2026-09-28 19:12,census_pep,ok,reachable (HTTP 200): NST-EST2025-ALLDATA.csv
+2026-09-28 19:12,census_hist,ok,reachable (HTTP 200): cencounts.csv
+2026-09-28 19:12,bea_cainc,ok,reachable (HTTP 200): CAINC1.zip
+2026-09-28 19:12,fhfa_hpi,ok,reachable (HTTP 200): hpi_at_county.xlsx
+2026-09-28 19:12,census_bps,ok,reachable (HTTP 200): co2025a.txt
+2026-09-28 19:12,dol_ndcp,ok,reachable (HTTP 200): NDCP2022.xlsx
+2026-09-28 19:12,census_geo,ok,reachable (HTTP 200): cb_2024_us_county_500k.zip
+2026-09-28 19:12,bls_laus,ok,reachable (HTTP 200): la.area
+2026-09-28 19:12,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
+2026-09-28 19:12,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none

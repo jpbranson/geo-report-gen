@@ -146,10 +146,16 @@ absent_note <- function(absent) {
          " (boundary change or table not published in this release)")
 }
 
-# Periods a metric uses in a report (provider policy, then optional block override).
+# Periods a metric uses in a report: the provider's periods that begin at or after the first
+# year of comparable data (catalog `history_start`, e.g. "2008-2012" or "1990"), then an
+# optional block override. Earlier periods are never computed, so a table whose line numbers
+# meant something else in older releases cannot be misread.
 metric_periods <- function(recipe, settings, override = NULL) {
   prov <- get_provider(recipe$source_id)
   periods <- prov$periods(settings, recipe)
+  history_start <- metric_doc(recipe$metric_id)$history_start
+  first <- regmatches(history_start, regexpr("[0-9]{4}", history_start))
+  if (length(first)) periods <- periods[period_bounds(recipe$source_id, periods)$start >= as.integer(first)]
   if (!is.null(override) && length(override)) periods <- intersect(periods, override)
   periods
 }
@@ -181,6 +187,12 @@ compute_metric <- function(metric_id, entities, settings, periods = NULL, consta
       do.call(rbind, lapply(periods, function(p) {
         d <- data[data$period == as.character(p), , drop = FALSE]
         a <- aggregate_entity(recipe, d, pieces$key, p)
+        # Model-based sources (SAIPE, SAHIE) give no way to combine the margins of error of
+        # several areas, whose model errors are correlated: a combined area gets no MOE.
+        if (nrow(pieces) > 1 && isFALSE(prov$combine_moe) && !is.na(a$moe)) {
+          a$moe <- NA_real_
+          a$method <- paste0(a$method, "; margin of error not computed (the source's model errors cannot be combined)")
+        }
         # The series a value belongs to (e.g. an estimates vintage); charts never join
         # points from different series.
         series <- if ("series" %in% names(d) && nrow(d)) d$series[1] else prov$series %||% prov$name

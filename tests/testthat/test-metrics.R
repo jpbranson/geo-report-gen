@@ -69,6 +69,28 @@ test_that("ACS special values become statuses, never numbers", {
   expect_equal(d$bound[4], "lower")
 })
 
+test_that("periods before a metric's first comparable period are never computed", {
+  st <- resolve_settings()
+  # 5-year releases every 5 years back to 2009, from the first period starting in or after history_start
+  expect_equal(metric_periods(recipe_for("pop_total_acs"), st), c(2009L, 2014L, 2019L, 2024L))
+  expect_equal(metric_periods(recipe_for("veteran_share_acs"), st), c(2014L, 2019L, 2024L))           # 2006-2010
+  expect_equal(metric_periods(recipe_for("uninsured_rate_children_acs"), st), c(2019L, 2024L))        # 2013-2017
+  expect_equal(metric_periods(recipe_for("unemployment_rate_laus"), st), 1990:2025)                   # annual, 1990
+})
+
+test_that("model-based estimates keep a single area's margin of error; combined areas get none", {
+  counties <- function(geoids) data.frame(key = paste0("county:", geoids), type = "county", geoid = geoids,
+                                          name = "", pop = NA_real_)
+  kent <- entity("kent", "study", "Kent County", counties("10001"))
+  both <- entity("both", "study", "Kent and New Castle", counties(c("10001", "10003")))
+  r <- compute_metric("poverty_rate_saipe", list(kent, both), resolve_settings(), periods = 2024L)
+  expect_equal(r$value[r$entity_id == "kent"], 10.2)                               # published rate
+  expect_equal(r$moe[r$entity_id == "kent"], 2.1)
+  expect_equal(r$value[r$entity_id == "both"], 100 * (19147 + 58815) / (187036 + 572439))  # from summed counts
+  expect_true(is.na(r$moe[r$entity_id == "both"]))
+  expect_match(r$method[r$entity_id == "both"], "cannot be combined")
+})
+
 test_that("ACS tables come back in the provider's long form", {
   d <- acs_table(2024, "B01003", "state")
   expect_true(all(c("geo", "name", "variable", "estimate", "moe", "status") %in% names(d)))

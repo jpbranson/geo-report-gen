@@ -153,7 +153,9 @@ above it. Moving a row moves the block; numbering and the table of contents foll
 - **Change or add a metric:** add its documentation row to `catalog/metrics.csv` and its recipe
   to `catalog/recipes.csv` (source, statistic type, numerator/denominator variables or a
   published variable, distribution table for medians). Use it in a block (`catalog/blocks.csv`)
-  or directly as a manifest row of type `metric`.
+  or directly as a manifest row of type `metric`. The row's `history_start` is the first
+  comparable period (e.g. `2008-2012`); earlier periods are never computed, so check the ACS
+  table's line labels in older releases before moving it back. `breaks` is shown to readers.
 - **Change text:** edit the report inline or `content/text.csv` (see above).
 - **Change the look:** edit `config/themes.csv` (fonts, colors, sizes, number formats, print), or
   add a theme and select it with the `theme` setting. Themes never change a statistic.
@@ -223,8 +225,14 @@ per Quarto render, so rendering is the main cost whenever many reports change.
 
 ## Limitations
 
-- Operational adapters cover 48 of the 398 cataloged metrics; the rest are documented only.
+- 137 of the 399 cataloged metrics are operational (ACS detailed tables, decennial census,
+  population estimates, SAIPE, SAHIE, BEA, BLS, FHFA, building permits, child care prices and
+  businesses, Texas licensing); the rest are documented only. Environment and climate hazards,
+  public safety, civic participation and local public finance have no operational metric yet.
 - City histories start in 2000: the Census API has no earlier census tables for places.
 - Medians of combined areas have no margin of error (the Census Bureau publishes no method).
+- SAIPE and SAHIE (annual poverty, income and health insurance estimates) cover counties, states
+  and the nation, so city reports show county context; combined areas get a value without a
+  margin of error, because the model errors of different counties cannot be combined.
 - Licensed child care capacity is implemented for Texas only; it is a current snapshot.
 - Custom polygons and area-weighted allocation are not supported.

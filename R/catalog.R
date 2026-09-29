@@ -73,9 +73,10 @@ validate_catalog <- function() {
   problems
 }
 
-# Check that every ACS variable used by a recipe exists in each release used (live check,
-# recorded as evidence in the verification log). Returns one row per recipe x release.
-verify_acs_recipes <- function(releases) {
+# Check that every ACS variable used by a recipe exists in each release the recipe uses (its
+# periods from the metric's history_start on; live check, recorded as evidence in the
+# verification log). Returns one row per recipe x release.
+verify_acs_recipes <- function(settings) {
   rec <- recipes()
   rec <- rec[rec$source_id == "census_acs5", , drop = FALSE]
   out <- list()
@@ -83,7 +84,7 @@ verify_acs_recipes <- function(releases) {
     r <- as.list(rec[i, ])
     vars <- unique(c(recipe_vars(r$numerator), recipe_vars(r$denominator), if (!is_blank(r$published_var)) r$published_var))
     tables <- unique(sub("_.*$", "", vars))
-    for (rel in releases) {
+    for (rel in metric_periods(r, settings)) {
       known <- unlist(lapply(tables, function(t) acs_variables(rel, t)$variable))
       missing <- setdiff(vars, known)
       bins_ok <- if (is_blank(r$bins_table)) NA else nrow(acs_bins(r$bins_table, rel)) > 0
@@ -151,6 +152,11 @@ verify_sources <- function() {
     census_acs5 = census_check("2024/acs/acs5", list(get = "NAME,B01003_001E", `for` = "us:1"), "2020-2024 ACS U.S. population", "B01003_001E"),
     census_dec = census_check("2020/dec/dhc", list(get = "NAME,P1_001N", `for` = "us:1"), "2020 Census U.S. population", "P1_001N"),
     census_cbp = census_check("2023/cbp", list(get = "ESTAB", `for` = "us:*", NAICS2017 = "624410"), "2023 U.S. child day care establishments", "ESTAB"),
+    census_saipe = census_check("timeseries/poverty/saipe", list(get = "NAME,SAEPOVRTALL_PT", `for` = "us:*", time = "2024"),
+                                "2024 SAIPE U.S. poverty rate", "SAEPOVRTALL_PT"),
+    census_sahie = census_check("timeseries/healthins/sahie",
+                                list(get = "NAME,PCTUI_PT", `for` = "us:*", time = "2024", AGECAT = "0", IPRCAT = "0",
+                                     SEXCAT = "0", RACECAT = "0"), "2024 SAHIE U.S. uninsured rate under 65", "PCTUI_PT"),
     tx_hhsc = function() {
       resp <- http_perform(http_request("https://data.texas.gov/resource/bc5r-88dy.json", "tx_hhsc", query = list(`$select` = "count(*) as n")))
       check_status(resp, "Texas HHSC")
@@ -172,9 +178,9 @@ verify_sources <- function() {
     data.frame(date = format(Sys.time(), "%Y-%m-%d %H:%M"), source_id = id, result = ev$result,
                evidence = ev$evidence, stringsAsFactors = FALSE)
   })
-  # Every ACS variable a recipe uses exists in each release used for trends (from the variable
-  # lists the API publishes per release). Releases before a table existed show up as expected gaps.
-  acs <- verify_acs_recipes(acs_releases(resolve_settings()))
+  # Every ACS variable a recipe uses exists in each release the recipe uses (from the variable
+  # lists the API publishes per release); any gap is a recipe to fix.
+  acs <- verify_acs_recipes(resolve_settings())
   gaps <- acs[nzchar(acs$variables_missing), , drop = FALSE]
   rows[[length(rows) + 1]] <- data.frame(
     date = format(Sys.time(), "%Y-%m-%d %H:%M"), source_id = "census_acs5_recipes", result = "checked",

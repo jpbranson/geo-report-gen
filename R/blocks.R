@@ -293,14 +293,15 @@ metric_values <- function(res, metric_id, ctx, settings, focus = ctx$study) {
   v$moe_phrase <- if (!is.na(last$moe) && last$moe > 0) phrase(ctx, "moe", list(latest_moe = v$latest_moe)) else ""
   v$reliability_phrase <- if (identical(last$reliability, "unreliable")) phrase(ctx, "unreliable", list()) else ""
   v$summary_sentence <- phrase(ctx, "summary", v)
-  # Survey estimates are called higher or lower only after a significance test; one without a
-  # margin of error (e.g. a median interpolated for a combined area) is described as untested.
-  # Census counts, administrative and model-based series have no sampling error to test.
-  survey <- doc$uncertainty %in% c("acs_moe", "survey_se")
+  # Survey estimates and model-based estimates with published intervals (SAIPE, SAHIE) are called
+  # higher or lower only after a significance test; one without a margin of error (e.g. a median
+  # interpolated for a combined area) is described as untested. Census counts and administrative
+  # series have no sampling error to test.
+  survey <- doc$uncertainty %in% c("acs_moe", "survey_se", "model_interval")
   is_count <- recipe_for(metric_id)$stat_type == "count"
   if (nrow(same) > 1) {
     series_note <- if (nrow(same) < nrow(mine)) phrase(ctx, "within_series", list(series = last$series)) else ""
-    nominal <- units == "dollars" && all(is.na(res$dollar_year))
+    nominal <- unit_kind(units) == "dollars" && all(is.na(res$dollar_year))
     v <- change_values(v, ctx, mine, first, last, units, survey, is_count, nominal, series_note)
   }
   bms <- Filter(function(e) e$role == "benchmark" && e$id != focus$id && any(res$entity_id == e$id), ctx$entities)
@@ -461,12 +462,12 @@ compare_values <- function(res, metric_id, ctx, settings) {
 lower_first <- function(x) paste0(tolower(substr(x, 1, 1)), substr(x, 2, nchar(x)))
 
 units_label <- function(doc, res, label = doc$label) {
-  u <- doc$units
-  if (u == "dollars") {
+  kind <- unit_kind(doc$units)
+  if (kind == "dollars") {
     yr <- stats::na.omit(res$dollar_year)[1]
     return(if (!is.na(yr)) paste0(label, " (", yr, " dollars)") else paste0(label, " (nominal dollars)"))
   }
-  if (u == "percent") return(paste0(label, " (%)"))
+  if (kind == "percent") return(paste0(label, " (%)"))
   label
 }
 
