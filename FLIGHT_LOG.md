@@ -74,7 +74,7 @@ Read this file, `PLAN.md` (checklist) and `docs/REQUIREMENTS.md` (the full brief
   ("reports", node static server in scratchpad serve.js, port 8765).
 - Key design facts learned: Quarto converts labeled figures to crossref nodes before user filters,
   so fig-cap/fig-alt placeholders are filled by knitr opts_hooks (runtime.R); prose/headings via Lua.
-- OPEN QUESTION to user: may BLS contact email (GR_HTTP_CONTACT) be jpbranson@gmail.com? Until
+- OPEN QUESTION to user: may the user's email be the BLS contact (GR_HTTP_CONTACT)? Until
   answered, CPI (constant dollars) and LAUS are unavailable (reports degrade gracefully).
 - Next: Austin/unions/compare builds; batch runner; custom module; catalog merge + HTML page;
   verify command; tests; README; demos (inline/bulk edit round trip, theme change); benchmarks.
