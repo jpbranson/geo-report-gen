@@ -1,0 +1,17 @@
+# Run any gr.R command in the container, from the project root:
+#   docker compose run --rm gr build gary-in
+#   docker compose run --rm --service-ports gr preview gary-in   (then open http://localhost:4848)
+# The first run builds the image. The checkout is mounted at /app, so .env, config, content,
+# cache/ and reports/ are the host's own files.
+services:
+  gr:
+    build: .
+    image: geo-report-gen
+    volumes:
+      - .:/app
+    ports:
+      - "4848:4848"
+    environment:
+      # Local time, as on the host: cache times and "retrieved on" dates in reports use it.
+      # Set TZ in the shell to override.
+      TZ: ${TZ:-America/Chicago}

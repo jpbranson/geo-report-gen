@@ -220,3 +220,10 @@ Reports may keep growing (the user edits down), so every new block goes into the
 3. [ ] Long-run sentences in chart text: add a sentence on the change since the earliest census
        year to charts that mix census years and ACS periods (e.g. "Since 1979, median household
        income fell from $70,000 to $38,000"), since the text now describes only the ACS years.
+
+## Step agreed with the user 2026-09-29 09:00: Docker image for an Apple Silicon Mac (done 09:40)
+
+1. [x] Dockerfile, .dockerignore and compose.yaml (checkout mounted at /app; local time zone;
+       preview on port 4848); README section "Docker"
+2. [x] Verified on amd64 and arm64: tests, byte-identical report values and text, PDF, preview
+3. [x] Portable folder (arm64 image, cache and reports, setup steps); Docker files pushed to GitHub

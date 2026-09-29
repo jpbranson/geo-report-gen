@@ -1,0 +1,7 @@
+# The image needs only the renv files; the checkout is mounted at run time. Listing what to
+# include (rather than exclude) keeps the cache, reports and keys out of the image.
+*
+!renv.lock
+!.Rprofile
+!renv/activate.R
+!renv/settings.json

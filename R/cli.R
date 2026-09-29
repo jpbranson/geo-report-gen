@@ -91,5 +91,10 @@ preview_report <- function(report_id) {
   qmd <- file.path(report_dir(report_id), "report.qmd")
   if (!file.exists(qmd)) stop("Build the report first: Rscript gr.R build ", report_id, call. = FALSE)
   note("Previewing ", qmd, " (edit the file; the browser refreshes). Stop with Ctrl+C, then rebuild to save edits.")
-  processx::run(quarto_bin(), c("preview", qmd), env = quarto_env(), echo = TRUE, error_on_status = FALSE)
+  # In the container (GR_PREVIEW_PORT is set by the Dockerfile) Quarto must listen on all
+  # interfaces at the port compose.yaml publishes; the host's browser opens it.
+  port <- Sys.getenv("GR_PREVIEW_PORT")
+  if (nzchar(port)) note("Open http://localhost:", port, " in your browser.")
+  args <- c("preview", qmd, if (nzchar(port)) c("--host", "0.0.0.0", "--port", port, "--no-browser"))
+  processx::run(quarto_bin(), args, env = quarto_env(), echo = TRUE, error_on_status = FALSE)
 }

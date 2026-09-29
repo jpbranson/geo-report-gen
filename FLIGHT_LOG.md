@@ -17,6 +17,8 @@ Read this file, `PLAN.md` (checklist) and `docs/REQUIREMENTS.md` (the full brief
 5. Git: first commit 85db1c0 (2026-09-28). Commit at milestones; reports/, cache/, .env are ignored.
 6. Visual review: `.claude/launch.json` "reports" serves the repo on port 8765 (node script in the
    session scratchpad; recreate if missing). Figures can be extracted from report.html (base64 PNGs).
+7. Docker (any machine with Docker Desktop): `docker compose run --rm gr <command>` from the project
+   root; see README "Docker". Used on the user's second workstation, an Apple Silicon Mac.
 
 ## Standing facts (verified 2026-09-28)
 
@@ -424,3 +426,24 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   lack 1971, 1973, 1976; pseudo-states 98/99 (international operations, ships at sea) ignored.
   Payroll per employee starts 1978 (R-CPI-U-RS). Lake County IN jobs 178,111 (1970), peak
   201,847 (1979), 146,469 (1986). Tests 226; verify 23 of 23; round trip 10/10; batch clean.
+
+## 2026-09-29 09:40 (session 4): Docker image for a second workstation
+
+- The user asked for a Docker image to run the project on an Apple Silicon Mac later today, with
+  the code through GitHub and the image and data in a portable folder.
+- Dockerfile: rocker/r-ver:4.6.1 (Ubuntu 24.04); GDAL, GEOS, PROJ, udunits, abseil (s2), libuv
+  (fs) and font libraries; Noto Sans; Quarto 1.9.38; renv.lock restored as Posit Package Manager
+  binaries (amd64 and arm64, nothing compiled) into /opt/renv/library, outside the checkout. The
+  image is the toolchain only: compose.yaml mounts the checkout at /app, so .env, cache/ and
+  reports/ are the host's files. .dockerignore lists only the renv files, so keys and the cache
+  never enter the image. compose.yaml sets TZ (default America/Chicago): cache times and
+  "retrieved on" dates use local time, and a bare container is UTC. gr.R preview listens on
+  0.0.0.0:4848 when GR_PREVIEW_PORT is set (the image sets it).
+- Checks, on a copy of the checkout: tests 226 pass on amd64 and on arm64 (emulated); gary-in and
+  lake-in values.json and report.qmd byte-identical to the Windows build, 0 requests and 0 cache
+  misses (a Windows cache works unchanged); PDF via Typst; preview serves and re-renders after a
+  host-side edit; verify 22 of 23. FEMA answers 403 to Linux clients (and to curl on Windows,
+  while R on Windows gets 200), so in Docker the NRI zip must already be in the cache. Compose is
+  about 1.5x slower than native on Windows (bind-mount reads); rendering is not.
+- Multi-platform image geo-report-gen:latest (amd64 871 MB, arm64 846 MB). Portable folder
+  C:\Developer\geo-report-gen-portable: arm64 image tar, cache + reports tar, MAC-SETUP.md.

@@ -30,6 +30,28 @@ The output of every report is an editable Quarto document (`report.qmd`) and its
 4. Run commands from the project root. On Windows, call the R 4.6 `Rscript.exe` explicitly if
    another R version is first on the PATH.
 
+### Docker (instead of steps 1, 2 and 4)
+
+With Docker Desktop, the only other setup is `.env` (step 3). From the project root:
+
+```
+docker compose run --rm gr build gary-in
+docker compose run --rm --service-ports gr preview gary-in    # then open http://localhost:4848
+```
+
+`compose.yaml` runs `Rscript gr.R <command>` in the image built from `Dockerfile` (R 4.6.1,
+the packages in `renv.lock`, Quarto 1.9.38 and the system libraries), which the first run builds
+in a few minutes on Intel/AMD machines or Apple Silicon. The checkout is mounted at `/app`, so
+`.env`, the configuration, `cache/` and `reports/` are the host's own files; a cache made on
+Windows works unchanged. Values and `report.qmd` are identical to a Windows build. Differences:
+
+- Charts use Noto Sans, since the default theme's Segoe UI is a Windows font.
+- FEMA's server refuses downloads from Linux clients (HTTP 403), so the National Risk Index
+  file must already be in `cache/raw/fema_nri/` (copy it from a Windows build).
+- Times and dates (cache times, "retrieved on") use `TZ` from `compose.yaml`: Central time
+  unless `TZ` is set in the shell.
+- After `renv.lock` changes, rebuild the image with `docker compose build`.
+
 ## Commands
 
 Everything runs through one entry point, `Rscript gr.R <command>`:
