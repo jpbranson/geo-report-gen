@@ -310,3 +310,10 @@ so work can resume after an interruption.
        allow non-profit use (commercial use needs written consent)
 6. [ ] Verify (tests, gr.R verify, demos/round_trip.R, batch) after each source; check back with
        the user after all five
+
+## Step agreed with the user 2026-09-29 17:49: data bundle command (done 17:55)
+
+1. [x] tools/bundle-data.sh (Mac/Linux) and tools/bundle-data.cmd + .ps1 (Windows) write
+       <Downloads>/geo-report-data-<date>-<commit>.tar (cache/ and reports/, never .env) and a
+       .sha256; tested on the Mac (4.0 GB, extraction identical); README "Moving the data to
+       another machine". Windows script reviewed, not run (no PowerShell on the Mac)

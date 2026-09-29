@@ -1,3 +1,5 @@
 # LF line endings everywhere: text edits are detected by hashing file content, so a checkout
 # must not change line endings.
 * text=auto eol=lf
+# Windows batch files need CRLF (cmd.exe); they are not hashed as code.
+*.cmd text eol=crlf

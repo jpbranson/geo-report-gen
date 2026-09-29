@@ -52,6 +52,25 @@ Windows works unchanged. Values and `report.qmd` are identical to a Windows buil
   unless `TZ` is set in the shell.
 - After `renv.lock` changes, rebuild the image with `docker compose build`.
 
+### Moving the data to another machine
+
+The downloaded data (`cache/`, several GB) and rendered reports (`reports/`) are not in git. To
+continue on another computer without downloading everything again, bundle them into one tar file
+in your Downloads folder, then extract it in the other machine's project folder after `git pull`:
+
+```
+sh tools/bundle-data.sh                    # Mac or Linux
+.\tools\bundle-data.cmd                    # Windows (Command Prompt or PowerShell)
+tar -xf <path to geo-report-data-...tar>   # on the receiving machine, from the project folder
+```
+
+The archive (`geo-report-data-<date>-<commit>.tar`, with a `.sha256` checksum next to it) never
+contains `.env`: copy your keys separately or create `.env` again. Options: `--no-reports` /
+`-NoReports` to leave out `reports/`, and an output folder (`-OutDir <folder>` on Windows). Cached
+files are keyed by the code's content and line endings are fixed to LF, so the receiving machine
+reuses them at the same or a later commit; the first `gr.R batch` there should make no requests
+for data already bundled. A bundle over 4 GB does not fit on a FAT32 USB drive (use exFAT or NTFS).
+
 ## Commands
 
 Everything runs through one entry point, `Rscript gr.R <command>`:

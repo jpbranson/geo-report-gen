@@ -18,7 +18,9 @@ Read this file, `PLAN.md` (checklist) and `docs/REQUIREMENTS.md` (the full brief
 6. Visual review: `.claude/launch.json` "reports" serves the repo on port 8765 (node script in the
    session scratchpad; recreate if missing). Figures can be extracted from report.html (base64 PNGs).
 7. Docker (any machine with Docker Desktop): `docker compose run --rm gr <command>` from the project
-   root; see README "Docker". Used on the user's second workstation, an Apple Silicon Mac.
+   root; see README "Docker". Used on the user's Apple Silicon Mac and planned for the Windows PC.
+   To move cache/ and reports/ between machines: tools/bundle-data.sh (Mac) or
+   .\tools\bundle-data.cmd (Windows) writes a tar to Downloads; README "Moving the data".
 
 ## Standing facts (verified 2026-09-28)
 
@@ -615,3 +617,21 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   except FEMA 403; round trip 10/10; catalog 537 metrics, 335 operational. Cache: FARS 555 MB,
   TIGER 72 MB. README, PLAN updated. Committed and pushed at the user's request.
 - Resume point: FARS done; next is NCES CCD (PLAN.md step of 16:24, item 3) once the user agrees.
+
+## 2026-09-29 17:49 (session 5, continued): data bundle command for moving machines
+
+- The user will run Docker on the Windows PC too and asked for a reusable command, working on
+  Windows and Mac, that writes a tar of the data cache and reports to Downloads.
+- Plan: host-side scripts (no R or Docker needed; the container cannot see Downloads):
+  tools/bundle-data.sh (macOS/Linux), tools/bundle-data.ps1 + tools/bundle-data.cmd (Windows,
+  built-in PowerShell and tar.exe; the .cmd avoids the script execution policy). Same output:
+  <Downloads>/geo-report-data-<date>-<commit>.tar with cache/ and reports/ (never .env), no lock
+  files, partial downloads or macOS metadata; a .sha256 next to it; cache/BUNDLE.txt manifest.
+  No PowerShell on this Mac, so the Windows script is reviewed, not run.
+- 17:55 done: tools/bundle-data.sh, tools/bundle-data.ps1, tools/bundle-data.cmd; .gitattributes
+  gives *.cmd CRLF. Mac run: ~/Downloads/geo-report-data-20260929-1750-aa716c6.tar, 4.0 GB in
+  71 s; 24,285 entries (cache 24,033, reports 252), no lock, ._ or .DS_Store files; checksum OK;
+  a full extraction is identical to cache/ and reports/ (diff -rq). The Windows script is not
+  run here (no PowerShell on this Mac). README section "Moving the data to another machine".
+- Committed and pushed at the user's request.
+- Resume point: NCES CCD (PLAN.md step of 16:24, item 3) once the user agrees.
