@@ -14,6 +14,7 @@ fbi_years <- 2016:2025
 fbi_offenses <- c(V = "violent", P = "property")
 fbi_vintage <- 2024L  # Census populations that divide city departments listed in several counties
 fbi_min_coverage <- 0.75  # the FBI's rule for metropolitan areas asks for 75% of agencies
+fbi_usual_min <- 20  # offenses in an agency's median year before a quarter of it is judged too few
 
 fbi_request <- function(path, query = list()) {
   key <- Sys.getenv("DATA_GOV_API_KEY")
@@ -72,15 +73,24 @@ fbi_series <- function(path, name, offense) {
   })
 }
 
-# Annual totals: a city needs every month reported in full; states and the nation use the
-# agencies that reported and the population they cover.
-fbi_annual <- function(s, city) {
-  do.call(rbind, lapply(split(s, s$year), function(y) {
+# Annual totals: one agency needs every month reported in full; states and the nation use the
+# agencies that reported and the population they cover. An agency's year with under a quarter of
+# its usual offenses (its median year, when that is at least 20) also counts as not reported: some
+# agencies marked months as reported while moving to NIBRS but sent almost nothing.
+fbi_annual <- function(s, agency) {
+  y <- do.call(rbind, lapply(split(s, s$year), function(y) {
     reported <- nrow(y) == 12 && !anyNA(y$offenses) && !anyNA(y$covered)
-    if (city) reported <- reported && all(y$covered >= y$population)
+    if (agency) reported <- reported && all(y$covered >= y$population)
     data.frame(year = y$year[1], offenses = if (reported) sum(y$offenses) else NA_real_,
                covered = if (reported) mean(y$covered) else NA_real_, population = mean(y$population))
   }))
+  if (agency) {
+    usual <- stats::median(y$offenses, na.rm = TRUE)
+    low <- !is.na(usual) & usual >= fbi_usual_min & !is.na(y$offenses) & y$offenses < usual / 4
+    y$offenses[low] <- NA
+    y$covered[low] <- NA
+  }
+  y
 }
 
 # "St. Joseph County" and the FBI's "ST JOSEPH" both give "stjoseph"; planning regions and
@@ -131,7 +141,7 @@ fbi_county_share <- function(agency, listed, geoid, counties, places) {
 fbi_county_annual <- function(agencies, offense) {
   y <- do.call(rbind, lapply(seq_len(nrow(agencies)), function(i) {
     s <- fbi_series(paste0("summarized/agency/", agencies$ori[i]), agencies$agency[i], offense)
-    cbind(fbi_annual(s, city = TRUE), share = agencies$share[i])
+    cbind(fbi_annual(s, agency = TRUE), share = agencies$share[i])
   }))
   total <- function(x) as.vector(tapply(y$share * x, y$year, sum, na.rm = TRUE))
   d <- data.frame(year = sort(unique(y$year)), offenses = total(y$offenses), covered = total(y$covered),
@@ -147,7 +157,7 @@ fbi_county_annual <- function(agencies, offense) {
 fbi_city_annual <- function(usps, place_name, offense) {
   a <- fbi_city_agencies(usps)
   a <- a[a$city == fbi_city_name(place_name), , drop = FALSE]
-  if (nrow(a) == 1) fbi_annual(fbi_series(paste0("summarized/agency/", a$ori), a$agency, offense), city = TRUE)
+  if (nrow(a) == 1) fbi_annual(fbi_series(paste0("summarized/agency/", a$ori), a$agency, offense), agency = TRUE)
 }
 
 # Annual offenses, residents covered by reporting agencies and all residents of one piece (NULL
@@ -157,8 +167,8 @@ fbi_piece_annual <- function(p, offense) {
   s <- state_table()
   s <- s[s$state == substr(p$geoid, 1, 2), , drop = FALSE]
   switch(p$type,
-    nation = fbi_annual(fbi_series("summarized/national", "United States", offense), city = FALSE),
-    state = fbi_annual(fbi_series(paste0("summarized/state/", s$usps), s$name, offense), city = FALSE),
+    nation = fbi_annual(fbi_series("summarized/national", "United States", offense), agency = FALSE),
+    state = fbi_annual(fbi_series(paste0("summarized/state/", s$usps), s$name, offense), agency = FALSE),
     place = fbi_city_annual(s$usps, p$name, offense),
     place_part = {
       y <- fbi_city_annual(s$usps, sub("^[^,]*, ", "", p$name), offense)
@@ -177,7 +187,7 @@ fbi_piece_annual <- function(p, offense) {
 
 fbi_notes <- c(place = "no city police department in the FBI's data matches this place",
                county = "the FBI lists no police agency serving this county's residents",
-               unreported = "not reported to the FBI for every month of this year (many agencies missed 2021, when reporting moved to NIBRS)",
+               unreported = "not reported to the FBI for every month of this year, or reported with under a quarter of the usual offenses (many agencies missed 2021, when reporting moved to NIBRS)",
                coverage = "the police agencies that reported every month of this year serve less than 75% of the county's residents")
 
 fbi_fetch <- function(variables, pieces, periods, options = list()) {

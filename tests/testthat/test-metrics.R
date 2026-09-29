@@ -205,6 +205,15 @@ test_that("FBI: a city is its police department; states cover reporting agencies
   expect_equal(compute_metric("ucr_population_coverage_fbi", list(de), st, periods = 2023L)$value, 100 * 1031579 / 1031890, tolerance = 1e-6)
 })
 
+test_that("FBI: an agency's year with under a quarter of its usual offenses counts as not reported", {
+  months <- function(year, per_month) data.frame(year = year, offenses = per_month, population = 1000, covered = 1000)[rep(1, 12), ]
+  s <- rbind(months(2022, 10), months(2023, 0.5), months(2024, 9))                  # 120, 6 and 108 offenses
+  expect_equal(fbi_annual(s, agency = TRUE)$offenses, c(120, NA, 108))
+  expect_equal(fbi_annual(s, agency = FALSE)$offenses, c(120, 6, 108))              # states and the nation are not screened
+  small <- rbind(months(2022, 1), months(2023, 0), months(2024, 1))                 # a usual year of 12 is too few to judge
+  expect_equal(fbi_annual(small, agency = TRUE)$offenses, c(12, 0, 12))
+})
+
 test_that("FBI: a county adds up every agency listed in it, dividing departments that serve several counties", {
   expect_equal(fbi_county_key(c("St. Joseph County", "ST JOSEPH", "LaPorte County", "LA PORTE", "Capitol Planning Region", "St. Louis city")),
                c("stjoseph", "stjoseph", "laporte", "laporte", "capitolplanningregion", "stlouiscity"))

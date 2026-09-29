@@ -176,3 +176,12 @@ Reports may keep growing (the user edits down), so every new block goes into the
        docs/nhgis.md and catalog row ipums_nhgis (needs a free account and API key; not
        implemented)
 3. [x] Checked back with the user (23:25)
+
+## Step agreed with the user 2026-09-28 23:30: FBI screen; NHGIS census years
+
+1. [x] FBI: an agency's year with under a quarter of its usual offenses (its median year, when
+       that is at least 20) counts as not reported (Kansas City, Kansas in 2023)
+2. [ ] IPUMS NHGIS provider (IPUMS_API_KEY in .env, sent only as the Authorization header):
+       census years 1970-2000 for the existing income, poverty, education, work and commuting
+       measures
+3. [ ] Check back with the user

@@ -386,3 +386,12 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   redistribution without permission. Time series codes, years and levels checked against
   NHGIS_Time_Series_Tables_Lists.xlsx. Findings and ranked additions in docs/nhgis.md; source
   row ipums_nhgis in catalog/sources.csv (121 sources).
+
+## 2026-09-28 23:30 (session 3, continued): FBI screen; NHGIS census years
+
+- The user approved the quarter-of-usual screen and added an IPUMS key (ipums_key.txt, now
+  git-ignored; the key is in .env as IPUMS_API_KEY, never printed).
+- FBI screen (done 23:35): fbi_annual(agency = TRUE) drops a year with under a quarter of the
+  agency's median year when the median is at least 20 offenses. Of 334 cached agency series it
+  removes 3 agency-years: KCK violent 2023 (180 vs 1,539), a Connecticut agency's property 2020
+  (6 vs 27) and a Texas agency's property 2020 (29 vs 149). Tests 203.

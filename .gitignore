@@ -2,6 +2,7 @@
 .env
 .Renviron
 api_data_gov_key.txt
+ipums_key.txt
 
 # Shared data cache and generated reports (rebuild with: Rscript gr.R batch)
 /cache/

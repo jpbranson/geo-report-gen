@@ -243,9 +243,10 @@ per Quarto render, so rendering is the main cost whenever many reports change.
   adds up every agency the FBI lists in it, dividing a department that serves several counties
   by where its residents live; agencies listed in no county (most state police, and the New York
   City and D.C. police) are left out, and a year needs agencies serving 75% of the county's
-  residents to report every month, so county figures are approximate. Values are as the FBI
-  publishes them: Kansas City, Kansas reported almost no offenses for 2023 (its move to NIBRS), so
-  Wyandotte County's 2023 value is far too low.
+  residents to report every month, so county figures are approximate. An agency's year with under
+  a quarter of its usual offenses (its median year, when that is at least 20) also counts as not
+  reported: Kansas City, Kansas marked 2023 as reported while moving to NIBRS but sent almost
+  nothing.
 - Government finances (2022 Census of Governments) describe the county government for counties
   and the city's own government for cities, not all local governments in an area. Connecticut
   has no county governments, and consolidated city-counties (Indianapolis, Wyandotte County and
