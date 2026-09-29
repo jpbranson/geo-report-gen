@@ -205,6 +205,33 @@ test_that("FBI: a city is its police department; states cover reporting agencies
   expect_equal(compute_metric("ucr_population_coverage_fbi", list(de), st, periods = 2023L)$value, 100 * 1031579 / 1031890, tolerance = 1e-6)
 })
 
+test_that("FBI: a county adds up every agency listed in it, dividing departments that serve several counties", {
+  expect_equal(fbi_county_key(c("St. Joseph County", "ST JOSEPH", "LaPorte County", "LA PORTE", "Capitol Planning Region", "St. Louis city")),
+               c("stjoseph", "stjoseph", "laporte", "laporte", "capitolplanningregion", "stlouiscity"))
+  a <- fbi_county_agencies("10001", "Kent County, Delaware")
+  expect_equal(nrow(a), 22)                                                         # towns, state police post, campus, state agencies
+  parts <- place_parts("1047420", 2024)                                             # Milford: Kent and Sussex
+  expect_equal(a$share[a$agency == "Milford Police Department"], parts$pop[parts$county == "10001"] / sum(parts$pop))
+  kent <- entity("kent", "study", "Kent County, Delaware", data.frame(key = "county:10001", type = "county", geoid = "10001",
+                                                                     name = "Kent County, Delaware", pop = NA_real_))
+  expect_equal(compute_metric("violent_crime_rate_fbi", list(kent), resolve_settings(), periods = 2023L)$value, 460.4321, tolerance = 1e-6)
+  # A year counts only when the agencies that reported every month serve 75% of the residents:
+  # Frederica (1,111 residents) missed 2016, leaving Felton (1,361) alone.
+  y <- fbi_county_annual(a[a$agency %in% c("Frederica Police Department", "Felton Police Department"), ], "V")
+  expect_true(is.na(y$offenses[y$year == 2016]))
+  expect_false(is.na(y$offenses[y$year == 2017]))
+  expect_null(fbi_county_annual(a[a$agency %in% c("Park Rangers", "Fish and Wildlife"), ], "V"))  # no residents
+  # Kent County plus Milford's part in Sussex County counts Milford's department once.
+  kent_milford <- entity("u", "study", "Kent County and Milford", data.frame(
+    key = c("county:10001", "place_part:1047420-10005"), type = c("county", "place_part"), geoid = c("10001", "1047420-10005"),
+    name = c("Kent County, Delaware", "Sussex County (part), Milford city, Delaware"), pop = NA_real_))
+  whole <- a
+  whole$share[whole$agency == "Milford Police Department"] <- 1
+  y <- fbi_county_annual(whole, "V")
+  expect_equal(compute_metric("violent_crime_rate_fbi", list(kent_milford), resolve_settings(), periods = 2023L)$value,
+               1e5 * y$offenses[y$year == 2023] / y$covered[y$year == 2023])
+})
+
 test_that("a value the source did not publish carries the source's reason", {
   d <- long("county:1", "ESTAB_00", NA, NA, "suppressed")
   d$note <- "fewer than 3 establishments or none"

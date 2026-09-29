@@ -236,8 +236,13 @@ per Quarto render, so rendering is the main cost whenever many reports change.
 - Crime rates (FBI Crime Data Explorer, 2016-2025) need a free api.data.gov key in `.env`
   (`DATA_GOV_API_KEY`), sent only as a request header. The FBI publishes police agencies: a city
   is its police department (matched by name) and needs all 12 months reported in a year (Gary did
-  not report in 2021); states and the nation cover the agencies that reported. Counties are not
-  computed, because a sheriff covers only part of a county.
+  not report in 2020 or 2021); states and the nation cover the agencies that reported. A county
+  adds up every agency the FBI lists in it, dividing a department that serves several counties
+  by where its residents live; agencies listed in no county (most state police, and the New York
+  City and D.C. police) are left out, and a year needs agencies serving 75% of the county's
+  residents to report every month, so county figures are approximate. Values are as the FBI
+  publishes them: Kansas City, Kansas reported almost no offenses for 2023 (its move to NIBRS), so
+  Wyandotte County's 2023 value is far too low.
 - Government finances (2022 Census of Governments) describe the county government for counties
   and the city's own government for cities, not all local governments in an area. Connecticut
   has no county governments, and consolidated city-counties (Indianapolis, Wyandotte County and
