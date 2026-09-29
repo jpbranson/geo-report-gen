@@ -239,3 +239,27 @@ back before new external sources).
   separate pure-reorder commit before the additions.
 - 19:15: tests 138 pass; batch (online) 480 s / 309 requests for the new tables, then offline
   127 s, 0 requests, 11/12 (intended rejection); catalog page renders; no build warnings.
+
+### 2026-09-28 ~19:30- (session 3, step 5: four new sources)
+User: add all four new sources in the recommended order (CDC PLACES, CBP all industries, FEMA
+NRI, USDA Food Environment Atlas), then check back. Plan in PLAN.md.
+- CDC PLACES (step 1, done ~20:10): Socrata API (no key), 2025 release ids in places_tables; one
+  measure per request (counties + U.S. row nationwide, ZCTAs nationwide, places and tracts per
+  state). Latest release only (CDC: model cannot track change); crude prevalence; 95% CI -> 90%
+  MOE; share recipes <M>_N / ADULTS with published_var <M>. No state values in PLACES: a state is
+  the sum of its counties (CDC's documented aggregation), only when every county is listed
+  (suppressed <50-person counties, e.g. Loving TX, left out of both sums). U.S. row (locationid
+  59) used as published; it is not the county sum (short sleep 36.0 vs 36.1), method undocumented.
+  Texas did not field the social-needs module; KY and PA lack 2023 measures.
+- Catalog: 14 PLACES rows made operational + 7 added (CHD, COPD, asthma, binge drinking, housing
+  insecurity, utility shutoff threat, lack of reliable transportation); ACCESS2 left documented
+  (18-64 universe not published). Blocks chronic-conditions, health-status, health-behaviors,
+  diabetes-map (general), social-needs (general, early-childhood). 158 of 406 operational.
+- Engine changes: providers' `note` becomes the method/reason of values they did not publish
+  (source_note()); facts prose is {summary_sentence} (@phrase.facts_compare, or
+  @phrase.facts_no_data with the reason; no table when the study area has no value); facts tables
+  drop comparison columns without any value (e.g. regions for PLACES) and the sentence names only
+  the shown areas; "does not publish place_part data" -> "does not publish data for the parts of a
+  place in each county" (geo_type_names); no-data phrases end with a period.
+- Verified: tests 150 pass; batch online 155 s / 61 requests, then offline clean (no warnings);
+  ct-capitol, travis-austin, austin-tx tables and the Gary diabetes map reviewed.

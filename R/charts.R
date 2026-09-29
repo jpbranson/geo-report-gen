@@ -206,6 +206,10 @@ render_block_distribution <- function(b, txt, th) {
 render_block_facts <- function(b, txt, th) {
   d <- b$data$results
   et <- b$data$entities
+  # A comparison area with no value in any row (e.g. a region, for a source that publishes
+  # none) gets no column; the study area's column is always shown.
+  empty <- vapply(et$entity_id, function(id) all(is.na(d$value[d$entity_id == id])), TRUE)
+  et <- et[!empty | et$role == "study", , drop = FALSE]
   labels <- txt$labels %||% list()
   rows <- lapply(b$data$metrics, function(m) {
     x <- d[d$metric_id == m, , drop = FALSE]

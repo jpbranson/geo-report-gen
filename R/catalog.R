@@ -157,6 +157,12 @@ verify_sources <- function() {
     census_sahie = census_check("timeseries/healthins/sahie",
                                 list(get = "NAME,PCTUI_PT", `for` = "us:*", time = "2024", AGECAT = "0", IPRCAT = "0",
                                      SEXCAT = "0", RACECAT = "0"), "2024 SAHIE U.S. uninsured rate under 65", "PCTUI_PT"),
+    cdc_places = function() {
+      resp <- http_perform(http_request(paste0("https://data.cdc.gov/resource/", places_tables[["county"]], ".json"), "cdc_places",
+        query = list(`$select` = "data_value", `$where` = "locationid='59' AND measureid='DIABETES' AND datavaluetypeid='CrdPrv'")))
+      check_status(resp, "CDC PLACES")
+      paste0("PLACES ", places_year, " U.S. adults with diagnosed diabetes: ", jsonlite::fromJSON(httr2::resp_body_string(resp))$data_value, "%")
+    },
     tx_hhsc = function() {
       resp <- http_perform(http_request("https://data.texas.gov/resource/bc5r-88dy.json", "tx_hhsc", query = list(`$select` = "count(*) as n")))
       check_status(resp, "Texas HHSC")

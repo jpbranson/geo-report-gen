@@ -109,5 +109,20 @@ industries, households, civic, public safety and public finance had none. Now 13
 2. [x] SAIPE and SAHIE (R/providers/small_area.R): annual poverty, child poverty, median household
        income (comparable from 2005) and uninsured rates under 65 (from 2008) for counties, states
        and the nation; combined areas get values without a margin of error; 4 blocks
-3. [ ] Check back with the user before new external sources (CDC PLACES, USDA food environment,
-       FEMA National Risk Index, business patterns by sector, QCEW)
+3. [x] Checked back with the user (19:30): add four new sources, in this order, then check back
+
+## Step agreed with the user 2026-09-28 19:30: four new sources, in order, then check back
+
+1. [x] CDC PLACES (R/providers/places.R): 21 metrics (chronic conditions, health status and
+       disability, behaviors and checkups, social needs) for counties, places, tracts and ZCTAs from
+       the latest release only; crude prevalence with 95% intervals converted to 90% MOEs; states
+       summed from counties (CDC's method for groups of areas), the U.S. row as published; 5 blocks
+       (3 tables, a tract map, social needs). Engine: a source's reason for a missing value is shown
+       in "What is not shown"; a facts table without any study-area value says why instead of
+       showing dashes; empty comparison columns are dropped
+2. [ ] County Business Patterns for all industries (jobs and establishments located in the area
+       by NAICS sector; extends the existing CBP adapter)
+3. [ ] FEMA National Risk Index (expected annual loss, risk, social vulnerability, community
+       resilience; counties and tracts)
+4. [ ] USDA ERS Food Environment Atlas (county food stores, restaurants, food assistance, access)
+5. [ ] Check back with the user

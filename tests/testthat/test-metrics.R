@@ -91,6 +91,37 @@ test_that("model-based estimates keep a single area's margin of error; combined 
   expect_match(r$method[r$entity_id == "both"], "cannot be combined")
 })
 
+test_that("PLACES: published county values, states summed from counties, the U.S. row", {
+  counties <- function(geoids) data.frame(key = paste0("county:", geoids), type = "county", geoid = geoids,
+                                          name = "", pop = NA_real_)
+  kent <- entity("kent", "study", "Kent County", counties("10001"))
+  both <- entity("both", "study", "Kent and New Castle", counties(c("10001", "10003")))
+  de <- entity("de", "benchmark", "Delaware", data.frame(key = "state:10", type = "state", geoid = "10", name = "", pop = NA_real_))
+  us <- entity("us", "benchmark", "United States", data.frame(key = "nation:US", type = "nation", geoid = "US", name = "", pop = NA_real_))
+  r <- compute_metric("diabetes_prevalence_places", list(kent, both, de, us), resolve_settings())
+  expect_equal(r$period, rep("2023", 4))
+  expect_equal(r$value[r$entity_id == "kent"], 14.3)                                   # published crude prevalence
+  expect_equal(r$moe[r$entity_id == "kent"], (16.2 - 12.4) / 2 * 1.645 / 1.96)          # 95% interval -> 90% MOE
+  expect_equal(r$value[r$entity_id == "both"], (14.3 * 146800 + 12.2 * 456332) / (146800 + 456332))
+  expect_true(is.na(r$moe[r$entity_id == "both"]))
+  expect_equal(r$value[r$entity_id == "de"], (14.3 * 146800 + 12.2 * 456332 + 14.2 * 216820) / (146800 + 456332 + 216820))
+  expect_true(is.na(r$moe[r$entity_id == "de"]))
+  expect_equal(r$value[r$entity_id == "us"], 12.0)
+  # Kentucky has no county estimates for 2023 measures: no state value, and the reason says why.
+  ky <- entity("ky", "benchmark", "Kentucky", data.frame(key = "state:21", type = "state", geoid = "21", name = "", pop = NA_real_))
+  k <- compute_metric("diabetes_prevalence_places", list(ky), resolve_settings())
+  expect_equal(k$status, "unavailable")
+  expect_match(k$method, "no PLACES estimate for this area")
+})
+
+test_that("a value the source did not publish carries the source's reason", {
+  d <- long("county:1", "ESTAB_00", NA, NA, "suppressed")
+  d$note <- "fewer than 3 establishments or none"
+  a <- aggregate_entity(recipe(numerator = "ESTAB_00"), d, "county:1", 2023)
+  expect_equal(a$status, "suppressed")
+  expect_equal(a$method, "fewer than 3 establishments or none")
+})
+
 test_that("ACS tables come back in the provider's long form", {
   d <- acs_table(2024, "B01003", "state")
   expect_true(all(c("geo", "name", "variable", "estimate", "moe", "status") %in% names(d)))

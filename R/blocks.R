@@ -676,14 +676,26 @@ compute_block_facts <- function(row, ctx, settings, opts) {
   res <- do.call(rbind, all)
   res$label <- et$label[match(res$entity_id, et$entity_id)]
   labels <- stats::setNames(vapply(metrics, function(m) metric_doc(m)$label, ""), metrics)
+  latest <- paste(unique(res$period_label), collapse = ", ")
+  # Like a chart, the table is left out when the study area has no value at all; the text says why.
+  has_data <- any(!is.na(res$value[res$entity_id %in% vapply(ctx$studies, `[[`, "", "id")]))
+  summary <- if (has_data) {
+    # Name the comparison areas the table shows (those with at least one value).
+    bm <- et$label[et$role == "benchmark" & et$entity_id %in% res$entity_id[!is.na(res$value)]]
+    phrase(ctx, "facts_compare", list(area_short = ctx$area$short, latest_period = latest,
+                                      benchmark_list = if (length(bm)) join_list(bm, ctx) else phrase(ctx, "no_benchmarks", list())))
+  } else {
+    reasons <- res$method[res$entity_id == ctx$study$id & nzchar(res$method)]
+    phrase(ctx, "facts_no_data", list(area_short = ctx$area$short, reason = reasons[1] %||% ""))
+  }
   list(data = list(results = res, metrics = metrics, entities = et),
-       values = list(n_indicators = length(metrics), latest_period = paste(unique(res$period_label), collapse = ", "),
-                     flag_reference = ref_entity$short),
-       fields = c("title", "prose", "caption", "note", "source_note", "labels"),
+       values = list(n_indicators = length(metrics), latest_period = latest, flag_reference = ref_entity$short,
+                     summary_sentence = summary),
+       fields = if (has_data) c("title", "prose", "caption", "note", "source_note", "labels") else c("title", "prose", "source_note"),
        labels = labels,
        sources = metric_sources(metrics),
        unavailable = block_unavailable_rows(res, row$id, ctx),
-       table = TRUE)
+       table = has_data)
 }
 
 # ---- history: cited context events ---------------------------------------------------------

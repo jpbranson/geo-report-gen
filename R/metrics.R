@@ -73,9 +73,16 @@ sum_components <- function(d, vars, piece_keys) {
                 absent = if (length(absent)) absent else "some variables"))
   }
   st <- worst_status(x$status)
-  if (!usable(st)) return(list(est = NA_real_, moe = NA_real_, status = st))
+  if (!usable(st)) return(list(est = NA_real_, moe = NA_real_, status = st, why = source_note(x)))
   # Components without a MOE ("**") keep the estimate but make the combined MOE missing.
   list(est = sum(x$estimate), moe = moe_sum(x$moe), status = if (st == "imputed") "imputed" else "ok")
+}
+
+# The source's own reason for a value it did not publish (e.g. "withheld to avoid disclosing
+# data of individual businesses"), if the provider gave one.
+source_note <- function(x) {
+  notes <- if ("note" %in% names(x)) x$note[!usable(x$status) & !is.na(x$note) & nzchar(x$note)] else character()
+  if (length(notes)) notes[1] else NULL
 }
 
 # Compute one entity for one period from its long data `d`.
@@ -96,7 +103,7 @@ aggregate_entity <- function(recipe, d, piece_keys, period) {
     x <- d[d$variable == published_var, , drop = FALSE]
     if (nrow(x)) {
       out[c("value", "moe", "status", "bound")] <- list(x$estimate[1], x$moe[1], x$status[1], x$bound[1])
-      out$method <- "published estimate"
+      out$method <- source_note(x[1, , drop = FALSE]) %||% "published estimate"
       return(out)
     }
     if (type %in% c("median", "value")) return(out)
@@ -105,7 +112,7 @@ aggregate_entity <- function(recipe, d, piece_keys, period) {
   if (type == "count") {
     s <- sum_components(d, recipe_vars(recipe$numerator, period), piece_keys)
     out[c("value", "moe", "status", "num")] <- list(s$est, s$moe, s$status, s$est)
-    out$method <- if (!is.null(s$absent)) absent_note(s$absent) else if (single) "published count" else "sum of published pieces"
+    out$method <- if (!is.null(s$absent)) absent_note(s$absent) else s$why %||% (if (single) "published count" else "sum of published pieces")
   } else if (type %in% c("share", "ratio")) {
     n <- sum_components(d, recipe_vars(recipe$numerator, period), piece_keys)
     dn <- sum_components(d, recipe_vars(recipe$denominator, period), piece_keys)
@@ -122,7 +129,8 @@ aggregate_entity <- function(recipe, d, piece_keys, period) {
       out$status <- "ok"
     }
     absent <- unique(c(n$absent, dn$absent))
-    out$method <- if (length(absent)) absent_note(absent) else if (single) "computed from published counts" else "recomputed from summed counts"
+    out$method <- if (length(absent)) absent_note(absent) else n$why %||% dn$why %||%
+      (if (single) "computed from published counts" else "recomputed from summed counts")
   } else if (type == "median" && !is_blank(recipe$bins_table)) {
     bins <- acs_bins(recipe$bins_table, period)
     counts <- vapply(bins$variable, function(v) {
@@ -178,7 +186,7 @@ compute_metric <- function(metric_id, entities, settings, periods = NULL, consta
     unsupported <- setdiff(unique(pieces$type), prov$geo_types)
     if (length(unsupported)) {
       return(unavailable_rows(e, periods, prov, "not_applicable",
-                              paste0(prov$name, " does not publish ", paste(unsupported, collapse = "/"), " data")))
+                              paste0(prov$name, " does not publish data for ", paste(geo_type_names[unsupported], collapse = " or "))))
     }
     data <- prov$fetch(vars, pieces, periods, list(var_by_period = var_by_period, recipe = recipe, settings = settings))
     key <- hash_value(recipe, sort(pieces$key), periods, digest::digest(data), metric_code_version())

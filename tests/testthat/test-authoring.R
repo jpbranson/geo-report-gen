@@ -46,7 +46,7 @@ test_that("inline edits to a heading, prose and a caption become report-scope re
   withr::local_envvar(GR_ROOT = temp_project())
   fake_report("gary-in")
   edit_qmd("gary-in", "^## Key facts", "## Headline numbers")
-  edit_qmd("gary-in", "^The table compares.*", "Gary has 68,113 residents; see {benchmark_list}.")
+  edit_qmd("gary-in", "^\\{summary_sentence\\}$", "Gary has 68,113 residents; see {benchmark_list}.")
   edit_qmd("gary-in", "tbl-cap: .*", "tbl-cap: \"Selected indicators, edited inline\"")
   h <- harvest_report("gary-in")
   expect_setequal(names(h$applied), c("key-facts.title", "key-facts.prose", "key-facts.caption"))

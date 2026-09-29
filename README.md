@@ -225,14 +225,20 @@ per Quarto render, so rendering is the main cost whenever many reports change.
 
 ## Limitations
 
-- 137 of the 399 cataloged metrics are operational (ACS detailed tables, decennial census,
-  population estimates, SAIPE, SAHIE, BEA, BLS, FHFA, building permits, child care prices and
-  businesses, Texas licensing); the rest are documented only. Environment and climate hazards,
-  public safety, civic participation and local public finance have no operational metric yet.
+- 158 of the 406 cataloged metrics are operational (ACS detailed tables, decennial census,
+  population estimates, SAIPE, SAHIE, CDC PLACES, BEA, BLS, FHFA, building permits, child care
+  prices and businesses, Texas licensing); the rest are documented only. Environment and climate
+  hazards, public safety, civic participation and local public finance have no operational
+  metric yet.
 - City histories start in 2000: the Census API has no earlier census tables for places.
 - Medians of combined areas have no margin of error (the Census Bureau publishes no method).
 - SAIPE and SAHIE (annual poverty, income and health insurance estimates) cover counties, states
   and the nation, so city reports show county context; combined areas get a value without a
   margin of error, because the model errors of different counties cannot be combined.
+- CDC PLACES health measures are model-based estimates from the latest release only (CDC advises
+  against comparing releases). They are not age-adjusted, and CDC publishes no state values, so a
+  state is the sum of its counties. Kentucky and Pennsylvania lack most measures in the 2025
+  release, and the social-needs questions were asked only in some states (not Texas); tables then
+  say why no estimate is shown.
 - Licensed child care capacity is implemented for Texas only; it is a current snapshot.
 - Custom polygons and area-weighted allocation are not supported.

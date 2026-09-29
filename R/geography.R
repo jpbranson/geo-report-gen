@@ -506,6 +506,12 @@ compare_overlap_notes <- function(members, vintage) {
   out
 }
 
+# Plain names of geography types, for text.
+geo_type_names <- c(nation = "the nation", region = "regions", division = "divisions", state = "states",
+                    county = "counties", place = "places", place_part = "the parts of a place in each county",
+                    cousub = "county subdivisions", tract = "tracts", bg = "block groups", zcta = "ZCTAs",
+                    cbsa = "metro areas", sdu = "school districts")
+
 default_area_label <- function(members, mode) {
   if (mode != "union" || nrow(members) == 1) return(members$name[1])
   st <- unique(sub("^.*,\\s*", "", members$name))
@@ -514,9 +520,7 @@ default_area_label <- function(members, mode) {
     return(paste0(paste(names[-length(names)], collapse = ", "), " and ", names[length(names)],
                   " counties, ", st))
   }
-  plural <- c(county = "counties", place = "places", tract = "tracts", bg = "block groups",
-              cousub = "county subdivisions", zcta = "ZCTAs", cbsa = "metro areas", state = "states")
-  kind <- if (length(unique(members$type)) == 1) unname(plural[members$type[1]]) else NA
+  kind <- if (length(unique(members$type)) == 1) unname(geo_type_names[members$type[1]]) else NA
   if (is.na(kind)) kind <- "areas"
   paste0("Combined area (", nrow(members), " ", kind,
          if (length(st) > 1) paste0(" in ", length(st), " states") else paste0(", ", st), ")")
