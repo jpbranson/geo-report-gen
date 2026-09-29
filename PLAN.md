@@ -206,3 +206,17 @@ Reports may keep growing (the user edits down), so every new block goes into the
        payroll-trend from 1978 (the price index's first year). Data fixes: 1975 state payroll
        is in thousands of dollars; "D" in a value cell means withheld
 3. [x] Checked back with the user (01:00)
+
+## Proposed next steps (saved 2026-09-29, not started)
+
+1. [ ] Constant dollars before 1978: extend the price index back with the regular CPI-U (BLS
+       suggests CPI-U for years before the R-CPI-U-RS begins in 1978), scaled to meet the
+       R-CPI-U-RS in 1978. Adds payroll per employee for 1974-1977 (payroll-trend could then
+       start in 1974) and allows constant dollars before 1978 anywhere.
+2. [ ] Connecticut planning regions: sum town (county subdivision) census values from NHGIS into
+       the 2022 planning regions, mapping towns by code as the EAVS provider does
+       (ct_town_regions()). Works for counts and shares (poverty, education, work, commuting,
+       population); not for medians such as household income.
+3. [ ] Long-run sentences in chart text: add a sentence on the change since the earliest census
+       year to charts that mix census years and ACS periods (e.g. "Since 1979, median household
+       income fell from $70,000 to $38,000"), since the text now describes only the ACS years.
