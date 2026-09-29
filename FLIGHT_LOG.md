@@ -447,3 +447,8 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   about 1.5x slower than native on Windows (bind-mount reads); rendering is not.
 - Multi-platform image geo-report-gen:latest (amd64 871 MB, arm64 846 MB). Portable folder
   C:\Developer\geo-report-gen-portable: arm64 image tar, cache + reports tar, MAC-SETUP.md.
+
+## 2026-09-29 14:35 (session 5): next sources agreed
+
+- On the Mac, the user added and built madison-ms (place:2844520, general profile) with Docker.
+- Agreed next step, not started: LEHD LODES, BLS QCEW, BEA county GDP, in that order (PLAN.md).

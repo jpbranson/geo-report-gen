@@ -1,4 +1,4 @@
-report_id,geography,mode,label,profile,manifest,vintage,enabled,note
+﻿report_id,geography,mode,label,profile,manifest,vintage,enabled,note
 gary-in,place:1827000,single,,general,,,TRUE,"Census place in one county: all parent benchmarks (county, state, region, nation); long decline history with cited context"
 austin-tx,place:4805000,single,,early-childhood,,,TRUE,"Census place intersecting four counties (Travis, Williamson, Hays, Bastrop); early-childhood profile"
 austin-core,county:48453 + county:48491 + county:48209,union,"Travis, Williamson and Hays counties",economic-development,,,TRUE,Same-state union of three counties
@@ -9,3 +9,4 @@ ct-capitol,county:09110,single,,general,,,TRUE,Connecticut planning region (coun
 lake-in,county:18089,single,,general,config/manifests/lake-in.csv,,TRUE,County report with a within-area tract map and no parent charts where unnecessary
 tx-cities,place:4805000 + place:4819000 + place:4835000 + place:4865000,compare,Texas's four largest cities,general,,,TRUE,"Comparison of Austin, Dallas, Houston and San Antonio side by side"
 in-cities,place:1827000 + place:1836003 + place:1871000,separate,,general,,,TRUE,"One report per city (Gary, Indianapolis, South Bend) from one list"
+madison-ms,place:2844520,single,,general,,,TRUE,

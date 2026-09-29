@@ -227,3 +227,29 @@ Reports may keep growing (the user edits down), so every new block goes into the
        preview on port 4848); README section "Docker"
 2. [x] Verified on amd64 and arm64: tests, byte-identical report values and text, PDF, preview
 3. [x] Portable folder (arm64 image, cache and reports, setup steps); Docker files pushed to GitHub
+
+## Step agreed with the user 2026-09-29 14:35: three jobs and output sources, in order (not started)
+
+All three are cataloged and their sample downloads worked (2026-09-28); each needs a provider,
+recipes and blocks. As before, every new block goes into the profiles.
+1. [ ] LEHD LODES 8.4 (census_lehd_lodes), 2002-2023: jobs located in the area and employed
+       residents, from the block-level WAC and RAC files. Blocks nest in every area, so places,
+       tracts and unions get values, not just counties (the state crosswalk gives each 2020
+       block's county, place, county subdivision and tract; check its geography vintage against
+       boundary_vintage). Cataloged metrics: jobs, low-earnings share, jobs by sector, employed
+       residents, jobs per employed resident; the two commuting shares need the OD files, which
+       are much larger (check sizes first). To settle: all jobs (JT00) or primary jobs (JT01);
+       state-years without WAC files (MA 2002-2010, MI before 2022, AK before 2017, ...) are
+       unavailable with the reason. No margins of error; say that the residence side is partly
+       modeled
+2. [ ] BLS QCEW (bls_qcew): covered jobs, establishments and average annual pay, all industries
+       and by NAICS sector, for counties, states and the nation, annual 1990-2025 (bulk ZIPs).
+       Workplace-based like CBP, but with wages and two years newer. Nondisclosed cells ("N")
+       are "suppressed" with the reason, as CBP's withheld cells are; pay in constant dollars.
+       Broaden the catalog row (now named for child care, NAICS 624410) to all industries; the
+       child care metrics stay
+3. [ ] BEA GDP by county (bea_cagdp; CAGDP1, CAGDP2), 2001-2024: GDP in current dollars (summed for
+       combined areas), real GDP in chained 2017 dollars (single areas only: chained dollars do
+       not add), and GDP by industry. Extends R/providers/bea.R (same zip layout as CAINC1). (D)
+       cells suppressed; Connecticut planning regions from 2024 only
+4. [ ] Verify (tests, gr.R verify, demos/round_trip.R, batch) and check back with the user
