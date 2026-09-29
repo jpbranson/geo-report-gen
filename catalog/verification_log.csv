@@ -29,3 +29,22 @@
 2026-09-28 19:12,bls_laus,ok,reachable (HTTP 200): la.area
 2026-09-28 19:12,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
 2026-09-28 19:12,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none
+2026-09-28 21:10,census_acs5,ok,"2020-2024 ACS U.S. population: 334,922,499"
+2026-09-28 21:10,census_dec,ok,"2020 Census U.S. population: 331,449,281"
+2026-09-28 21:12,census_cbp,ok,"2023 U.S. establishments with employees: 8,361,342"
+2026-09-28 21:12,census_saipe,ok,2024 SAIPE U.S. poverty rate: 12.1
+2026-09-28 21:12,census_sahie,ok,2024 SAHIE U.S. uninsured rate under 65: 9.8
+2026-09-28 21:12,cdc_places,ok,PLACES 2023 U.S. adults with diagnosed diabetes: 12.0%
+2026-09-28 21:12,tx_hhsc,ok,Texas HHSC operations records: 14976
+2026-09-28 21:12,census_pep,ok,reachable (HTTP 200): NST-EST2025-ALLDATA.csv
+2026-09-28 21:12,census_hist,ok,reachable (HTTP 200): cencounts.csv
+2026-09-28 21:12,bea_cainc,ok,reachable (HTTP 200): CAINC1.zip
+2026-09-28 21:12,fhfa_hpi,ok,reachable (HTTP 200): hpi_at_county.xlsx
+2026-09-28 21:12,census_bps,ok,reachable (HTTP 200): co2025a.txt
+2026-09-28 21:12,fema_nri,ok,reachable (HTTP 200): NRI_Table_Counties.zip
+2026-09-28 21:12,usda_ers_fea,ok,reachable (HTTP 200): food-environment-atlas-csv-files.zip
+2026-09-28 21:12,dol_ndcp,ok,reachable (HTTP 200): NDCP2022.xlsx
+2026-09-28 21:12,census_geo,ok,reachable (HTTP 200): cb_2024_us_county_500k.zip
+2026-09-28 21:12,bls_laus,ok,reachable (HTTP 200): la.area
+2026-09-28 21:12,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
+2026-09-28 21:12,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none

@@ -147,6 +147,21 @@ test_that("NRI: scores only for single counties; dollar values sum to combined a
                tolerance = 1e-6)
 })
 
+test_that("Food Environment Atlas: published county values, rescaled rates, suppressed and missing counties", {
+  county <- function(geoid) entity(geoid, "study", geoid, data.frame(key = paste0("county:", geoid), type = "county",
+                                                                     geoid = geoid, name = "", pop = NA_real_))
+  st <- resolve_settings()
+  r <- compute_metric("grocery_stores_per_10k_fea", list(county("10001"), county("48301"), county("09110")), st)
+  expect_equal(r$period, rep("2020", 3))                                                # the year in the Atlas code
+  expect_equal(r$value[r$entity_id == "10001"], 1.41579047)                            # 0.1416 per 1,000 -> per 10,000
+  expect_equal(r$status[r$entity_id == "48301"], "suppressed")                         # fewer than 3 stores
+  expect_equal(r$status[r$entity_id == "09110"], "unavailable")                        # planning region: not in the Atlas
+  expect_match(r$method[r$entity_id == "09110"], "Connecticut")
+  both <- entity("both", "study", "Kent and Sussex", data.frame(key = c("county:10001", "county:10005"), type = "county",
+                                                                geoid = c("10001", "10005"), name = "", pop = NA_real_))
+  expect_equal(compute_metric("low_access_population_share_fea", list(both), st)$status, "not_aggregable")
+})
+
 test_that("a value the source did not publish carries the source's reason", {
   d <- long("county:1", "ESTAB_00", NA, NA, "suppressed")
   d$note <- "fewer than 3 establishments or none"

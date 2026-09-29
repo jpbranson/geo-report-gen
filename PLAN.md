@@ -138,5 +138,11 @@ industries, households, civic, public safety and public finance had none. Now 13
        Engine: facts tables and compositions show the county as context for cities (as metric
        blocks do); render-time placeholders now prefer the block's values (runtime.R had the
        report's first, so context captions said "Gary")
-4. [ ] USDA ERS Food Environment Atlas (county food stores, restaurants, food assistance, access)
+4. [x] USDA ERS Food Environment Atlas (R/providers/fea.R, July 2025 CSV): 7 published county
+       values (low access, low income and low access, households without a car and low access,
+       2019; grocery, convenience and fast-food per 10,000 residents, 2020; SNAP-authorized stores,
+       2023); block food-environment (general "Food access" section, early childhood). No state
+       values or rate denominators are published, so no sums; Connecticut uses former counties.
+       Verified: tests 176 pass; gr.R verify 18 of 18 sources ok, 424 ACS recipe checks, no gaps;
+       demos/round_trip.R 10 of 10
 5. [ ] Check back with the user

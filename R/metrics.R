@@ -102,7 +102,8 @@ aggregate_entity <- function(recipe, d, piece_keys, period) {
   if (single && !is_blank(published_var)) {
     x <- d[d$variable == published_var, , drop = FALSE]
     if (nrow(x)) {
-      out[c("value", "moe", "status", "bound")] <- list(x$estimate[1], x$moe[1], x$status[1], x$bound[1])
+      k <- if (type == "value") scale else 1   # a published value may be rescaled (per 1,000 -> per 10,000)
+      out[c("value", "moe", "status", "bound")] <- list(k * x$estimate[1], k * x$moe[1], x$status[1], x$bound[1])
       out$method <- source_note(x[1, , drop = FALSE]) %||% "published estimate"
       return(out)
     }

@@ -299,3 +299,15 @@ NRI, USDA Food Environment Atlas), then check back. Plan in PLAN.md.
   Lua filter documents.
 - Verified: tests 170 pass (DE fixture zip, 11 KB); batch clean; Gary (context), ct-capitol,
   kc-core and tx-cities hazard blocks reviewed.
+- USDA Food Environment Atlas (step 4, done ~21:15): R/providers/fea.R reads StateAndCountyData.csv
+  (long: FIPS, State, County, Variable_Code, Value; 957k rows) from the 6.5 MB ERS zip and keeps
+  every county value in a derived parquet (4 MB). Period = the two-digit year in the variable code.
+  Findings: store counts are CBP-based, -9999 in 909 counties (grocery), 471 (fast food), 284
+  (convenience); no state rows or populations for rates (implied populations: 2020 estimates for
+  stores, 2023 for SNAP stores, 2010 census for low access); 37 zero low-access counties include
+  FIPS-change artifacts (Oglala Lakota, Kusilvak) - so no sums, published county values only
+  (value recipes). CT still in former counties. Engine: `scale` now also rescales published
+  single values (value recipes; all existing ones use 1), used for per 10,000 residents.
+- Verified: tests 176; batch clean; gary-in, austin-tx (Travis and Williamson as context),
+  ct-capitol (former counties reason), tx-cities reviewed; verify 18/18 ok, 424 ACS checks no gaps;
+  round trip 10/10.

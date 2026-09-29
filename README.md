@@ -225,11 +225,15 @@ per Quarto render, so rendering is the main cost whenever many reports change.
 
 ## Limitations
 
-- 199 of the 438 cataloged metrics are operational (ACS detailed tables, decennial census,
+- 206 of the 440 cataloged metrics are operational (ACS detailed tables, decennial census,
   population estimates, SAIPE, SAHIE, CDC PLACES, County Business Patterns, FEMA National Risk
-  Index, BEA, BLS, FHFA, building permits, child care prices, Texas licensing); the rest are
-  documented only. Public safety, civic participation and local public finance have no
-  operational metric yet.
+  Index, USDA Food Environment Atlas, BEA, BLS, FHFA, building permits, child care prices, Texas
+  licensing); the rest are documented only. Public safety, civic participation and local public
+  finance have no operational metric yet.
+- The USDA Food Environment Atlas publishes county values only (no state or national values and
+  no populations behind its rates), so its table shows the county alone and combined areas get
+  no value. It still uses Connecticut's former counties, so Connecticut planning regions have no
+  Atlas values.
 - The FEMA National Risk Index is used for counties (city reports show their county). Its
   scores rank counties against each other, so they exist only for single counties; expected
   losses add up to states, the nation and combined areas. FEMA's terms require the statement
