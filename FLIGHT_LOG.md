@@ -473,4 +473,27 @@ now git-ignored and its line appended to .env (never printed); the user can dele
 - Cache: 624 MB for six states (Texas 355 MB: 289 MB downloads, 54 MB derived tables); the first
   Texas build took 287 s (45 downloads). Tests 239; verify 23 of 24 (FEMA 403 in Docker);
   round trip 10/10; batch 12 ok, austin-78704 rejected as intended.
-- Next: BLS QCEW (PLAN.md step 2).
+- Committed and pushed (3f082df). Next: BLS QCEW (PLAN.md step 2).
+
+## 2026-09-29 15:10 (session 5, continued): QCEW (done 15:50)
+
+- Access: API slices only from 2014; the smallest bulk file with every area is the annual
+  singlefile ZIP (18 MB for 1990, 75 MB for 2024). About 20 s a year to download and reduce;
+  the reduced table is about 80,000 rows (1 MB) a year.
+- Layout: agglvl 10/11/14 nation, 50/51/54 state, 70/71/74 county, 18/58/78 six-digit NAICS;
+  withheld cells flagged N from 2001 (employment and wages 0, establishments kept); 1990-2000
+  files omit withheld rows (Loving County TX 1990: total 25 jobs, no private row). U.S. =
+  50 states + DC. Connecticut: planning regions from 2024. Price index covers 2025.
+- 1990-2000 dropped after a scan of one-year spikes (counties over 20,000 jobs and states):
+  Platte County MO 1991 jobs doubled then halved; New Jersey 1995 pay +42%; Oakland County MI
+  1997 finance 179,334 jobs and $57.3 billion (CBP shows Oakland at 718,438 jobs that year,
+  normal growth), which lifts Michigan's 1997 pay from $31,522 to $44,181; Union County NJ 1997.
+  BLS's Q&A calls 1990-2000 a reconstruction under NAICS 2002. None found 2001-2024.
+- fetch.R: sources named bls_<program> get the BLS contact and share the BLS rate, so
+  `--refresh bls_qcew` refreshes both the ZIPs and the derived tables.
+- Checks: 2025 Madison County MS 59,649 jobs, $55,952 average pay (2024 dollars); Travis County
+  child care pay $37,302 vs $101,311 for all private jobs; Missouri withheld its statewide
+  agriculture, mining, construction and information figures for 2025 (the chart shows no bar).
+  Charts reviewed. Tests 253; verify 23 of 25 (FEMA 403 in Docker; FBI 503 upstream); round
+  trip 10/10; batch 12 ok, austin-78704 rejected as intended.
+- Next: BEA county GDP (PLAN.md step 3).

@@ -202,6 +202,8 @@ verify_sources <- function() {
     dol_ndcp = head_check("https://www.dol.gov/sites/dolgov/files/WB/NDCP2022.xlsx", "dol_ndcp"),
     census_geo = head_check("https://www2.census.gov/geo/tiger/GENZ2024/shp/cb_2024_us_county_500k.zip", "census_geo"),
     bls_laus = head_check("https://download.bls.gov/pub/time.series/la/la.area", "bls"),
+    bls_qcew = head_check(paste0("https://data.bls.gov/cew/data/files/", max(qcew_years), "/csv/", max(qcew_years),
+                                 "_annual_singlefile.zip"), "bls_qcew"),
     bls_r_cpi_u_rs = head_check("https://www.bls.gov/cpi/research-series/r-cpi-u-rs-allitems.xlsx", "bls"))
   rows <- lapply(names(checks), function(id) {
     ev <- tryCatch(list(result = "ok", evidence = checks[[id]]()),

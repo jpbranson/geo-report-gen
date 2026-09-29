@@ -254,17 +254,22 @@ per Quarto render, so rendering is the main cost whenever many reports change.
 
 ## Limitations
 
-- 262 of the 481 cataloged metrics are operational (ACS detailed tables, decennial census,
-  population estimates, SAIPE, SAHIE, CDC PLACES, County Business Patterns, LEHD LODES, FEMA
-  National Risk Index, USDA Food Environment Atlas, EAC Election Administration and Voting Survey,
-  Census of Governments finance, FBI Crime Data Explorer, IPUMS NHGIS, BEA, BLS, FHFA, building
-  permits, child care prices, Texas licensing); the rest are documented only.
+- 291 of the 503 cataloged metrics are operational (ACS detailed tables, decennial census,
+  population estimates, SAIPE, SAHIE, CDC PLACES, County Business Patterns, LEHD LODES, BLS QCEW,
+  FEMA National Risk Index, USDA Food Environment Atlas, EAC Election Administration and Voting
+  Survey, Census of Governments finance, FBI Crime Data Explorer, IPUMS NHGIS, BEA, BLS, FHFA,
+  building permits, child care prices, Texas licensing); the rest are documented only.
 - LODES (jobs by workplace and employed residents, 2002-2023) counts primary jobs, each worker's
   highest-paying job, summed from census blocks: cities, tracts and unions get exact values, on
   2024 boundaries in every year. It has no national or regional totals, and states that supplied
   no job data in some years (Alaska from 2017, Michigan from 2022, Washington, DC, before 2010,
   Massachusetts before 2011, four more states in 2002-2003) have no values then. Federal civilian
   jobs are counted from 2010. Commuting flows (the origin-destination files) are not used yet.
+- QCEW (jobs, establishments and pay at employers covered by unemployment insurance, 2001-2025)
+  covers counties, states and the nation; regions are sums of states. BLS's 1990-2000 files are a
+  NAICS reconstruction with one-year spikes (Oakland County, Michigan, 1997; New Jersey 1995) and
+  are not used. Values withheld to protect employers are shown as not published, never as zero.
+  The annual files take 1.9 GB in the cache (downloaded once and shared by every report).
 - Census years before the ACS (IPUMS NHGIS) cover income and poverty (1970 or 1980 to 2000),
   education, work and commuting (commuting modes 1990 and 2000). They come from the census long
   form, a sample; NHGIS publishes no margins of error for them, so they are drawn as dots and

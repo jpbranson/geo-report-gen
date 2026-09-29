@@ -261,3 +261,32 @@ jobs_arts_share_lodes,census_lehd_lodes,share,W_CNS17,W_C000,,,100,,jobs_industr
 jobs_food_share_lodes,census_lehd_lodes,share,W_CNS18,W_C000,,,100,,jobs_industry_lodes,Accommodation and food services
 jobs_other_services_share_lodes,census_lehd_lodes,share,W_CNS19,W_C000,,,100,,jobs_industry_lodes,Other services
 jobs_public_administration_share_lodes,census_lehd_lodes,share,W_CNS20,W_C000,,,100,,jobs_industry_lodes,Public administration
+covered_employment_qcew,bls_qcew,count,EMP_0_10,,,,1,,,
+establishments_qcew,bls_qcew,count,ESTAB_0_10,,,,1,,,
+average_annual_pay_qcew,bls_qcew,ratio,WAGES_0_10,EMP_0_10,,,1,year,,
+average_annual_pay_private_qcew,bls_qcew,ratio,WAGES_5_10,EMP_5_10,,,1,year,,
+childcare_establishments_qcew,bls_qcew,count,ESTAB_5_624410,,,,1,,,
+childcare_employment_qcew,bls_qcew,count,EMP_5_624410,,,,1,,,
+childcare_avg_annual_pay_qcew,bls_qcew,ratio,WAGES_5_624410,EMP_5_624410,,,1,year,,
+jobs_agriculture_share_qcew,bls_qcew,share,EMP_5_11,EMP_0_10,,,100,,jobs_ownership_industry_qcew,"Agriculture, forestry, fishing and hunting"
+jobs_mining_share_qcew,bls_qcew,share,EMP_5_21,EMP_0_10,,,100,,jobs_ownership_industry_qcew,"Mining, quarrying, oil and gas"
+jobs_utilities_share_qcew,bls_qcew,share,EMP_5_22,EMP_0_10,,,100,,jobs_ownership_industry_qcew,Utilities
+jobs_construction_share_qcew,bls_qcew,share,EMP_5_23,EMP_0_10,,,100,,jobs_ownership_industry_qcew,Construction
+jobs_manufacturing_share_qcew,bls_qcew,share,EMP_5_31-33,EMP_0_10,,,100,,jobs_ownership_industry_qcew,Manufacturing
+jobs_wholesale_share_qcew,bls_qcew,share,EMP_5_42,EMP_0_10,,,100,,jobs_ownership_industry_qcew,Wholesale trade
+jobs_retail_share_qcew,bls_qcew,share,EMP_5_44-45,EMP_0_10,,,100,,jobs_ownership_industry_qcew,Retail trade
+jobs_transportation_share_qcew,bls_qcew,share,EMP_5_48-49,EMP_0_10,,,100,,jobs_ownership_industry_qcew,Transportation and warehousing
+jobs_information_share_qcew,bls_qcew,share,EMP_5_51,EMP_0_10,,,100,,jobs_ownership_industry_qcew,Information
+jobs_finance_share_qcew,bls_qcew,share,EMP_5_52,EMP_0_10,,,100,,jobs_ownership_industry_qcew,Finance and insurance
+jobs_real_estate_share_qcew,bls_qcew,share,EMP_5_53,EMP_0_10,,,100,,jobs_ownership_industry_qcew,"Real estate, rental and leasing"
+jobs_professional_share_qcew,bls_qcew,share,EMP_5_54,EMP_0_10,,,100,,jobs_ownership_industry_qcew,"Professional, scientific and technical services"
+jobs_management_share_qcew,bls_qcew,share,EMP_5_55,EMP_0_10,,,100,,jobs_ownership_industry_qcew,Management of companies
+jobs_administrative_share_qcew,bls_qcew,share,EMP_5_56,EMP_0_10,,,100,,jobs_ownership_industry_qcew,"Administrative, support and waste services"
+jobs_education_share_qcew,bls_qcew,share,EMP_5_61,EMP_0_10,,,100,,jobs_ownership_industry_qcew,Educational services
+jobs_health_share_qcew,bls_qcew,share,EMP_5_62,EMP_0_10,,,100,,jobs_ownership_industry_qcew,Health care and social assistance
+jobs_arts_share_qcew,bls_qcew,share,EMP_5_71,EMP_0_10,,,100,,jobs_ownership_industry_qcew,"Arts, entertainment and recreation"
+jobs_food_share_qcew,bls_qcew,share,EMP_5_72,EMP_0_10,,,100,,jobs_ownership_industry_qcew,Accommodation and food services
+jobs_other_services_share_qcew,bls_qcew,share,EMP_5_81,EMP_0_10,,,100,,jobs_ownership_industry_qcew,Other services
+jobs_federal_share_qcew,bls_qcew,share,EMP_1_10,EMP_0_10,,,100,,jobs_ownership_industry_qcew,Federal government
+jobs_state_government_share_qcew,bls_qcew,share,EMP_2_10,EMP_0_10,,,100,,jobs_ownership_industry_qcew,State government
+jobs_local_government_share_qcew,bls_qcew,share,EMP_3_10,EMP_0_10,,,100,,jobs_ownership_industry_qcew,Local government

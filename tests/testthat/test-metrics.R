@@ -329,6 +329,36 @@ test_that("LODES: areas sum their census blocks; state-years without job data an
   expect_match(us$method, "does not publish data for the nation")
 })
 
+test_that("QCEW: counties, states and the nation; regions sum states; withheld and missing rows are not zeros", {
+  # Real rows of the 2024 and 2023 files: Delaware, Loving County (Texas), Connecticut,
+  # the nation and every state's total.
+  area <- function(id, keys) entity(id, "study", id, data.frame(key = keys, type = sub(":.*$", "", keys),
+                                                                geoid = sub("^[^:]*:", "", keys), name = id, pop = NA_real_))
+  st <- resolve_settings()
+  jobs <- function(e, year = 2024L) compute_metric("covered_employment_qcew", list(e), st, periods = year)
+  expect_equal(jobs(area("kent", "county:10001"))$value, 71071)
+  expect_equal(jobs(area("ks", c("county:10001", "county:10005")))$value, 71071 + 94273)
+  expect_equal(jobs(area("de", "state:10"))$value, 477336)
+  expect_equal(jobs(area("us", "nation:US"))$value, 154990441)
+  expect_equal(jobs(area("south", "region:3"))$value, 58068944)                           # 16 states and DC
+  pay <- compute_metric("average_annual_pay_qcew", list(area("kent", "county:10001")), st, periods = 2024L, constant_dollars = FALSE)
+  expect_equal(pay$value, 4084038467 / 71071)
+  private <- compute_metric("average_annual_pay_private_qcew", list(area("kent", "county:10001")), st, periods = 2024L)
+  expect_equal(private$status, "suppressed")                                              # flagged N in 2024
+  expect_match(private$method, "withheld by BLS")
+  # A row the file lacks is not a zero: Loving County has no private health care row.
+  health <- compute_metric("jobs_health_share_qcew", list(area("loving", "county:48301")), st, periods = 2024L)
+  expect_equal(health$status, "suppressed")
+  expect_match(health$method, "or no such employers")
+  # Connecticut's planning regions start in 2024.
+  capitol <- area("capitol", "county:09110")
+  expect_equal(jobs(capitol)$value, 522687)
+  old <- jobs(capitol, 2023L)
+  expect_equal(old$status, "unavailable")
+  expect_match(old$method, "not in the QCEW files for 2023")
+  expect_equal(jobs(area("dover", "place:1021200"))$status, "not_applicable")
+})
+
 test_that("a value the source did not publish carries the source's reason", {
   d <- long("county:1", "ESTAB_00", NA, NA, "suppressed")
   d$note <- "fewer than 3 establishments or none"

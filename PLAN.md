@@ -34,7 +34,7 @@ Key decisions
 
 ## Checklist
 
-Status as of 2026-09-29 15:10 (session 5; details in FLIGHT_LOG.md). `[x]` done and exercised by the
+Status as of 2026-09-29 15:50 (session 5; details in FLIGHT_LOG.md). `[x]` done and exercised by the
 sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
 
 - [x] Environment: renv library + `renv.lock`, Quarto discovery, `.env` for key/contact (never logged)
@@ -46,11 +46,11 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
       incl. overlap + part-whole dependence, status codes, constant dollars (R-CPI-U-RS)
 - [x] Providers: ACS 5-yr (2009-2024), decennial 2000/2010/2020 (1990 is not in the API), PEP, 1900-1990
       county counts, LAUS, BEA CAINC1, CPI, building permits, FHFA HPI, NDCP, CBP (all industries), Texas HHSC,
-      SAIPE, SAHIE, CDC PLACES, LEHD LODES, FEMA National Risk Index, USDA Food Environment Atlas, EAC EAVS,
+      SAIPE, SAHIE, CDC PLACES, LEHD LODES, BLS QCEW, FEMA National Risk Index, USDA Food Environment Atlas, EAC EAVS,
       Census of Governments finance, FBI Crime Data Explorer, IPUMS NHGIS (census years
       1790-2000, County Business Patterns 1970-1997)
-- [x] Catalog: tables (17 subjects / 82 subtopics, 122 sources, 481 metrics, 262 operational), the
-      browsable page (`gr.R catalog --html`) with scope and gaps, live `gr.R verify` (24 sources;
+- [x] Catalog: tables (17 subjects / 83 subtopics, 122 sources, 503 metrics, 291 operational), the
+      browsable page (`gr.R catalog --html`) with scope and gaps, live `gr.R verify` (25 sources;
       424 ACS recipe x release checks, no gaps)
 - [x] Content: manifests, block library, 3 profiles, scoped text, templates, cited history events,
       stale-fact warnings, `gr.R new` (subject/metric selection)
@@ -62,7 +62,7 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
       logs, build manifests; cold/warm/resumed benchmark and invalidation checks (README, docs/)
 - [x] Demos 1-11: sample reports, demos/round_trip.R (10/10), benchmark, README; PDF via Typst works
       (basic page layout, documented)
-- [x] Tests: 239 expectations pass offline with fixtures (`gr.R test`)
+- [x] Tests: 253 expectations pass offline with fixtures (`gr.R test`)
 - [x] Docs and lean review: README complete; dead code removed; R/blocks.R, R/geography.R and
       R/compose.R restructured, each with every report's output proven identical
 
@@ -247,12 +247,19 @@ recipes and blocks. As before, every new block goes into the profiles.
        note. Verified: tests 239; verify 23 of 24 (FEMA 403 in Docker, as before); round trip
        10/10; batch 12 reports ok, austin-78704 rejected as intended. Commuting shares (OD files,
        83 MB a year for California) left for later
-2. [ ] BLS QCEW (bls_qcew): covered jobs, establishments and average annual pay, all industries
-       and by NAICS sector, for counties, states and the nation, annual 1990-2025 (bulk ZIPs).
-       Workplace-based like CBP, but with wages and two years newer. Nondisclosed cells ("N")
-       are "suppressed" with the reason, as CBP's withheld cells are; pay in constant dollars.
-       Broaden the catalog row (now named for child care, NAICS 624410) to all industries; the
-       child care metrics stay
+2. [x] BLS QCEW (bls_qcew), done 15:50: R/providers/qcew.R reads the annual singlefile ZIPs and keeps
+       all-industry rows by ownership, private NAICS sectors and private child day care (624410)
+       for counties, states and the nation; regions and divisions sum their states. Changed from
+       the plan: years 2001-2025, not 1990-2025. BLS's 1990-2000 files are a NAICS reconstruction
+       of SIC records that omit withheld rows and hold one-year spikes found by a scan of every
+       county and state (Oakland County MI 1997 finance: 179,334 jobs and $57.3 billion vs 38,941
+       and $1.6 billion in 1996, inflating Michigan and the nation; New Jersey 1995 pay +42%);
+       none from 2001. Withheld cells (N) and absent rows are "suppressed", never zero. 29
+       metrics (jobs, establishments, pay per job, private pay, 19 private sectors and 3 levels of
+       government, child care establishments, jobs and pay); blocks employer-jobs-pay,
+       pay-per-job-trend, jobs-by-ownership-industry (general / economic development),
+       childcare-pay, childcare-pay-trend (early childhood); subtopic childcare_workforce. BLS
+       sources named bls_<program> now get the BLS contact and rate. Cache 1.9 GB (25 ZIPs)
 3. [ ] BEA GDP by county (bea_cagdp; CAGDP1, CAGDP2), 2001-2024: GDP in current dollars (summed for
        combined areas), real GDP in chained 2017 dollars (single areas only: chained dollars do
        not add), and GDP by industry. Extends R/providers/bea.R (same zip layout as CAINC1). (D)

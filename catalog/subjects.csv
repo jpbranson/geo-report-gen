@@ -14,6 +14,7 @@ children_early_childhood,Children and early childhood,working_parents,Working pa
 children_early_childhood,Children and early childhood,child_poverty,Child poverty,Children in households below the poverty line.
 children_early_childhood,Children and early childhood,early_education,Early education enrollment,Nursery school and preschool enrollment (not a measure of child care availability).
 childcare,Child care,childcare_supply,Providers and establishments,"Licensed providers, child care businesses and establishments."
+childcare,Child care,childcare_workforce,Workforce and pay,Jobs at child care employers and what they pay.
 childcare,Child care,childcare_capacity,Licensed capacity,Licensed slots (capacity) of regulated providers.
 childcare,Child care,childcare_enrollment,Enrollment and use,Children enrolled in or using child care.
 childcare,Child care,childcare_cost,Prices and affordability,Prices charged by providers and their share of family income.

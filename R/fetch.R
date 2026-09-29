@@ -11,9 +11,12 @@
 source_rates <- c(census_api = 5, census_files = 3, bls = 1, bea = 2, default = 2)
 
 # BLS rejects automated requests that do not name a contact, so BLS requests (and only
-# those) carry GR_HTTP_CONTACT, set in the git-ignored .env file, in the User-Agent header.
+# those: sources named "bls" or "bls_<program>") carry GR_HTTP_CONTACT, set in the git-ignored
+# .env file, in the User-Agent header.
+is_bls <- function(source) startsWith(source, "bls")
+
 user_agent_string <- function(source) {
-  contact <- if (identical(source, "bls")) Sys.getenv("GR_HTTP_CONTACT") else ""
+  contact <- if (is_bls(source)) Sys.getenv("GR_HTTP_CONTACT") else ""
   if (nzchar(contact)) paste0("geo-report-gen/0.1 (", contact, ")") else "geo-report-gen/0.1"
 }
 
@@ -79,11 +82,12 @@ http_request <- function(url, source, query = list(), secret = list()) {
     stop("Offline mode: no cached copy available, and fetching from ", source,
          " is disabled (", url, ")", call. = FALSE)
   }
-  rate <- source_rates[[if (source %in% names(source_rates)) source else "default"]]
+  realm <- if (is_bls(source)) "bls" else source   # all BLS programs share one polite rate
+  rate <- source_rates[[if (realm %in% names(source_rates)) realm else "default"]]
   req <- httr2::request(url)
   if (length(query) || length(secret)) req <- httr2::req_url_query(req, !!!query, !!!secret)
   req <- httr2::req_user_agent(req, user_agent_string(source))
-  req <- httr2::req_throttle(req, rate = rate, realm = source)
+  req <- httr2::req_throttle(req, rate = rate, realm = realm)
   req <- httr2::req_retry(req, max_tries = 5, retry_on_failure = TRUE,
                           is_transient = function(resp) httr2::resp_status(resp) %in% c(429, 500, 502, 503, 504),
                           backoff = function(attempt) min(60, 2^attempt))
