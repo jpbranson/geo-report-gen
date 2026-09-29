@@ -205,4 +205,4 @@ Reports may keep growing (the user edits down), so every new block goes into the
        ipums_nhgis_cbp (annual); new block jobs-long-history (general and economic development);
        payroll-trend from 1978 (the price index's first year). Data fixes: 1975 state payroll
        is in thousands of dollars; "D" in a value cell means withheld
-3. [ ] Check back with the user
+3. [x] Checked back with the user (01:00)
