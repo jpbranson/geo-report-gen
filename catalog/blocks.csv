@@ -105,3 +105,6 @@ nonemployer-trend,industries_business,metric,nonemployer_establishments_nes,time
 nonemployer-industry-mix,industries_business,composition,group:nonemployer_industry_nes,parents,bar,,"Businesses without employees by industry, against comparison areas (Nonemployer Statistics, latest year)"
 childcare-nonemployers,childcare,facts,childcare_nonemployer_establishments_nes;childcare_nonemployer_receipts_per_business_nes,parents,table,,"Child care businesses without employees (mostly home-based) and their average receipts (Nonemployer Statistics, latest year)"
 childcare-nonemployer-trend,childcare,metric,childcare_nonemployer_establishments_nes,time,line,,Child care businesses without employees since 1997 (Nonemployer Statistics)
+traffic-safety,transportation,facts,traffic_fatality_rate_per_100k_fars;pedestrian_bicyclist_rate_per_100k_fars;pedestrian_bicyclist_share_fars;traffic_fatalities_5yr_fars,parents,table,,"Traffic deaths per 100,000 residents, pedestrians and cyclists killed, over the latest five years (FARS)"
+traffic-death-rate-trend,transportation,metric,traffic_fatality_rate_per_100k_fars,time+parents,line,,"Traffic deaths per 100,000 residents in 5-year periods since 2009-2013 (FARS)"
+traffic-deaths-trend,transportation,metric,traffic_fatalities_fars,time,line,,Traffic deaths each year (FARS)

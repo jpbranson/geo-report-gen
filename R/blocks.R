@@ -488,7 +488,7 @@ method_note <- function(res, metric_id, ctx, settings) {
   doc <- metric_doc(metric_id)
   prov <- get_provider(recipe_for(metric_id)$source_id)
   notes <- character()
-  if (identical(prov$period_kind, "multiyear")) notes <- c(notes, phrase(ctx, "note_multiyear", list()))
+  if (identical(prov$period_kind, "multiyear")) notes <- c(notes, phrase(ctx, prov$period_phrase %||% "note_multiyear", list()))
   # A city's values over time follow its boundaries at each date, so annexations are part of change,
   # unless the source assigns every year to the same boundaries (LODES census blocks).
   legal_area <- any(ctx$study$pieces$type %in% c("place", "place_part", "cousub")) &&

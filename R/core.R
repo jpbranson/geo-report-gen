@@ -166,7 +166,8 @@ write_json_file <- function(x, path) {
 #   optional: series (label of the series a value belongs to), availability_note (which
 #   geographies are published), combine_moe = FALSE (margins of error of several areas
 #   cannot be combined, as for model-based estimates), fixed_boundaries (the year of the boundaries
-#   every period is tabulated in, when a source does not follow boundary changes)
+#   every period is tabulated in, when a source does not follow boundary changes), period_phrase
+#   (the text record describing multiyear periods, default "note_multiyear" for the ACS)
 provider_registry <- new.env(parent = emptyenv())
 
 register_provider <- function(id, provider) {

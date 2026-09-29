@@ -254,9 +254,9 @@ per Quarto render, so rendering is the main cost whenever many reports change.
 
 ## Limitations
 
-- 329 of the 534 cataloged metrics are operational (ACS detailed tables, decennial census,
+- 335 of the 537 cataloged metrics are operational (ACS detailed tables, decennial census,
   population estimates, SAIPE, SAHIE, CDC PLACES, County Business Patterns, Nonemployer
-  Statistics, LEHD LODES, BLS QCEW, BEA county income and GDP, FEMA National Risk Index, USDA Food Environment Atlas, EAC Election
+  Statistics, LEHD LODES, BLS QCEW, BEA county income and GDP, NHTSA FARS, FEMA National Risk Index, USDA Food Environment Atlas, EAC Election
   Administration and Voting Survey, Census of Governments finance, FBI Crime Data Explorer, IPUMS
   NHGIS, BLS, FHFA, building permits, child care prices, Texas licensing); the rest are
   documented only.
@@ -280,6 +280,11 @@ per Quarto render, so rendering is the main cost whenever many reports change.
   child care. Rates use BEA's population, or the Census Bureau's estimates where BEA has none
   (Connecticut's planning regions before 2024). Child care counts dip in 2017 nationally with no
   documented cause.
+- Traffic deaths (NHTSA FARS, 1982-2023) are counted where crashes happened. Counties come from
+  the crash codes; cities, their county parts and tracts from crash coordinates, which start in
+  2001, located in full-resolution 2024 TIGER/Line boundaries (a state-year needs 95% of crashes
+  with coordinates). Rates per 100,000 residents use 5-year totals and the ACS 5-year population.
+  Connecticut's planning regions are not coded (FARS keeps the former counties).
 - Census years before the ACS (IPUMS NHGIS) cover income and poverty (1970 or 1980 to 2000),
   education, work and commuting (commuting modes 1990 and 2000). They come from the census long
   form, a sample; NHGIS publishes no margins of error for them, so they are drawn as dots and

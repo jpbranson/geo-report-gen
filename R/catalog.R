@@ -151,6 +151,7 @@ verify_sources <- function() {
   checks <- list(
     census_acs5 = census_check("2024/acs/acs5", list(get = "NAME,B01003_001E", `for` = "us:1"), "2020-2024 ACS U.S. population", "B01003_001E"),
     census_dec = census_check("2020/dec/dhc", list(get = "NAME,P1_001N", `for` = "us:1"), "2020 Census U.S. population", "P1_001N"),
+    nhtsa_fars = head_check(sprintf("%s%d/National/FARS%dNationalAuxiliaryCSV.zip", fars_base, max(fars_years), max(fars_years)), "nhtsa_fars"),
     census_nes = head_check(paste0(nes_base, max(nes_years), "/historical-datasets/", nes_file(max(nes_years), "co")), "census_nes"),
     census_cbp = census_check("2023/cbp", list(get = "ESTAB", `for` = "us:*", NAICS2017 = "00", EMPSZES = "001", LFO = "001"),
                               "2023 U.S. establishments with employees", "ESTAB"),

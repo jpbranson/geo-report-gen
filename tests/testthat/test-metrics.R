@@ -409,6 +409,44 @@ test_that("Nonemployer Statistics: flagged cells are withheld, missing industrie
   expect_equal(capitol$value[2], 76682)
 })
 
+test_that("FARS: counties by crash codes, places and tracts by coordinates from 2001, 5-year rates per resident", {
+  # Real 2023 crashes in Delaware and Connecticut and 1990 crashes in Delaware; TIGER/Line
+  # boundaries of Dover and the four tracts where its 2023 crashes happened.
+  area <- function(id, keys) entity(id, "study", id, data.frame(key = keys, type = sub(":.*$", "", keys),
+                                                                geoid = sub("^[^:]*:", "", keys), name = id, pop = NA_real_))
+  st <- resolve_settings()
+  deaths <- function(e, year = 2023L, m = "traffic_fatalities_fars") compute_metric(m, list(e), st, periods = year)
+  expect_equal(deaths(area("kent", "county:10001"))$value, 32)
+  expect_equal(deaths(area("de", "state:10"))$value, 135)
+  expect_equal(deaths(area("de", "state:10"), m = "pedestrian_bicyclist_fatalities_fars")$value, 27 + 5)
+  expect_equal(deaths(area("dover", "place:1021200"))$value, 4)                     # crashes inside the boundary
+  expect_equal(deaths(area("part", "place_part:1021200-10001"))$value, 4)
+  expect_equal(deaths(area("tract", "tract:10001043300"))$value, 1)
+  expect_equal(deaths(area("kent", "county:10001"), 1990L)$value, 34)
+  before <- deaths(area("dover", "place:1021200"), 1990L)
+  expect_equal(before$status, "unavailable")
+  expect_match(before$method, "coordinates start in 2001")
+  ct <- deaths(area("capitol", "county:09110"))
+  expect_equal(ct$status, "unavailable")
+  expect_match(ct$method, "former counties")
+  # Five-year rates: deaths summed over the period over 5 x the ACS 5-year population. The
+  # yearly counts are replaced here, since the fixture holds only 2023 and 1990.
+  real <- fars_year_values
+  on.exit(assign("fars_year_values", real, envir = globalenv()))
+  assign("fars_year_values", function(year, pieces, vintage) {
+    data.frame(geo = rep(pieces$key, each = 3), variable = c("DEATHS", "PED_DEATHS", "BIKE_DEATHS"),
+               estimate = c(10, 2, 1), status = "ok", note = "", stringsAsFactors = FALSE)
+  }, envir = globalenv())
+  kent <- area("kent", "county:10001")
+  rate <- compute_metric("traffic_fatality_rate_per_100k_fars", list(kent), st, periods = 2023L)
+  expect_equal(rate$period_label, "2019–2023")
+  expect_equal(rate$value, 1e5 * 50 / (5 * 185043))                                     # ACS 2019-2023 population
+  expect_equal(compute_metric("pedestrian_bicyclist_share_fars", list(kent), st, periods = 2023L)$value, 100 * 15 / 50)
+  old_tract <- fars_5yr_fetch("PERSON_YEARS", area("t", "tract:10001043300")$pieces, 2018L)
+  expect_equal(old_tract$status, "unavailable")
+  expect_match(old_tract$note, "redrawn in 2020")
+})
+
 test_that("a value the source did not publish carries the source's reason", {
   d <- long("county:1", "ESTAB_00", NA, NA, "suppressed")
   d$note <- "fewer than 3 establishments or none"

@@ -328,3 +328,9 @@ nonemployer_food_share_nes,census_nes,share,ESTAB_72,ESTAB_00,,,100,,nonemployer
 nonemployer_other_services_share_nes,census_nes,share,ESTAB_81,ESTAB_00,,,100,,nonemployer_industry_nes,Other services
 childcare_nonemployer_establishments_nes,census_nes,count,ESTAB_62441,,,,1,,,
 childcare_nonemployer_receipts_per_business_nes,census_nes,ratio,RCPTOT_62441,ESTAB_62441,,,1,year,,
+traffic_fatalities_fars,nhtsa_fars,count,DEATHS,,,,1,,,
+pedestrian_bicyclist_fatalities_fars,nhtsa_fars,count,PED_DEATHS+BIKE_DEATHS,,,,1,,,
+traffic_fatalities_5yr_fars,nhtsa_fars_5yr,count,DEATHS_5YR,,,,1,,,
+traffic_fatality_rate_per_100k_fars,nhtsa_fars_5yr,ratio,DEATHS_5YR,PERSON_YEARS,,,100000,,,
+pedestrian_bicyclist_rate_per_100k_fars,nhtsa_fars_5yr,ratio,PED_DEATHS_5YR+BIKE_DEATHS_5YR,PERSON_YEARS,,,100000,,,
+pedestrian_bicyclist_share_fars,nhtsa_fars_5yr,share,PED_DEATHS_5YR+BIKE_DEATHS_5YR,DEATHS_5YR,,,100,,,

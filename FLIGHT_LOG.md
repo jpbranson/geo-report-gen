@@ -558,4 +558,60 @@ now git-ignored and its line appended to .env (never printed); the user can dele
 - 16:45 done: batch 12 ok (austin-78704 rejected as intended); verify 26 of 27 (FEMA 403 in
   Docker); round trip 10/10; tests 272; catalog 534 metrics, 329 operational. README and PLAN
   updated. Not committed yet (the user commits on request).
-- Resume point: NES done; next is FARS (PLAN.md step of 16:24, item 2) once the user agrees.
+- Committed and pushed (3de650f).
+
+## 2026-09-29 16:49 (session 5, continued): NHTSA FARS
+
+- The user asked to start FARS (PLAN.md step of 16:24, item 2).
+- ~17:00 files: https://static.nhtsa.gov/nhtsa/downloads/FARS/{YEAR}/National/FARS{YEAR}NationalCSV.zip
+  (1975 4.7 MB ... 2023 34 MB; accident.csv and person.csv inside, lowercase headers in some
+  years, e.g. 2001 and 2005) and FARS{YEAR}NationalAuxiliaryCSV.zip (1982+, about 1.3 MB;
+  harmonized A_PTYPE/A_PERINJ; ACC_AUX has COUNTY through 2019, CENSUS_2020_TRACT_FIPS from 2020).
+  Usable coordinates: 1999-2000 none (88888888), 2001 82%, 2005 96%, 2010 98.8%, 2023 99.7%.
+  Boundaries for points: TIGER/Line tl_2024_{st}_place/tract (full resolution; CO 2.8/8.3 MB,
+  TX 9.7/32.6 MB) rather than the generalized cb files maps use, since city limits follow roads.
+- Design (draft): annual deaths and pedestrian/cyclist deaths for counties from COUNTY codes
+  (1975+), places, place parts and tracts by point-in-polygon (2001+, a state-year needs 95% of
+  crashes with coordinates); regions, divisions, nation and metro areas sum states or counties.
+  Rates per 100,000 over 5-year windows ending in ACS release years (2009-2023) with the ACS
+  5-year population (x 5 person-years): a second provider with period_kind "multiyear".
+- ~17:10 codes: main PER_TYP changed between 1975 and 1990 (1975 pedestrians are code 3); the
+  auxiliary PER_AUX harmonizes from 1982: A_PERINJ 1 = killed (equals FATALS every year checked),
+  A_PTYPE 3 pedestrian, 4 pedalcyclist (1990 bike 859 = PER_TYP 6 + 7). Series start 1982.
+  County codes are FIPS except old codes: 12025 -> 12086 (Miami-Dade), 46113 -> 46102, 51515 ->
+  51019; 02261/02201 (split/renamed Alaska areas) and unknowns (x98, x99) count only in state
+  totals. Connecticut stays on its former counties through 2023, so planning regions get no
+  county-coded values.
+- Plan: years <= 2000 crashes from ACC_AUX (STATE, COUNTY, ST_CASE, FATALS); 2001+ from main
+  accident.csv (adds coordinates); persons always from PER_AUX. Main ZIPs only from 2001.
+- ~17:20 R/providers/fars.R written: nhtsa_fars (deaths by year, 1982-2023) and nhtsa_fars_5yr
+  (sums over ACS periods ending 2013, 2018, 2023; PERSON_YEARS = 5 x ACS B01003); crash table per
+  year cached; located crashes per state-year cached (TIGER/Line place and tract, full
+  resolution); coordinate-based pieces need 2001+ and 95% of the state's crashes located.
+- ~17:30 real data: 1990 44,599 deaths (0% located), 2001 42,196 (81.6%), 2023 41,025 (99.7%),
+  about 3 s a year to build. Catalog: 6 metrics (deaths, pedestrians and cyclists killed, by year;
+  5-year deaths, rate and pedestrian/cyclist rate per 100,000 residents a year, pedestrian/cyclist
+  share), source row nhtsa_fars_5yr (derived), blocks traffic-safety, traffic-death-rate-trend,
+  traffic-deaths-trend in the general profile's safety section; catalog --check clean.
+- ~17:45 real areas: Boulder city 2.8 deaths per 100,000 a year (2019-2023), Boulder County 8.3,
+  Colorado 11.7, West 11.6, U.S. 12.2; Austin's Travis part 11.7. First 5-year run 142 s (locating
+  crashes, ACS requests); cached after. Tract rates only from the 2020 ACS (2020 tracts). Rates
+  divide deaths in 2024 boundaries by each period's ACS population (noted in limitations).
+- Fixtures: FARS 2023 main+aux (Delaware and Connecticut crashes), 1990 aux (Delaware); TIGER
+  Dover place and 4 tracts; ACS 2023 B01003 Delaware counties. Tests 288 (5-year test replaces
+  yearly counts, since the fixture holds only 2023 and 1990). verify check: HEAD on the latest
+  auxiliary ZIP.
+- 17:09 batch: NHTSA has no auxiliary ZIP for 1996 (every other year 1982-2023 has both). 1996
+  now reads the main files (INJ_SEV 4; PER_TYP 5 pedestrian, 6 and 7 cyclists): 42,065 deaths
+  (NHTSA's published total), 5,449 pedestrians, 765 cyclists, in line with 1995 and 1997.
+- 17:18 batch ok (austin-78704 rejected); FARS cache 416 MB. Values: Gary 28.6 deaths per
+  100,000 a year (2019-2023) vs Lake County 11.7; Madison MS 2.2; Austin 11.2, Dallas 16.5,
+  Houston 15.9; pedestrian and cyclist rates in the four Texas cities 4.5-5.7 vs Texas 2.8.
+  The 5-year charts carried the ACS note ("error bars show margins of error"): providers can
+  now name their period note (period_phrase); FARS uses @phrase.note_five_year_totals.
+- 17:28 charts reviewed (Gary: rate trend and yearly deaths; Indiana 2002-2006 lack 95% located
+  crashes, so the city's yearly line has a gap). The rate chart's axis said "5-year survey
+  period": text record traffic-death-rate-trend.x_label = "5-year period". Batch ok; verify ok
+  except FEMA 403; round trip 10/10; catalog 537 metrics, 335 operational. Cache: FARS 555 MB,
+  TIGER 72 MB. README, PLAN updated. Committed and pushed at the user's request.
+- Resume point: FARS done; next is NCES CCD (PLAN.md step of 16:24, item 3) once the user agrees.
