@@ -45,6 +45,7 @@ test_that("values are formatted by the kind of unit, including descriptive catal
   th <- load_theme("default")
   expect_equal(fmt_value(12.34, "percent of households", th), "12.3%")
   expect_equal(fmt_value(52345, "dollars (final-year inflation-adjusted)", th), "$52,345")
+  expect_equal(fmt_value(c(190962191, 150079209150), "dollars", th), c("$191.0 million", "$150.1 billion"))
   expect_equal(fmt_value(2.514, "persons per household", th), "2.5")
   expect_equal(fmt_value(1978.4, "year", th), "1978")
   expect_equal(fmt_value(0.4712, "coefficient", th), "0.471")

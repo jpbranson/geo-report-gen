@@ -311,3 +311,6 @@ NRI, USDA Food Environment Atlas), then check back. Plan in PLAN.md.
 - Verified: tests 176; batch clean; gary-in, austin-tx (Travis and Williamson as context),
   ct-capitol (former counties reason), tx-cities reviewed; verify 18/18 ok, 424 ACS checks no gaps;
   round trip 10/10.
+- PDF check (21:20): gary-in renders via Typst with all new sections. Fixed: dollar totals of $10
+  million or more are shown as "$191.0 million" / "$150.1 billion" (full NRI totals overlapped in
+  PDF columns); PDF tables no longer hyphenate ("Indi-ana", "Pe-riod"). Tests 177; batch clean.

@@ -282,7 +282,7 @@ qmd_header <- function(report_id, title, subtitle, th) {
     paste0("    fig-width: ", th$figure_width),
     paste0("    fig-height: ", th$figure_height),
     "    include-in-header:",
-    paste0("      text: ", yaml_str("#show table: set text(size: 8pt)")),
+    paste0("      text: ", yaml_str("#show table: set text(size: 8pt, hyphenate: false)")),
     "knitr:",
     "  opts_chunk:",
     "    dev: ragg_png",

@@ -128,7 +128,7 @@ fmt_value <- function(x, units, th, bound = NA) {
     if (is.na(v)) return("–")
     s <- switch(kind,
       percent = paste0(formatC(v, format = "f", digits = theme_num(th, "digits_percent"), big.mark = ","), "%"),
-      dollars = paste0(if (v < 0) "-" else "", "$", formatC(abs(v), format = "f", digits = theme_num(th, "digits_dollars"), big.mark = ",")),
+      dollars = paste0(if (v < 0) "-" else "", "$", fmt_dollar_amount(abs(v), theme_num(th, "digits_dollars"))),
       years = formatC(v, format = "f", digits = 1),
       year = formatC(round(v), format = "d"),
       minutes = formatC(v, format = "f", digits = 1),
@@ -142,6 +142,13 @@ fmt_value <- function(x, units, th, bound = NA) {
     s
   }, "")
   out
+}
+
+# Large totals (such as expected losses of a state) in millions or billions, so tables stay narrow.
+fmt_dollar_amount <- function(v, digits) {
+  if (v >= 1e9) return(paste(formatC(v / 1e9, format = "f", digits = 1), "billion"))
+  if (v >= 1e7) return(paste(formatC(v / 1e6, format = "f", digits = 1), "million"))
+  formatC(v, format = "f", digits = digits, big.mark = ",")
 }
 
 # MOE of a percentage is in percentage points; shown without the % sign.
