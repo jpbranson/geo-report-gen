@@ -110,7 +110,7 @@ plot_trend <- function(b, txt, th) {
 # Year axis breaks at round intervals, inside the plotted range only.
 pretty_years <- function(r) {
   span <- diff(r)
-  by <- if (span > 60) 10 else if (span > 25) 5 else if (span > 10) 2 else 1
+  by <- if (span > 120) 20 else if (span > 60) 10 else if (span > 25) 5 else if (span > 10) 2 else 1
   breaks <- seq(ceiling(r[1] / by) * by, floor(r[2] / by) * by, by = by)
   if (length(breaks) < 2) round(r) else breaks
 }

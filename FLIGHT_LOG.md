@@ -407,3 +407,20 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   2024 dollars) against $38,000 now. Austin bachelor's or higher 21% (1970), 40% (2000).
   value-type recipes read their variable from the numerator column (fixed). Tests 213; batch
   clean (austin-78704 rejected as intended).
+
+## 2026-09-29 00:25 (session 3, continued): more NHGIS history
+
+- The user deleted temp-data/ (their emailed NHGIS downloads were byte-identical to the cached
+  extracts 5 and 6). Next: population to 1790 and CBP to 1970 from NHGIS.
+- Population (done ~00:40): A00 (1790-2020, nation/state/county) and AV0 (1970-2020, all levels)
+  in one extract with the long-form tables (extract 8, 4.1 min, 266,094 area-years). Recipes may
+  name years per table ("1790:A00AA; ... 1970:AV0AA"); nhgis_table_years() builds the request
+  from them. Lake County IN 1,468 (1840) -> 546,253 (1970); Gary 175,415 (1970) -> 116,646 (1990).
+- CBP 1970-1997 (done ~00:55): six NHGIS datasets (1970_1971_CBP ... 1988_1997_CBPb), breakdown
+  bs28/29/30.si---- (all industries), tables NT001 employees, NT003 annual payroll, NT004
+  establishments (1974+); one file per dataset x year x level, columns <nhgisCode>001 mapped to
+  SIC_EMP/SIC_PAYANN/SIC_ESTAB via dataset metadata. Quirks: 1975 state payroll in $1,000
+  (converted); 3 cells in 1970 hold "D" (withheld); national files only 1977-1997; state files
+  lack 1971, 1973, 1976; pseudo-states 98/99 (international operations, ships at sea) ignored.
+  Payroll per employee starts 1978 (R-CPI-U-RS). Lake County IN jobs 178,111 (1970), peak
+  201,847 (1979), 146,469 (1986). Tests 226; verify 23 of 23; round trip 10/10; batch clean.

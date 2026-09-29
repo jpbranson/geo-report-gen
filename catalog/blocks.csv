@@ -30,7 +30,7 @@ poverty-map,income_poverty_hardship,map,poverty_rate_acs,within,map,,Poverty rat
 income-map,income_poverty_hardship,map,median_household_income_acs,within,map,,Median household income by census tract within the study area
 availability,appendix,availability,,none,table,,Measures not shown and why
 sources,appendix,sources,,none,list,,"Geography, benchmarks and sources"
-pop-long-history,demographics,metric,pop_total_dec;pop_hist_census;pop_estimate_pep,time,line,history_start=1900,Population across the longest available record: census counts 1900-2020 and annual estimates 2000-2025
+pop-long-history,demographics,metric,pop_total_dec;pop_census_nhgis;pop_estimate_pep,time,line,history_start=1790,"Population across the longest available record: census counts 1790-2020 (counties from 1790 and places from 1970, via IPUMS NHGIS until 1990) and annual estimates 2000-2025"
 pop-estimates,demographics,metric,pop_estimate_pep,time+parents,line,index=first; history_start=2000,"Annual population estimates indexed to 2000, by estimate series (not spliced)"
 unemployment-trend,employment_labor,metric,unemployment_rate_laus,time+parents,line,history_start=1990,Annual unemployment rate since 1990 with recessions shaded
 pcpi-trend,income_poverty_hardship,metric,per_capita_personal_income_bea,time+parents,line,index=relative; history_start=1969,Per capita personal income since 1969 (county context for places)
@@ -73,9 +73,10 @@ health-behaviors,health,facts,current_smoking_places;binge_drinking_places;physi
 diabetes-map,health,map,diabetes_prevalence_places,within,map,,Diagnosed diabetes among adults by census tract (CDC PLACES)
 social-needs,income_poverty_hardship,facts,food_insecurity_adults_places;snap_receipt_adults_places;housing_insecurity_places;utility_shutoff_threat_places;lack_reliable_transportation_places,parents,table,,"Food insecurity, SNAP, unpaid housing costs, utility shutoff threats and transportation barriers among adults (CDC PLACES; states that asked)"
 jobs-trend,industries_business,metric,employment_cbp,time+parents,line,index=first; history_start=1998,"Jobs located in the area (mid-March paid employees) since 1998, indexed to 1998"
+jobs-long-history,industries_business,metric,employment_cbp;employment_cbp_sic,time,line,history_start=1970,"Jobs located in the area since 1970: County Business Patterns under SIC (1970-1997, IPUMS NHGIS) and NAICS (from 1998), as separate series"
 business-summary,industries_business,facts,establishments_cbp;employment_cbp;annual_payroll_per_employee_cbp,parents,table,,"Business establishments, jobs and payroll per employee (County Business Patterns, latest year)"
 jobs-industry-mix,industries_business,composition,group:jobs_industry,parents,bar,,"Jobs located in the area by the employer's industry, against comparison areas (County Business Patterns, latest year)"
-payroll-trend,employment_labor,metric,annual_payroll_per_employee_cbp,time+parents,line,history_start=1998,Annual payroll per employee since 1998 in constant dollars
+payroll-trend,employment_labor,metric,annual_payroll_per_employee_cbp;annual_payroll_per_employee_cbp_sic,time+parents,line,history_start=1978,"Annual payroll per employee since 1978 (the first year of the price index) in constant dollars: County Business Patterns under SIC (1978-1997, IPUMS NHGIS) and NAICS (from 1998)"
 childcare-jobs,childcare,metric,childcare_employment_cbp,time,line,history_start=1998,Paid employees of child day care establishments since 1998
 hazard-risk,environment_climate,facts,nri_risk_score_nri;nri_social_vulnerability_score_nri;nri_community_resilience_score_nri;nri_heat_wave_risk_score_nri,parents,table,,"Natural hazard risk, social vulnerability and resilience scores of the county (FEMA National Risk Index)"
 hazard-losses,environment_climate,facts,nri_expected_annual_loss_nri;nri_eal_per_resident_nri;nri_building_loss_rate_nri,parents,table,,"Expected annual losses from natural hazards, in total, per resident and per $1 million of buildings"

@@ -231,3 +231,7 @@ commute_walk_share_census,ipums_nhgis,share,C53AR,C53AA+C53AI+C53AO+C53AP+C53AQ+
 commute_bicycle_share_census,ipums_nhgis,share,C53AQ,C53AA+C53AI+C53AO+C53AP+C53AQ+C53AR+C53AS+C53AT,,,100,,commute_mode,Bicycle
 commute_other_share_census,ipums_nhgis,share,C53AO+C53AP+C53AS,C53AA+C53AI+C53AO+C53AP+C53AQ+C53AR+C53AS+C53AT,,,100,,commute_mode,"Taxi, motorcycle or other"
 work_from_home_share_census,ipums_nhgis,share,C53AT,C53AA+C53AI+C53AO+C53AP+C53AQ+C53AR+C53AS+C53AT,,,100,,commute_mode,Worked from home
+pop_census_nhgis,ipums_nhgis,count,1790:A00AA; 1800:A00AA; 1810:A00AA; 1820:A00AA; 1830:A00AA; 1840:A00AA; 1850:A00AA; 1860:A00AA; 1870:A00AA; 1880:A00AA; 1890:A00AA; 1900:A00AA; 1910:A00AA; 1920:A00AA; 1930:A00AA; 1940:A00AA; 1950:A00AA; 1960:A00AA; 1970:AV0AA; 1980:AV0AA; 1990:AV0AA,,,,1,,,
+employment_cbp_sic,ipums_nhgis_cbp,count,SIC_EMP,,,,1,,,
+establishments_cbp_sic,ipums_nhgis_cbp,count,SIC_ESTAB,,,,1,,,
+annual_payroll_per_employee_cbp_sic,ipums_nhgis_cbp,ratio,SIC_PAYANN,SIC_EMP,,,1,year,,

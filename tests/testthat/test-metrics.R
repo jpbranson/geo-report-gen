@@ -84,6 +84,41 @@ test_that("NHGIS census years: areas match by current codes; missing and untabul
   expect_match(income$method[3], "not tabulated")
 })
 
+test_that("NHGIS population: counties from 1790, places from 1970; a table missing at a level says so", {
+  county <- entity("kent", "study", "Kent County, Delaware", data.frame(key = "county:10001", type = "county", geoid = "10001",
+                                                                       name = "Kent County, Delaware", pop = NA_real_))
+  dover <- entity("dover", "study", "Dover city, Delaware", data.frame(key = "place:1021200", type = "place", geoid = "1021200",
+                                                                      name = "Dover city, Delaware", pop = NA_real_))
+  st <- resolve_settings()
+  k <- compute_metric("pop_census_nhgis", list(county), st, periods = c(1790L, 1810L, 1970L))  # A00 until 1960, then AV0
+  expect_equal(k$value, c(1000, NA, 81000))
+  expect_match(k$method[2], "did not exist then")
+  d <- compute_metric("pop_census_nhgis", list(dover), st, periods = c(1790L, 1980L))
+  expect_equal(d$status, c("not_applicable", "ok"))
+  expect_match(d$method[1], "only for the nation, states and counties")
+  expect_equal(d$value[2], 23500)
+})
+
+test_that("NHGIS County Business Patterns 1970-1997: withheld totals, missing files, years without payroll", {
+  # Made-up extract in NHGIS's dataset layout; one file per dataset, year and level.
+  area <- function(id, key, type) entity(id, "study", id, data.frame(key = key, type = type, geoid = sub("^.*:", "", key), name = id, pop = NA_real_))
+  kent <- area("kent", "county:10001", "county")
+  nc <- area("nc", "county:10003", "county")
+  us <- area("us", "nation:US", "nation")
+  st <- resolve_settings()
+  jobs <- compute_metric("employment_cbp_sic", list(kent, nc), st, periods = c(1970L, 1976L))
+  expect_equal(jobs$value[jobs$entity_id == "kent"], c(18000, 20000))
+  expect_equal(jobs$status[jobs$entity_id == "nc" & jobs$period == "1976"], "suppressed")   # flagged total
+  expect_match(jobs$method[jobs$entity_id == "nc" & jobs$period == "1976"], "withheld")
+  expect_equal(compute_metric("establishments_cbp_sic", list(nc), st, periods = 1976L)$value, 7000)  # always published
+  pay <- compute_metric("annual_payroll_per_employee_cbp_sic", list(kent), st, periods = c(1970L, 1976L), constant_dollars = FALSE)
+  expect_equal(pay$value, c(NA, 200000000 / 20000))
+  expect_match(pay$method[1], "no annual payroll")
+  nation <- compute_metric("employment_cbp_sic", list(us), st, periods = c(1976L, 1977L))
+  expect_equal(nation$status, c("unavailable", "ok"))
+  expect_match(nation$method[1], "national files start in 1977")
+})
+
 test_that("ACS special values become statuses, never numbers", {
   d <- acs_decode(c("100", "-666666666", "-888888888", "250001"),
                   c("10", "-222222222", "-888888888", "-333333333"),

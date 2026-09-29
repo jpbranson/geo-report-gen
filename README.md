@@ -232,7 +232,7 @@ per Quarto render, so rendering is the main cost whenever many reports change.
 
 ## Limitations
 
-- 232 of the 458 cataloged metrics are operational (ACS detailed tables, decennial census,
+- 236 of the 462 cataloged metrics are operational (ACS detailed tables, decennial census,
   population estimates, SAIPE, SAHIE, CDC PLACES, County Business Patterns, FEMA National Risk
   Index, USDA Food Environment Atlas, EAC Election Administration and Voting Survey, Census of
   Governments finance, FBI Crime Data Explorer, IPUMS NHGIS, BEA, BLS, FHFA, building permits,
@@ -242,9 +242,18 @@ per Quarto render, so rendering is the main cost whenever many reports change.
   form, a sample; NHGIS publishes no margins of error for them, so they are drawn as dots and
   never tested. Areas are linked across censuses by name and code, on each census's boundaries.
   Connecticut's planning regions and combined areas' medians have no census values. The NHGIS
-  terms forbid redistributing the data: extracts stay in the cache, and the test fixture is made
-  up. Other NHGIS holdings (county population from 1790, CBP from 1970, constant-boundary
-  counts, Connecticut crosswalks) are described in `docs/nhgis.md`.
+  terms forbid redistributing the data: extracts stay in the cache, and the test fixtures are
+  made up. Other NHGIS holdings (constant-boundary counts, Connecticut crosswalks) are described
+  in `docs/nhgis.md`.
+- Population census counts reach back to 1790 for counties, states and the nation, and to 1970
+  for places and county subdivisions (IPUMS NHGIS until 1990). A county's early counts cover
+  its territory at each census, which may differ from today's.
+- County Business Patterns before 1998 (IPUMS NHGIS) give all-industry jobs from 1970 and
+  payroll and establishments from 1974 for counties, states and the nation, under SIC industry
+  codes; they are drawn as a separate series from the NAICS years. National files start in 1977
+  and state files skip 1971, 1973 and 1976. The 1975 state file reports payroll in thousands
+  of dollars; the provider converts it. Payroll per employee starts in 1978, the first year of
+  the R-CPI-U-RS price index.
 - Crime rates (FBI Crime Data Explorer, 2016-2025) need a free api.data.gov key in `.env`
   (`DATA_GOV_API_KEY`), sent only as a request header. The FBI publishes police agencies: a city
   is its police department (matched by name) and needs all 12 months reported in a year (Gary did

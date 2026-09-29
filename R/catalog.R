@@ -188,6 +188,11 @@ verify_sources <- function() {
       paste0("NHGIS table B79 (", x$description, ") census years: ",
              paste(intersect(nhgis_census_years, vapply(x$years, `[[`, "", "name")), collapse = ", "))
     },
+    ipums_nhgis_cbp = function() {
+      x <- nhgis_get("metadata/datasets/1988_1997_CBPa")
+      paste0("NHGIS dataset 1988_1997_CBPa (", x$description, "): ", length(x$years), " years, table NT001 ",
+             x$dataTables[[1]]$description)
+    },
     dol_ndcp = head_check("https://www.dol.gov/sites/dolgov/files/WB/NDCP2022.xlsx", "dol_ndcp"),
     census_geo = head_check("https://www2.census.gov/geo/tiger/GENZ2024/shp/cb_2024_us_county_500k.zip", "census_geo"),
     bls_laus = head_check("https://download.bls.gov/pub/time.series/la/la.area", "bls"),

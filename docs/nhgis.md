@@ -9,7 +9,10 @@ as `ipums_nhgis`.
 1970-2000 of B79, BD5, CL6/AX6, B84, B69 and C53. They appear in the income, per capita income,
 poverty, labor force, employment ratio and education charts (as dots) and the commuting chart
 (1990 and 2000 bars), for the nation, regions, divisions, states, counties, towns and places.
-The rest of this page is still open.
+Additions 4 and 5 were added on 2026-09-29: population counts from 1790 (A00; places and towns
+from 1970, AV0) in the long population history, and County Business Patterns 1970-1997 (all
+industries, SIC) in a new jobs history chart and the payroll chart. The rest of this page is
+still open.
 
 ## What it would add
 
