@@ -92,10 +92,13 @@ One-time setup:
 1. In the Cloudflare dashboard, turn on R2 (the free tier covers 10 GB with no download fees, but
    Cloudflare asks for a payment card) and create a bucket named `geo-report-data`. In the
    bucket's settings, add an object lifecycle rule: prefix `trash/`, delete objects 30 days
-   after upload.
+   after upload. With Cloudflare's `wrangler` CLI, the same is
+   `npx wrangler r2 bucket create geo-report-data` and
+   `npx wrangler r2 bucket lifecycle add geo-report-data trash-30-days trash/ --expire-days 30`.
 2. R2 > Manage API tokens > Create API token: "Object Read & Write", applied to the
    `geo-report-data` bucket only. Note the access key ID, the secret access key and the S3
-   endpoint (`https://<account id>.r2.cloudflarestorage.com`).
+   endpoint (`https://<account id>.r2.cloudflarestorage.com`). One token per machine lets you
+   revoke one without touching the other.
 3. On each machine, install rclone 1.66 or later (`brew install rclone` on a Mac;
    `winget install Rclone.Rclone` on Windows, then open a new terminal) and add the remote:
 
@@ -134,7 +137,7 @@ Everything runs through one entry point, `Rscript gr.R <command>`:
 |---|---|
 | `build <id>...` | fold inline edits back into the content, compute, write `report.qmd`, render if anything changed |
 | `batch [id...]` | build many reports: compose one by one (shared cache), then render in parallel |
-| `new <id> --geo <spec> [--mode ...] [--profile ...] [--subjects a,b] [--metrics m1,m2]` | add a report, optionally with a manifest built from subjects and metrics |
+| `new <id> --geo <spec> [--mode ...] [--profile ...] [--subjects a,b] [--metrics m1,m2] [--label ...]` | add a report, optionally with a manifest built from subjects and metrics |
 | `preview <id>` | live preview while editing `reports/<id>/report.qmd` |
 | `harvest <id>` | save inline edits without rebuilding |
 | `text-export <id> <file.csv>` / `text-import <file.csv>` | bulk text editing in a spreadsheet |
@@ -303,6 +306,7 @@ above it. Moving a row moves the block; numbering and the table of contents foll
 | `lake-in` | tract maps within a county, income and rent distributions, and time-only blocks without parent charts |
 | `tx-cities` | four cities compared side by side against their shared benchmarks |
 | `in-cities` | one list split into one report per city |
+| `madison-ms` | a smaller city (Madison, Mississippi) with the general profile |
 
 The catalog of subjects, sources and metrics, with verification status and known gaps, is
 `catalog/catalog.html` (`gr.R catalog --html`).
@@ -343,10 +347,10 @@ about 5 minutes per extract.
 
 - 335 of the 537 cataloged metrics are operational (ACS detailed tables, decennial census,
   population estimates, SAIPE, SAHIE, CDC PLACES, County Business Patterns, Nonemployer
-  Statistics, LEHD LODES, BLS QCEW, BEA county income and GDP, NHTSA FARS, FEMA National Risk Index, USDA Food Environment Atlas, EAC Election
-  Administration and Voting Survey, Census of Governments finance, FBI Crime Data Explorer, IPUMS
-  NHGIS, BLS, FHFA, building permits, child care prices, Texas licensing); the rest are
-  documented only.
+  Statistics, LEHD LODES, BLS QCEW, BEA county income and GDP, NHTSA FARS, FEMA National Risk
+  Index, USDA Food Environment Atlas, EAC Election Administration and Voting Survey, Census of
+  Governments finance, FBI Crime Data Explorer, IPUMS NHGIS, BLS unemployment, FHFA, building
+  permits, child care prices, Texas licensing); the rest are documented only.
 - LODES (jobs by workplace and employed residents, 2002-2023) counts primary jobs, each worker's
   highest-paying job, summed from census blocks: cities, tracts and unions get exact values, on
   2024 boundaries in every year. It has no national or regional totals, and states that supplied
@@ -379,10 +383,10 @@ about 5 minutes per extract.
   on each census's boundaries. A chart with census years and ACS periods also states the change
   from the first census to the latest period, as approximate and untested. Connecticut's planning
   regions get census counts and shares summed from their towns (which kept their codes); their
-  medians, and combined areas' medians, have no census values. The NHGIS
-  terms forbid redistributing the data: extracts stay in the cache, and the test fixtures are
-  made up. Other NHGIS holdings (constant-boundary counts, Connecticut crosswalks) are described
-  in `docs/nhgis.md`.
+  medians, and combined areas' medians, have no census values. The NHGIS terms forbid
+  redistributing the data: extracts stay in the cache, and the test fixtures are made up. Other
+  NHGIS holdings (constant-boundary counts, Connecticut crosswalks) are described in
+  `docs/nhgis.md`.
 - Population census counts reach back to 1790 for counties, states and the nation, and to 1970
   for places and county subdivisions (IPUMS NHGIS until 1990). A county's early counts cover
   its territory at each census, which may differ from today's.

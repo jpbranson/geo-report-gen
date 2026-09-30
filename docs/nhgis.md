@@ -6,13 +6,15 @@ County Business Patterns 1970-2002 and other historical tables. It links them ac
 as `ipums_nhgis`.
 
 **Implemented (2026-09-29):** addition 1 below, in `R/providers/nhgis.R`. It covers census years
-1970-2000 of B79, BD5, CL6/AX6, B84, B69 and C53. They appear in the income, per capita income,
-poverty, labor force, employment ratio and education charts (as dots) and the commuting chart
-(1990 and 2000 bars), for the nation, regions, divisions, states, counties, towns and places.
-Additions 4 and 5 were added on 2026-09-29: population counts from 1790 (A00; places and towns
-from 1970, AV0) in the long population history, and County Business Patterns 1970-1997 (all
-industries, SIC) in a new jobs history chart and the payroll chart. The rest of this page is
-still open.
+1970-2000 of B79, BD5, CL6/AX6, B84, B69, C53 and B37. They appear in the income, per capita
+income, poverty, labor force, employment ratio, education and homeownership charts (as dots) and
+the commuting chart (1990 and 2000 bars), for the nation, regions, divisions, states, counties,
+towns and places. Additions 4 and 5: population counts from 1790 (A00; places and towns from
+1970, AV0) in the long population history, and County Business Patterns 1970-1997 (all
+industries, SIC) in a jobs history chart and the payroll chart. For Connecticut's planning
+regions (addition 2), census counts and shares are summed from their towns, which kept their
+codes, rather than carried through the crosswalks; medians have no census values there.
+Additions 3 and 6, and the topics without time series tables, are still open.
 
 ## What it would add
 

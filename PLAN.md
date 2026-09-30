@@ -3,15 +3,18 @@
 Environment found: empty directory; R 4.6.1 (project library via renv), Quarto 1.9.38 (bundled with
 RStudio), no git history. The Census Data API now **requires a key** for every request (verified
 2026-09-28: keyless calls redirect to `missing_key.html`). Machine-specific settings live in the
-git-ignored `.env` (read at startup by R/load.R): `CENSUS_API_KEY`, and `GR_HTTP_CONTACT` (the
-user's email, sent only to BLS, which rejects automated requests without a contact).
+git-ignored `.env` (read at startup by R/load.R): `CENSUS_API_KEY`, `GR_HTTP_CONTACT` (the
+user's email, sent only to BLS, which rejects automated requests without a contact),
+`DATA_GOV_API_KEY` (FBI Crime Data Explorer) and `IPUMS_API_KEY` (IPUMS NHGIS).
 
 ## Architecture (one path: config -> data -> analysis -> report)
 
 ```
-gr.R                    single CLI entry point (new, build, batch, text-export/import, catalog, verify)
+gr.R                    single CLI entry point (build, batch, preview, new, harvest,
+                        text-export/import, find, catalog, verify, test)
 config/                 settings.csv (scoped settings), reports.csv (report instances), themes.csv
-catalog/                subjects.csv, sources.csv, metrics.csv, coverage.csv (machine-readable, browsable)
+catalog/                subjects, sources, metrics (documentation), recipes (computation), blocks,
+                        geo_support (CSV, browsable as catalog.html)
 content/                text.csv (scoped canonical text), prose/*.md, history_events.csv (cited context)
 profiles/               audience manifests (general, early-childhood, economic-development)
 R/                      engine: fetch+cache, providers, geography graph, statistics, content, charts, build
@@ -20,6 +23,9 @@ quarto/                 report template assets (Lua placeholder filter, SCSS gen
 reports/<id>/           generated editable report.qmd + snapshot + rendered HTML + build.json
 cache/                  shared persistent cache: raw downloads, normalized tables, computed metrics
 tests/                  testthat: statistics, geography, content round trips, cache keys, fixtures
+demos/                  editing round trip and benchmark scripts
+tools/                  moving cache/ and reports/ between machines (R2 sync, tar bundle)
+Dockerfile, compose.yaml  the same toolchain in a container (amd64 and arm64)
 ```
 
 Key decisions
@@ -34,7 +40,7 @@ Key decisions
 
 ## Checklist
 
-Status as of 2026-09-29 17:30 (session 5; details in FLIGHT_LOG.md). `[x]` done and exercised by the
+Status as of 2026-09-29 23:30 (session 6; details in FLIGHT_LOG.md). `[x]` done and exercised by the
 sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
 
 - [x] Environment: renv library + `renv.lock`, Quarto discovery, `.env` for key/contact (never logged)
@@ -45,11 +51,12 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
 - [x] Statistics: counts, shares, ratios, medians from distributions, MOE propagation, significance tests
       incl. overlap + part-whole dependence, status codes, constant dollars (R-CPI-U-RS)
 - [x] Providers: ACS 5-yr (2009-2024), decennial 2000/2010/2020 (1990 is not in the API), PEP,
-      LAUS, BEA CAINC1 and county GDP, CPI, building permits, FHFA HPI, NDCP, CBP (all industries), Texas HHSC,
-      SAIPE, SAHIE, CDC PLACES, Nonemployer Statistics, LEHD LODES, BLS QCEW, NHTSA FARS, FEMA National Risk Index, USDA Food Environment Atlas, EAC EAVS,
-      Census of Governments finance, FBI Crime Data Explorer, IPUMS NHGIS (census years
-      1790-2000, County Business Patterns 1970-1997)
-- [x] Catalog: tables (17 subjects / 83 subtopics, 123 sources, 537 metrics, 335 operational), the
+      LAUS, BEA CAINC1 and county GDP, CPI, building permits, FHFA HPI, NDCP, CBP (all
+      industries), Texas HHSC, SAIPE, SAHIE, CDC PLACES, Nonemployer Statistics, LEHD LODES, BLS
+      QCEW, NHTSA FARS, FEMA National Risk Index, USDA Food Environment Atlas, EAC EAVS, Census of
+      Governments finance, FBI Crime Data Explorer, IPUMS NHGIS (census years 1790-2000, County
+      Business Patterns 1970-1997)
+- [x] Catalog: tables (17 subjects / 83 subtopics, 124 sources, 537 metrics, 335 operational), the
       browsable page (`gr.R catalog --html`) with scope and gaps, live `gr.R verify` (28 sources;
       424 ACS recipe x release checks, no gaps)
 - [x] Content: manifests, block library, 3 profiles, scoped text, templates, cited history events,
@@ -65,6 +72,8 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
 - [x] Tests: 321 expectations pass offline with fixtures (`gr.R test`)
 - [x] Docs and lean review: README complete; dead code removed; R/blocks.R, R/geography.R and
       R/compose.R restructured, each with every report's output proven identical
+- [x] Portability: Docker image (amd64, arm64); cache/ and reports/ move between machines by a
+      two-way Cloudflare R2 sync (tools/data-sync.*) or a tar bundle (tools/bundle-data.*)
 
 ## Step agreed with the user 2026-09-28 17:20 (done 17:35; checking back)
 
@@ -207,7 +216,7 @@ Reports may keep growing (the user edits down), so every new block goes into the
        is in thousands of dollars; "D" in a value cell means withheld
 3. [x] Checked back with the user (01:00)
 
-## Proposed next steps (saved 2026-09-29, not started)
+## Proposed next steps (saved 2026-09-29; all three done as review items 23-25 below)
 
 1. [x] Constant dollars before 1978: extend the price index back with the regular CPI-U (BLS
        suggests CPI-U for years before the R-CPI-U-RS begins in 1978), scaled to meet the
@@ -272,7 +281,7 @@ recipes and blocks. As before, every new block goes into the profiles.
 4. [x] Verified after each source (tests 263; verify 25 of 26, FEMA 403 in Docker; round trip 10/10;
        batch 12 ok, austin-78704 rejected as intended); checking back with the user (16:15)
 
-## Step agreed with the user 2026-09-29 16:24: five more sources, in order
+## Step agreed with the user 2026-09-29 16:24: five more sources, in order (1-2 done; 3-6 not started)
 
 Ranked by gap filled, geography, history and effort (catalog 16:20: education has 5 operational
 metrics, public safety 3, civic participation 2; nothing measures deaths, school enrollment or
@@ -298,17 +307,17 @@ so work can resume after an interruption.
        traffic-safety, traffic-death-rate-trend, traffic-deaths-trend (general, safety section).
        Engine: providers can name their multiyear period note (period_phrase). Tests 288; verify
        ok (FEMA 403 only); round trip 10/10; batch 12 ok. Cache 555 MB plus 72 MB of TIGER boundaries
-3. [x] NCES Common Core of Data (nces_ccd), 1986-2025: public school enrollment by grade (public
+3. [ ] NCES Common Core of Data (nces_ccd), 1986-2025: public school enrollment by grade (public
        pre-K for early childhood), schools, student-teacher ratios; built from school locations
        (EDGE geocodes) since districts are not a supported geography; large files (school
        membership about 190 MB a year)
-4. [x] NOAA Storm Events (noaa_storm_events), 1950-present: storm deaths, injuries and damage by
+4. [ ] NOAA Storm Events (noaa_storm_events), 1950-present: storm deaths, injuries and damage by
        event type and year for counties; zone-based events (43% in 2024) need NOAA's zone-county
        correlation; damage is rough and nominal
-5. [x] County Health Rankings (uwphi_chrr), 2010-2025, counties: premature death, life expectancy,
+5. [ ] County Health Rankings (uwphi_chrr), 2010-2025, counties: premature death, life expectancy,
        injury deaths and other county measures; secondary compilation with pooled years; terms
        allow non-profit use (commercial use needs written consent)
-6. [x] Verify (tests, gr.R verify, demos/round_trip.R, batch) after each source; check back with
+6. [ ] Verify (tests, gr.R verify, demos/round_trip.R, batch) after each source; check back with
        the user after all five
 
 ## Step agreed with the user 2026-09-29 17:49: data bundle command (done 17:55)
@@ -317,6 +326,19 @@ so work can resume after an interruption.
        <Downloads>/geo-report-data-<date>-<commit>.tar (cache/ and reports/, never .env) and a
        .sha256; tested on the Mac (4.0 GB, extraction identical); README "Moving the data to
        another machine". Windows script reviewed, not run (no PowerShell on the Mac)
+
+## Step agreed with the user 2026-09-29 23:00: two-way data sync through Cloudflare R2 (done 23:27)
+
+1. [x] tools/data-sync.sh (Mac/Linux) and tools/data-sync.cmd + .ps1 (Windows) run rclone bisync
+       between the project folder and the R2 bucket geo-report-data, with the rules in
+       tools/data-sync-filters.txt (cache/raw, cache/geo and reports; not cache/metrics, lock files
+       or partial downloads). Deletions reach the other machine (cache pruning may come later);
+       deleted or overwritten bucket files move to trash/<time>/ (30-day lifecycle rule); newer
+       copy wins a conflict, the other kept as <name>.conflict1; >50% deletes stop until --force
+2. [x] Tested against a local `rclone serve s3` (both scripts, two scratch machines); README
+       "Moving the data to another machine" leads with the sync and its one-time setup
+3. [x] R2 bucket and lifecycle rule created with wrangler; first sync from the PC (4,468 files,
+       3.98 GB); the Mac gets its own token and syncs next
 
 ## Step agreed with the user 2026-09-29 19:50: fixes from two reviews of 711d8f3
 

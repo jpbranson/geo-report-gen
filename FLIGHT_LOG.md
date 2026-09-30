@@ -21,7 +21,9 @@ Read this file, `PLAN.md` (checklist) and `docs/REQUIREMENTS.md` (the full brief
    root; see README "Docker". Used on the user's Apple Silicon Mac and planned for the Windows PC.
    To move cache/ and reports/ between machines: tools/data-sync.sh (Mac) or
    .\tools\data-sync.cmd (Windows) syncs both ways with a Cloudflare R2 bucket (rclone bisync);
-   tools/bundle-data.* writes a tar to Downloads instead; README "Moving the data".
+   tools/bundle-data.* writes a tar to Downloads instead; README "Moving the data". rclone is
+   installed on the PC (winget) and the gr-r2 remote is in the user's rclone.conf, which Claude's
+   sandboxed shell cannot see: run data-sync or rclone against R2 unsandboxed, or ask the user.
 
 ## Standing facts (verified 2026-09-28)
 
@@ -803,3 +805,17 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   (finished 23:23). Checked: .data-sync listings for path1 and path2 each hold 4,468 files, the
   same as the local files the rules select (cache/raw, cache/geo, reports: 3.98 GB). The Mac gets
   its own token (user's choice); it needs the new scripts committed and pushed first.
+- 23:27 committed and pushed at the user's request (2376e72 on main; scanned first: no .env
+  values in the changes or history beyond the known author email and old FLIGHT_LOG line;
+  .wrangler/, wrangler's account cache, now git-ignored). Next: the Mac pulls, gets its own
+  token, creates gr-r2 and runs sh tools/data-sync.sh.
+- 23:35 Documentation check at the user's request (README, PLAN, docs/nhgis.md, catalog.qmd,
+  FLIGHT_LOG; docs/review-*.md and REQUIREMENTS.md are dated snapshots, left as written).
+  Checked against the code: CLI usage, catalog --check (83 subtopics, 124 sources, 537 metrics,
+  335 operational), registered providers, verify log, Dockerfile, reports.csv. Fixed: PLAN had
+  NCES, NOAA Storm Events, County Health Rankings and their verify step ticked in 0530fe3 though
+  no provider exists (now [ ], step marked 1-2 done); PLAN status date, 124 sources, .env keys,
+  architecture sketch, "proposed next steps" heading, portability line and a data-sync step;
+  docs/nhgis.md implemented list (B37, Connecticut town sums); README `new --label`, wrangler
+  commands and one token per machine in the R2 setup, madison-ms in the sample table, rewrapped
+  lines; "How to resume" notes rclone and the sandbox.
