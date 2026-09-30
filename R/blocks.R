@@ -192,6 +192,8 @@ compute_block_metric <- function(row, ctx, settings, opts) {
   values <- if (isTRUE(ctx$compare) && is.null(context)) compare_values(res, primary, ctx, settings) else
     metric_values(res, primary, ctx, settings, focus, relative)
   values$index_base <- indexed$base
+  # The axis of a growth view shows the index, not the metric's units (library blocks may word it their own way).
+  if (nzchar(indexed$base)) values$units_label <- phrase(ctx, "y_index", list(index_base = indexed$base))
   notes <- figure_notes(res, metrics, primary, ctx, settings)
   values$legend_note <- notes$legend
   values$method_note <- notes$method

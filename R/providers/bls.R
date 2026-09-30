@@ -198,58 +198,6 @@ register_provider("bls_laus_rates", list(
   series = "LAUS",
   availability_note = "LAUS publishes the population that participation and employment-population rates need for states only; regions and the nation add up their states."))
 
-# ---- Occupational Employment and Wage Statistics (OEWS) ---------------------------------------
-#
-# May 2025 estimates of employment and wages from BLS's employer survey (the only release in the
-# time-series files), for all occupations in all industries, by workplace, for the nation, states
-# and metropolitan areas. Series IDs are "OEU" + area type (N, S, M) + area (7) + industry (6, 000000
-# is all) + occupation (6, 000000 is all) + data type (01 employment, 04 annual mean wage, 13 annual
-# median wage). States are the state code followed by 00000; metropolitan areas are 00 followed by
-# the CBSA code. Wages from $239,200 up are published as "#" (not a number here) and values BLS
-# cannot publish as "*" or "-"; both are unavailable. Estimates pool three years of survey panels,
-# so they are not a series to trend year over year.
-
-oews_url <- "https://download.bls.gov/pub/time.series/oe/oe.data.0.Current"
-oews_types <- c(`01` = "EMPLOYMENT", `04` = "MEAN_WAGE", `13` = "MEDIAN_WAGE")
-
-# The all-occupation, all-industry series of the nation, states and metropolitan areas, read in chunks
-# from the 330 MB file: key, variable, value (NA if not published).
-oews_values <- function() {
-  memoize("oews_values", function() cached(derived_path("bls", "oews_values", "bls.R"), source = "bls", compute = function() {
-    path <- bls_download(oews_url, "oe.data.0.Current")
-    wanted <- function(x, pos) x[grepl("^OEU[NSM][0-9]{7}000000000000(01|04|13)$", x$series_id), , drop = FALSE]
-    d <- readr::read_tsv_chunked(path, readr::DataFrameCallback$new(wanted), chunk_size = 500000, progress = FALSE,
-                                 col_types = readr::cols(.default = readr::col_character()))
-    area <- substr(d$series_id, 5, 11)
-    type <- substr(d$series_id, 4, 4)
-    key <- ifelse(type == "N", "nation:US", ifelse(type == "S", paste0("state:", substr(area, 1, 2)), paste0("cbsa:", substr(area, 3, 7))))
-    data.frame(key = key, variable = unname(oews_types[substr(d$series_id, 24, 25)]), year = as.integer(d$year),
-               value = suppressWarnings(as.numeric(d$value)), stringsAsFactors = FALSE)
-  }))
-}
-
-oews_fetch <- function(variables, pieces, periods, options = list()) {
-  d <- oews_values()
-  d <- d[d$key %in% pieces$key & d$variable %in% variables & d$year %in% as.integer(periods), , drop = FALSE]
-  if (!nrow(d)) return(empty_values())
-  data.frame(geo = d$key, name = "", variable = d$variable, estimate = d$value, moe = NA_real_,
-             status = ifelse(is.na(d$value), "unavailable", "ok"), bound = NA_character_,
-             note = ifelse(is.na(d$value), "not published (wages of $239,200 or more, or estimates BLS cannot release, are not shown as numbers)", ""),
-             period = as.character(d$year), period_start = d$year, period_end = d$year, source_id = "bls_oews",
-             series = "OEWS May 2025", stringsAsFactors = FALSE)
-}
-
-register_provider("bls_oews", list(
-  name = "U.S. Bureau of Labor Statistics, Occupational Employment and Wage Statistics (May 2025)",
-  geo_types = c("nation", "state", "cbsa"),
-  fetch = oews_fetch,
-  periods = function(settings, recipe) 2025L,
-  period_label = function(period) paste("May", period),
-  period_kind = "point",
-  series = "OEWS",
-  availability_note = paste("OEWS publishes estimates for the nation, states and metropolitan areas (by workplace, employees only), not for counties or",
-                            "cities. Only the May 2025 release is read, and estimates pool three years of survey panels.")))
-
 # ---- Current Population Survey: national labor force statistics (LN) --------------------------
 #
 # Annual averages (period M13) of the not seasonally adjusted national series: LNU04000000 unemployment

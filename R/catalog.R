@@ -79,7 +79,22 @@ validate_catalog <- function() {
   if (length(bad_subj)) problems <- c(problems, paste("Unknown subject ids:", paste(bad_subj, collapse = ", ")))
   bad_sub <- setdiff(unique(paste(doc$subject_id, doc$subtopic_id)), paste(subj$subject_id, subj$subtopic_id))
   if (length(bad_sub)) problems <- c(problems, paste("Unknown subtopics:", paste(bad_sub, collapse = ", ")))
-  problems
+  c(problems, exhaustive_gaps(rec))
+}
+
+# profiles/exhaustive.csv is the report that shows everything: every library block and every
+# operational metric that no block shows. A new block or metric needs a row there too.
+exhaustive_gaps <- function(rec) {
+  ex <- read_table(root_path("profiles", "exhaustive.csv"))
+  lib <- block_library()
+  in_blocks <- unlist(lapply(lib$metrics, function(x) {
+    ids <- split_list(x)
+    c(ids, rec$metric_id[rec$group %in% sub("^group:", "", ids)])
+  }))
+  blocks <- setdiff(lib$block_id, ex$ref[ex$type %in% c("block", "text")])
+  metrics <- setdiff(rec$metric_id, c(in_blocks, ex$ref[ex$type == "metric"]))
+  c(if (length(blocks)) paste("Library blocks missing from profiles/exhaustive.csv:", paste(blocks, collapse = ", ")),
+    if (length(metrics)) paste("Metrics that no block shows, missing from profiles/exhaustive.csv:", paste(metrics, collapse = ", ")))
 }
 
 # Check that every ACS variable used by a recipe exists in each release the recipe uses (its
@@ -200,7 +215,6 @@ verify_sources <- function() {
     },
     census_pep = head_check(paste0(pep_base, pep_files$file[1]), "census_pep"),
     census_pep_components = head_check(paste0(pep_base, pep_files$file[2]), "census_pep"),
-    census_pep_county_characteristics = head_check(paste0(pep_asrh_base, "cc-est2025-agesex-all.csv"), "census_pep"),
     bea_cainc = head_check("https://apps.bea.gov/regional/zip/CAINC1.zip", "bea"),
     bea_cagdp = head_check("https://apps.bea.gov/regional/zip/CAGDP2.zip", "bea"),
     fhfa_hpi = head_check("https://www.fhfa.gov/hpi/download/annual/hpi_at_county.xlsx", "fhfa"),
@@ -234,7 +248,6 @@ verify_sources <- function() {
     dol_ndcp = head_check("https://www.dol.gov/sites/dolgov/files/WB/NDCP2022.xlsx", "dol_ndcp"),
     census_geo = head_check("https://www2.census.gov/geo/tiger/GENZ2024/shp/cb_2024_us_county_500k.zip", "census_geo"),
     bls_laus = head_check("https://download.bls.gov/pub/time.series/la/la.area", "bls"),
-    bls_oews = head_check(oews_url, "bls"),
     bls_cps_ln = head_check(cps_url, "bls"),
     bls_laus_rates = head_check("https://download.bls.gov/pub/time.series/la/la.data.2.AllStatesU", "bls"),
     bls_qcew = head_check(paste0("https://data.bls.gov/cew/data/files/", max(qcew_years), "/csv/", max(qcew_years),

@@ -272,6 +272,8 @@ above it. Moving a row moves the block; numbering and the table of contents foll
   or directly as a manifest row of type `metric`. The row's `history_start` is the first
   comparable period (e.g. `2008-2012`); earlier periods are never computed, so check the ACS
   table's line labels in older releases before moving it back. `breaks` is shown to readers.
+  Every new block, and every metric that no block shows, also gets a row in
+  `profiles/exhaustive.csv`; `gr.R catalog --check` (and the tests) report any that are missing.
 - **Change text:** edit the report inline or `content/text.csv` (see above).
 - **Change the look:** edit `config/themes.csv` (fonts, colors, sizes, number formats, print), or
   add a theme and select it with the `theme` setting. Themes never change a statistic.
@@ -288,7 +290,13 @@ above it. Moving a row moves the block; numbering and the table of contents foll
   `render(output, text, theme)`; insert it with a manifest row of type `custom`. See
   `modules/childcare_gap.R`.
 - **Audience profiles:** copy a file in `profiles/`; profile-scoped text records and settings
-  change wording and depth without touching the analysis.
+  change wording and depth without touching the analysis. `general` is a short community
+  overview: one block per question, with current conditions and history in each subject.
+  `early-childhood` and `economic-development` go deeper on their topics. `exhaustive` shows
+  everything: every library block, the custom child care module and every operational metric
+  that no block shows, in the general sections plus one for children and child care. Use it to
+  see all that exists for an area, or as a starting point to edit down in a report's own
+  manifest (`config/manifests/<id>.csv`).
 
 ## Sample reports
 
@@ -355,18 +363,17 @@ about 5 minutes per extract.
 - Other sources added on 2026-09-30 (each documented in its catalog rows): child care prices (NDCP)
   by age of child and the labor force rate of mothers of young children; census counts of
   households, household types, vacancy, homeownership, median age and race (2000-2020);
-  Population Estimates components of change (2021-2025) and county age, sex and race estimates
-  (Vintage 2025); BEA transfers, income maintenance, earnings and earnings by industry; LAUS
+  Population Estimates components of change (2021-2025); BEA transfers, income maintenance, earnings and earnings by industry; LAUS
   employed and unemployed persons and, for states and larger areas, participation and
   employment-population rates; Texas and Indiana child care providers (current snapshots) with
   capacity per 100 children under 5; building permits by structure size, from 1990 for counties;
   USDA Food Access Research Atlas (SRAM 2025, LRAM 2019; tracts summed to counties and above);
-  HRSA shortage areas (a daily snapshot); BLS OEWS wages and employment of all occupations (May
-  2025; states and metro areas) and national CPS annual averages since 1948; and a county map of
-  1900 from NHGIS boundary files. Not built:
+  HRSA shortage areas (a daily snapshot); national CPS annual averages since 1948; and a county
+  map of 1900 from NHGIS boundary files. Not built:
   County Health Rankings (terms need the user's decision), MIT Election Lab returns (a guestbook
-  download), HUD homelessness counts (a bot challenge blocks scripted downloads), OEWS occupation
-  detail, NDCP age bands and NCES before 2017.
+  download), HUD homelessness counts (a bot challenge blocks scripted downloads), NDCP age bands
+  and NCES before 2017. BLS OEWS wages and the Population Estimates by county age, sex and race
+  were built and then removed (no report used them); their catalog rows remain as documentation.
 - NCES public schools cover school years 2017-18 through 2024-25: schools, enrollment, public
   pre-K, teacher full-time equivalents and students per teacher (not class size). Students are
   counted at their school, not their residence. Fully virtual schools count only in state and

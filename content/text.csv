@@ -136,6 +136,7 @@
 @phrase.within_series,default,"(Change is measured within one series, {series}; earlier points come from a different series and are compared only in the chart.)",2026-09-28T00:00:00,,
 @phrase.x_multiyear,default,5-year survey period,2026-09-28T00:00:00,,
 @phrase.x_year,default,Year,2026-09-28T00:00:00,,
+@phrase.y_index,default,Index ({index_base} = 100),2026-09-30T00:00:00,,
 @section.title,default,Section,2026-09-28T00:00:00,,Fallback when a section id has no title record
 @sources.prose,default,,2026-09-28T00:00:00,,
 @sources.title,default,Sources and methods,2026-09-28T00:00:00,,

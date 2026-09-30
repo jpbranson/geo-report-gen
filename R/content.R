@@ -197,10 +197,13 @@ load_manifest <- function(path) {
   m$kind[m$type == "custom"] <- "custom"
   for (i in which(m$type == "metric")) {
     # A single metric: shown over time with benchmarks when it has history, else vs benchmarks.
+    # Counts of areas of different sizes cannot share an axis, so a count over time with
+    # benchmarks is drawn as growth since its first period (as the library's count blocks are).
     doc <- metric_doc(m$ref[i])
     m$kind[i] <- "metric"
     m$metrics[i] <- m$ref[i]
     if (is_blank(m$compare[i])) m$compare[i] <- if (grepl("time", doc$comparisons)) "time+parents" else "parents"
+    if (m$compare[i] == "time+parents" && recipe_for(m$ref[i])$stat_type == "count") m$library_options[i] <- "index=first"
   }
   for (i in which(m$type == "block")) {
     b <- lib[lib$block_id == m$ref[i], , drop = FALSE]

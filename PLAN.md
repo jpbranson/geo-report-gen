@@ -556,7 +556,7 @@ C. New sources, thinnest subject first
         are not in the catalog's URLs and are not read. Checked: U.S. 8.6% of residents far from a
         SNAP retailer in a straight line (28.4 million), 2,356 LILA tracts; 2019 LRAM 9,293 LILA
         tracts. Block food-access-tracts (general). Tests 393; verify ok; round trip 10/10; batch 12 ok
-15. [x] Census population estimates by age, sex, race and Hispanic origin
+15. [-] Census population estimates by age, sex, race and Hispanic origin
         (census_pep_county_characteristics), done 2026-09-30; Demographics 22 / 40. Counties 2020-2025
         (Vintage 2025) from cc-est2025-agesex-all.csv (10 MB) and cc-est2025-alldata.csv (105 MB), added
         up to states, regions, divisions and the nation (medians are county-only). Eight metrics from
@@ -564,7 +564,8 @@ C. New sources, thinnest subject first
         as the group race_ethnicity_pep (modified race: Some Other Race is reassigned, so shares differ
         from the census and the ACS). Blocks race-ethnicity-estimates, age-estimates (general). The
         2010-2019 intercensal files (same layout) are not read. Tests 398; verify ok; round trip 10/10;
-        batch 12 ok
+        batch 12 ok. REMOVED 2026-09-30 (1.0 checklist D1): provider section, recipes, verify
+        check, test and cached files deleted; source and metric rows kept as documentation
 16. [x] HRSA health professional shortage areas (hrsa_hpsa), done 2026-09-30; Health 24 / 42. R/providers/hpsa.R:
         the current designations (status Designated) of primary care, dental health and mental health
         from HRSA's daily files, by county (the component's county or a facility's county), counted
@@ -575,7 +576,7 @@ C. New sources, thinnest subject first
         geography. Current snapshot only (HRSA keeps no archive; the designation and withdrawal dates
         could rebuild a history but were not used); no city or tract values. Block shortage-areas
         (general, health). Tests 403; verify ok; round trip 10/10; batch 12 ok
-17. [x] BLS occupational wages, OEWS (bls_oews), done 2026-09-30; Employment 20 / 34. R/providers/bls.R reads
+17. [-] BLS occupational wages, OEWS (bls_oews), done 2026-09-30; Employment 20 / 34. R/providers/bls.R reads
         oe.data.0.Current (330 MB, in chunks; only the all-occupation, all-industry series are kept) for
         the nation, states and metro areas, May 2025 (the only release in the files): employment, median
         and mean annual wage of ALL occupations (three metrics from the three documented ones). The
@@ -583,7 +584,8 @@ C. New sources, thinnest subject first
         holds one value, so it would need 22 or more group metrics. Wages show in constant dollars.
         Checked: U.S. employment 155,495,730, median wage $50,980 nominal. Block wages-oews (general).
         No counties or cities. Verified together with item 18 (tests 407, verify ok, round trip 10/10,
-        batch 12 ok)
+        batch 12 ok). REMOVED 2026-09-30 (1.0 checklist D1): provider section, recipes, verify
+        check, test and cached files deleted; source and metric rows kept as documentation
 18. [x] BLS Current Population Survey (bls_cps_ln), done 2026-09-30: national annual averages (period M13,
         not seasonally adjusted) of the unemployment rate (1947 on), labor force participation rate
         and employment-population ratio (1948 on) from ln.data.1.AllData (390 MB, read in chunks);
@@ -620,3 +622,93 @@ constant boundaries; PEP age table; LAUS participation trend; PEP yearly change;
 permits by size, replaced by one block per structure size); households in the census now indexed
 with comparisons; and an engine rule leaves out any block that would show the nation alone. The
 metrics stay in the catalog without blocks.
+
+## 1.0 release checklist (agreed with the user 2026-09-30 13:10)
+
+Priorities: lean, efficient in bulk and iteration, human-comprehensible. The features of
+docs/REQUIREMENTS.md are done, so 1.0 is consolidation, not new content. Starting point
+(2026-09-30): tests 414 pass offline (11 s); `catalog --check` clean (561 metrics, 431
+operational, 126 sources); chicago-il, a city never built before, built on the first try with no
+warnings (517 s, 494 requests, 320 of them to the FBI). Scope is frozen: nothing under "After
+1.0" starts before the tag.
+
+Decisions for the user (answered 2026-09-30 13:12; done 13:50)
+- [x] D1. OEWS (bls_oews: 3 metrics, a 330 MB file) and PEP age, sex and race
+      (census_pep_county_characteristics: 8 metrics, a 105 MB file) lost their blocks in the
+      review. The user: keep their catalog information (source rows, update cadence, metric
+      documentation) but delete the files for now. Done: provider sections, 11 recipes, 2 verify
+      checks, their tests and 12 cached files (447 MB) deleted; the metrics are documented, not
+      operational (catalog: 420 operational, 141 documented)
+- [x] D2. Default size of the general profile (chicago-il: 12 sections, 76 figure and table
+      chunks, about 12,000 words of report.qmd). The user: a shorter default, plus an option for
+      an exhaustive report that uses everything. Done: profiles/general.csv has 43 blocks (was
+      82): one block per question, current conditions with history in each subject; blocks that
+      show only county or national context for a city are left to the exhaustive profile.
+      profiles/exhaustive.csv holds every library block, the childcare_gap module and a metric
+      row for each of the 27 operational metrics no block shows, in the general sections plus
+      "children"; `catalog --check` (and the tests) fail when a block or metric is missing from
+      it. Metric rows of counts are drawn as growth since the first period (index=first), with an
+      index axis label. gary-in: 42 blocks, 7,169 words, compose 30 s (was 59 s); an exhaustive
+      Gary report: 161 blocks, 22,146 words, compose 86 s warm
+- [x] D3. chicago-il (an uncommitted row in config/reports.csv). The user: not a sample report.
+      Row removed; reports/chicago-il is still on disk
+
+A. Remove what nothing uses
+1. [x] The 43 operational metrics that no profile or manifest reached: D1 removed OEWS and PEP
+       characteristics (11); the other 32 are in profiles/exhaustive.csv, in a library block or a
+       metric row, and the catalog check keeps it that way
+2. [ ] The 11 library blocks that only the exhaustive profile uses (pop-history, median-age,
+       per-capita-income, snap, rent-trend, vacancy, commute, broadband, household-size,
+       disability, income-annual): delete those another block supersedes (for example pop-history
+       by pop-long-history, broadband by internet-access); keep the rest
+3. [ ] One helper for the states of a region or division: the same rule
+       (`st[[type]] == geoid & st$in_nation == "TRUE"`) is written out in fara, hpsa, nces, fars,
+       eavs and bea
+4. [ ] Readability: compute_block_composition (about 110 lines) split into named steps; the 103
+       lines over 100 characters in R/blocks.R wrapped. Proof as before: fingerprint every report
+       before and after (tools/fingerprint.R), 0 differences
+
+B. Iteration speed
+5. [ ] Profile one warm compose and name the bottleneck: in-cities-1827000 spent 31 s computing
+       with 1,290 cache hits and no misses; a render adds 25-45 s
+6. [ ] Then decide review item 21 (the block-result cache) or the fix the profile points to. Goal:
+       a prose or theme edit of one report does not recompute its blocks. Record timings before
+       and after
+
+C. Bulk runs and the cache
+7. [ ] Compose in parallel worker processes, as render_pool renders (the cache already locks
+       entries and writes atomically); benchmark a batch larger than the samples (for example
+       every county of one state). Now compose runs one report at a time, 30-60 s each
+8. [ ] FBI Crime Data Explorer: confirm the key's rate limit (api.data.gov's default is 1,000
+       requests an hour) and throttle fbi_cde to it (now the default 2 per second). A batch
+       across several states must finish with its crime data, not lose them to HTTP 429
+9. [ ] `cache prune`: delete raw files that no report's build.json lists (cache 6.1 GB; the R2
+       free tier is 10 GB); README cache paragraph updated
+
+D. Documentation (after A-C, so it describes the final state)
+10. [ ] README: current counts (431 of 561 metrics operational), Indiana child care capacity (not
+        Texas only), Limitations cut to limits that apply across sources (per-source detail stays
+        in the catalog and catalog.html), no dated changelog
+11. [ ] PLAN.md cut to a status and the "After 1.0" list (its top checklist still says 537 metrics
+        and 321 tests, and "Nothing is committed" is out of date); FLIGHT_LOG.md and
+        docs/review-2026-09-29-*.md moved to docs/history/; "How to resume" covers the Mac with
+        Docker as well as Windows
+
+E. Release check and tag
+12. [ ] Small: .DS_Store in .gitignore; User-Agent version 1.0 (`geo-report-gen/0.1` in R/fetch.R)
+13. [ ] Full check: `gr.R test`, `gr.R catalog --check`, `gr.R verify`, demos/round_trip.R,
+        `gr.R batch` (the samples were last batch-built at 09:00, before the 12:00 block
+        removals), then a visual review of every sample report
+14. [ ] Fresh benchmark with demos/benchmark.R (the README's cold run dates from 2026-09-28, when
+        48 metrics were operational), with a cold run on an empty cache copy if time allows;
+        README table and docs/benchmark.csv updated
+15. [ ] Commit, tag v1.0.0 and push, on the user's go-ahead
+
+After 1.0 (not started before the tag)
+- Queue items waiting on the user: County Health Rankings (terms), MIT Election Lab (guestbook
+  download), HUD PIT/HIC (bot challenge)
+- Not built inside done sources: NCES before 2017, NDCP six-month age bands, OEWS occupation
+  detail (if D1 keeps OEWS), LRAM 2010 and 2015 editions, building permits for places before 2007,
+  PEP characteristics 2010-2019 (if D1 keeps them), a tract use of the NHGIS historical
+  boundaries, LODES origin-destination commuting
+- School districts (catalog/geo_support.csv: planned)

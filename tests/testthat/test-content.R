@@ -76,6 +76,16 @@ test_that("manifests reject duplicate ids, unknown blocks and rows before the fi
   expect_error(load_manifest(path), "viz")
 })
 
+test_that("a metric row of a count is drawn as growth when benchmarks share its chart", {
+  path <- tempfile(fileext = ".csv")
+  write_table(data.frame(id = c("s", "households", "families"), type = c("section", "metric", "metric"),
+                         ref = c("", "households_total_acs", "family_households_share_acs"), enabled = "TRUE",
+                         compare = "", viz = "", options = ""), path)
+  m <- load_manifest(path)
+  expect_equal(m$compare[2:3], c("time+parents", "time+parents"))
+  expect_equal(m$library_options[2:3], c("index=first", ""))
+})
+
 test_that("every profile, manifest and catalog table in the project is valid", {
   for (f in c(list.files(root_path("profiles"), full.names = TRUE),
               list.files(root_path("config", "manifests"), full.names = TRUE))) {

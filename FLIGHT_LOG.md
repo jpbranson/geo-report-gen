@@ -1194,3 +1194,56 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   files cache/raw/ipums_nhgis/std-840f8e0e* (zip and parquet) removed; PLAN item 19 marked
   removed; docs/nhgis.md and README say it was tried and removed. The two verification_log rows
   stay as history.
+
+## 2026-09-30 13:10 (Claude, Mac): 1.0 release checklist
+
+- Assessed what 1.0 still needs (read-only; no code changed). Checked in Docker: tests 414 pass;
+  `catalog --check` clean (561 metrics, 431 operational, 126 sources). Measured from build.json:
+  warm compose 30-60 s per report (in-cities-1827000: 31 s with 0 cache misses); chicago-il first
+  build 517 s, 494 requests (320 FBI). Found 43 operational metrics and 12 library blocks that no
+  profile or manifest uses.
+- Saved as PLAN.md "1.0 release checklist": decisions D1-D3 for the user, then groups A-E (prune,
+  iteration speed, bulk and cache, docs, release check and tag) and an "After 1.0" list.
+- Resume point: the user answers D1-D3; then start at A1.
+
+## 2026-09-30 13:12 (Claude, Mac): the user's decisions D1-D3
+
+- D1: keep the catalog rows of bls_oews and census_pep_county_characteristics (sources.csv with
+  update cadence, metrics.csv documentation); delete their provider code (OEWS section of
+  R/providers/bls.R, age/sex/race section of R/providers/pep.R), 11 recipes, 2 verify checks, the
+  OEWS test (test-oews-cps.R keeps CPS, renamed test-cps.R), test-pep-asrh.R and their cached files.
+- D2: a shorter general profile (one block per question; current and history in each subject;
+  blocks that show only county or national context for a city left to the exhaustive profile)
+  and profiles/exhaustive.csv with every library block and metric rows for the 27 operational
+  metrics no block shows; `catalog --check` enforces completeness. round_trip.R needs
+  unemployment-trend, income-trend and the section order overview, people, economy, housing.
+- D3: chicago-il row removed from config/reports.csv; reports/chicago-il left on disk for the user.
+- Commands run in Docker (docker compose run --rm gr ...).
+- 13:16 D3 done (row restored away). D1 done: bls.R OEWS section and pep.R age/sex/race section
+  deleted, 11 recipes, 2 verify checks, tests (test-pep-asrh.R deleted, test-oews-cps.R ->
+  test-cps.R); 12 cached files deleted (oe.data.0.Current 331 MB, cc-est2025-alldata.csv 105 MB,
+  agesex 10 MB, derived parquets); README and PLAN items 15/17 marked removed. Catalog 420
+  operational, 141 documented. Tests 406.
+- 13:22 D2: profiles/exhaustive.csv written (13 sections: general's plus children; 136 blocks, the
+  intro text row, the childcare_gap module, 27 metric rows; blocks placed after related general
+  blocks); profiles/general.csv cut from 82 to 43 blocks and text rows; validate_catalog() calls
+  exhaustive_gaps() (checked: a removed block and metric are reported). Tests 407; catalog clean.
+  Next: batch of the samples, a temporary exhaustive report of Gary, round trip, README.
+- 13:34 Batch 621 s (compose 500, render 121), all ok, austin-78704 rejected as intended. General
+  profile reports compose in half the time (gary-in 59 -> 30 s; in-cities Gary 31 -> 12 s with 0
+  misses; tx-cities 58 -> 20 s) and gary-in shows 42 blocks, 7,169 words, 6 MB (was about 78
+  blocks, 12,000 words). Temporary report gary-in-exhaustive (config/reports.csv row added by
+  `gr.R new`): 161 blocks, 22,146 words, 20 MB; first compose 228 s and 324 requests (blocks no
+  profile used before), warm 86 s; one warning, the Texas-only childcare_gap module. Found: metric
+  rows of counts drew Gary and the U.S. on one count axis. Fixed in load_manifest (a count row with
+  time+parents gets index=first) and compute_block_metric (an index view's axis uses the new
+  @phrase.y_index record; the 7 indexed library blocks keep their own y_label records). Test
+  added; tests 409. README: exhaustive profile and the rule for new blocks and metrics.
+  Next: batch again (code changed), round_trip.R, then remove the temporary report row.
+- 13:55 Batch 372 s (compose 300, render 71), 0 requests, all ok, austin-78704 rejected as
+  intended. round_trip.R first 9/10: its refresh step used BEA, which the shorter general profile
+  no longer shows; now it refreshes census_govfin (one 9.7 MB file gary-in uses): 10/10. Catalog
+  check clean. Temporary row gary-in-exhaustive removed from config/reports.csv;
+  reports/gary-in-exhaustive and reports/chicago-il stay on disk for the user. Nothing committed.
+- Resume point: PLAN.md "1.0 release checklist": D1-D3 and A1 done; next A2 (the 11 library blocks
+  only the exhaustive profile uses: delete superseded ones), then A3.

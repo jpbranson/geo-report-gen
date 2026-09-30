@@ -410,23 +410,12 @@ low_income_low_access_tract_share_sram,usda_ers_fara,share,SD_LILA,TRACTS,,,100,
 low_access_population_share_sram,usda_ers_fara,share,SD_LAPOP,POP,,,100,,,
 low_access_population_share_driving_sram,usda_ers_fara,share,DD_LAPOP,POP,,,100,,,
 low_income_low_access_tract_lram,usda_ers_fara,count,LRAM_LILA,,,,1,,,
-population_65plus_share_pep,census_pep_county_characteristics,share,AGE65PLUS,POP,,,100,,,
-median_age_pep,census_pep_county_characteristics,value,MEDIAN_AGE,,,,1,,,
-hispanic_share_pep,census_pep_county_characteristics,share,HISPANIC,RACE_TOTAL,,,100,,race_ethnicity_pep,Hispanic or Latino (any race)
-nh_white_share_pep,census_pep_county_characteristics,share,NH_WHITE,RACE_TOTAL,,,100,,race_ethnicity_pep,"White alone, not Hispanic"
-nh_black_share_pep,census_pep_county_characteristics,share,NH_BLACK,RACE_TOTAL,,,100,,race_ethnicity_pep,"Black alone, not Hispanic"
-nh_asian_share_pep,census_pep_county_characteristics,share,NH_ASIAN,RACE_TOTAL,,,100,,race_ethnicity_pep,"Asian alone, not Hispanic"
-nh_multiracial_share_pep,census_pep_county_characteristics,share,NH_MULTI,RACE_TOTAL,,,100,,race_ethnicity_pep,"Two or more races, not Hispanic"
-nh_other_share_pep,census_pep_county_characteristics,share,NH_OTHER,RACE_TOTAL,,,100,,race_ethnicity_pep,"Other single race, not Hispanic"
 primary_care_hpsa_count_hrsa,hrsa_hpsa,count,PC_COUNT,,,,1,,,
 primary_care_hpsa_score_hrsa,hrsa_hpsa,value,PC_SCORE,,,,1,,,
 dental_hpsa_count_hrsa,hrsa_hpsa,count,DH_COUNT,,,,1,,,
 dental_hpsa_score_hrsa,hrsa_hpsa,value,DH_SCORE,,,,1,,,
 mental_health_hpsa_count_hrsa,hrsa_hpsa,count,MH_COUNT,,,,1,,,
 mental_health_hpsa_score_hrsa,hrsa_hpsa,value,MH_SCORE,,,,1,,,
-occupational_employment_oews,bls_oews,count,EMPLOYMENT,,,,1,,,
-median_annual_wage_oews,bls_oews,value,MEDIAN_WAGE,,,,1,year,,
-mean_annual_wage_oews,bls_oews,value,MEAN_WAGE,,,,1,year,,
 unemployment_rate_cps,bls_cps_ln,value,UNEMPLOYMENT_RATE,,,,1,,,
 labor_force_participation_rate_cps,bls_cps_ln,value,PARTICIPATION_RATE,,,,1,,,
 employment_population_ratio_cps,bls_cps_ln,value,EMPLOYMENT_POP_RATIO,,,,1,,,
