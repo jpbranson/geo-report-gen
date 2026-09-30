@@ -26,7 +26,7 @@ Geography and catalog
 Options
   --offline                   use the cache only; never touch the network
   --refresh <source,...>      re-download raw data for these sources (e.g. census_acs5)
-  --force                     re-render even if inputs are unchanged
+  --force                     recompose and re-render even if inputs are unchanged
   --no-render                 compose only (snapshot + report.qmd)
   --workers <n>               parallel workers for batch (default 4)
   --formats html,typst        output formats (typst = PDF, experimental)

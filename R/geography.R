@@ -86,6 +86,14 @@ geo_catalog <- function(type, vintage, scope = type) {
              name = d$name, pop = d$estimate, pop_moe = d$moe, stringsAsFactors = FALSE)
 }
 
+# Connecticut planning region (county code, "09110") of each town code: towns kept their codes
+# when the planning regions replaced the counties in 2022.
+ct_town_regions <- function(vintage = 2024L) {
+  regions <- grep("^09", geo_catalog("county", vintage)$geoid, value = TRUE)
+  towns <- do.call(rbind, lapply(regions, function(r) geo_catalog("cousub", vintage, paste0("cousub-", r))))
+  stats::setNames(substr(towns$geoid, 1, 5), substr(towns$geoid, 6, 10))
+}
+
 # Name and population for specific keys (NA name = not defined in that vintage).
 geo_info <- function(keys, vintage) {
   g <- split_key(keys)

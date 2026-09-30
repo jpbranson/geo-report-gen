@@ -1,5 +1,4 @@
-# Census Bureau Population Estimates Program (annual July 1 estimates, CSV files) and
-# historical decennial county counts 1900-1990.
+# Census Bureau Population Estimates Program (annual July 1 estimates, CSV files).
 #
 # Each estimates series is kept separate and labeled, because a vintage uses one set of
 # boundaries for all its years and series are revised: 2000-2010 intercensal, 2010-2020
@@ -114,40 +113,3 @@ register_provider("census_pep", list(
   period_label = function(period) as.character(period),
   period_kind = "annual",
   availability_note = "PEP publishes incorporated places and county subdivisions, not census designated places (CDPs)."))
-
-# ---- Historical decennial county counts, 1900-1990 -----------------------------------------
-
-# "Population of Counties by Decennial Census: 1900 to 1990" (U.S. Census Bureau). The
-# original census.gov files now return 404; this is the machine-readable copy maintained by
-# NBER (values checked against official totals, e.g. U.S. 1990 = 248,709,873). Counts use
-# the county boundaries of each census; counties later created or merged are not harmonized.
-hist_counts <- function() {
-  memoize("hist_counts", function() cached(derived_path("census_hist", "cencounts_long", "pep.R"), source = "census_hist", compute = function() {
-    f <- cached_download("https://data.nber.org/census/population/cencounts/cencounts.csv",
-                         cache_path("raw", "census_hist", "cencounts.csv"), "census_hist")
-    d <- utils::read.csv(f, colClasses = "character")
-    fips <- pad(d$fips, 5)
-    key <- ifelse(fips == "00000", "nation:US", ifelse(substr(fips, 3, 5) == "000", paste0("state:", substr(fips, 1, 2)), paste0("county:", fips)))
-    long <- do.call(rbind, lapply(seq(1900, 1990, 10), function(yr) {
-      data.frame(key = key, year = yr, population = suppressWarnings(as.numeric(d[[paste0("pop", yr)]])),
-                 series = "Census count", stringsAsFactors = FALSE)
-    }))
-    long <- long[!is.na(long$population), ]
-    add_state_aggregates(long)
-  }))
-}
-
-register_provider("census_hist", list(
-  name = "U.S. Census Bureau, county population by decennial census 1900-1990 (NBER machine-readable copy)",
-  geo_types = c("nation", "region", "division", "state", "county"),
-  fetch = function(variables, pieces, periods, options = list()) {
-    d <- hist_counts()
-    d <- d[d$key %in% pieces$key & d$year %in% as.integer(periods), , drop = FALSE]
-    if (!nrow(d)) return(empty_values())
-    data.frame(geo = d$key, name = "", variable = "population", estimate = d$population, moe = 0, status = "ok",
-               bound = NA_character_, note = "", period = as.character(d$year), period_start = d$year,
-               period_end = d$year, source_id = "census_hist", series = d$series, stringsAsFactors = FALSE)
-  },
-  periods = function(settings, recipe) seq(1900L, 1990L, 10L)[seq(1900L, 1990L, 10L) >= as.integer(settings$history_start %||% 1900)],
-  period_label = function(period) as.character(period),
-  period_kind = "point"))

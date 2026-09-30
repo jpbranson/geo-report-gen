@@ -119,6 +119,18 @@ test_that("NHGIS County Business Patterns 1970-1997: withheld totals, missing fi
   expect_match(nation$method[1], "national files start in 1977")
 })
 
+test_that("a source that cannot be reached leaves its metric unavailable with the reason", {
+  prov <- get_provider("ipums_nhgis")
+  withr::defer(register_provider("ipums_nhgis", prov))
+  register_provider("ipums_nhgis", utils::modifyList(prov, list(fetch = function(...) stop("IPUMS NHGIS needs a free IPUMS API key"))))
+  kent <- entity("kent", "study", "Kent", data.frame(key = "county:10001", type = "county", geoid = "10001", name = "Kent", pop = NA_real_))
+  run_reset(offline = TRUE)
+  r <- compute_metric("poverty_rate_census", list(kent), resolve_settings(), periods = c(1990L, 2000L))
+  expect_equal(r$status, c("unavailable", "unavailable"))
+  expect_match(r$method, "API key")
+  expect_match(run$warnings, "API key")
+})
+
 test_that("ACS special values become statuses, never numbers", {
   d <- acs_decode(c("100", "-666666666", "-888888888", "250001"),
                   c("10", "-222222222", "-888888888", "-333333333"),
@@ -184,6 +196,13 @@ test_that("CBP: withheld cells and missing rows follow the publication rules of 
   d <- cbp_fetch("EMP_48-49", loving, 2023)
   expect_equal(d$status, "suppressed")                                    # no row from 2017: fewer than 3 or none
   expect_match(d$note, "fewer than 3")
+  # A county missing from the all-industries file did not exist then: unavailable, not zero.
+  capitol <- data.frame(key = "county:09110", type = "county", geoid = "09110", stringsAsFactors = FALSE)
+  d <- cbp_fetch(c("EMP_00", "EMP_62"), capitol, 2016)
+  expect_equal(d$status, c("unavailable", "unavailable"))
+  expect_true(all(is.na(d$estimate)))
+  expect_match(d$note, "county boundaries changed")
+  expect_equal(cbp_fetch("EMP_00", capitol, 2023)$estimate, 473777)
   us <- data.frame(key = "nation:US", type = "nation", geoid = "US", stringsAsFactors = FALSE)
   d <- cbp_fetch("EMP_00", us, 2014)                                      # flag r (revised) is a published value
   expect_equal(d$status, "ok")
@@ -263,6 +282,11 @@ test_that("FBI: a city is its police department; states cover reporting agencies
   expect_match(r$method[r$entity_id == "1099999"], "no city police department")
   expect_equal(r$value[r$entity_id == "de"], 1e5 * 4115 / 1031579, tolerance = 1e-6)     # covered population is a mean of months
   expect_equal(compute_metric("ucr_population_coverage_fbi", list(de), st, periods = 2023L)$value, 100 * 1031579 / 1031890, tolerance = 1e-6)
+  # Violent crime counts rape under the revised definition from 2013: a new series (property crime does not break).
+  v <- compute_metric("violent_crime_rate_fbi", list(de), st, periods = c(2012L, 2013L))
+  expect_match(v$series[v$period == "2012"], "legacy rape definition")
+  expect_match(v$series[v$period == "2013"], "revised rape definition")
+  expect_equal(length(unique(compute_metric("property_crime_rate_fbi", list(de), st, periods = c(2012L, 2013L))$series)), 1)
 })
 
 test_that("FBI: an agency's year with under a quarter of its usual offenses counts as not reported", {
@@ -459,4 +483,13 @@ test_that("ACS tables come back in the provider's long form", {
   d <- acs_table(2024, "B01003", "state")
   expect_true(all(c("geo", "name", "variable", "estimate", "moe", "status") %in% names(d)))
   expect_equal(d$name[d$geo == "state:18"], "Indiana")
+})
+
+test_that("the price index reaches back before 1978 with the Census Bureau's joins", {
+  if (exists("price_index_r_cpi_u_rs", envir = memo)) rm("price_index_r_cpi_u_rs", envir = memo)
+  p <- price_index_table("r_cpi_u_rs")
+  expect_equal(p$index[p$year == 1978], 104.4)                      # R-CPI-U-RS from 1978 (December 1977 = 100)
+  expect_equal(p$index[p$year == 1977], 104.4 * 39.5 / 42.2)        # CPI-U-X1 change 1977-1978 (Census table)
+  expect_equal(min(p$year), 1947)
+  rm("price_index_r_cpi_u_rs", envir = memo)
 })

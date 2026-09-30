@@ -11,7 +11,7 @@ temp_project <- function() {
 
 # A generated report as compose would leave it: report.qmd, its base texts and a snapshot.
 fake_report <- function(id) {
-  dir.create(snapshot_dir(id), recursive = TRUE)
+  dir.create(snapshot_dir(id), recursive = TRUE, showWarnings = FALSE)
   rows <- data.frame(id = c("overview", "key-facts"), type = c("section", "block"), ref = c("", "key-facts"),
                      kind = c("section", "facts"), stringsAsFactors = FALSE)
   snap <- list(rows = rows, blocks = list(`key-facts` = list(kind = "facts")),
@@ -30,6 +30,7 @@ fake_report <- function(id) {
                     "```{r}", "#| label: tbl-key-facts", chunk_option("tbl-cap", tx[["key-facts.caption"]]),
                     "gr_block(gr, \"key-facts\")", "```"),
                   file.path(report_dir(id), "report.qmd"))
+  save_qmd_skeleton(id)
 }
 
 edit_qmd <- function(id, pattern, replacement) {
@@ -74,6 +75,15 @@ test_that("an inline edit that conflicts with a newer canonical edit is not save
   expect_equal(report_record("key-facts.title"), "Changed in the CSV")
 })
 
+test_that("text typed outside the editable fields stops the harvest before it can be lost", {
+  withr::local_envvar(GR_ROOT = temp_project())
+  fake_report("gary-in")
+  edit_qmd("gary-in", "^## Key facts \\{#blk-key-facts\\}$", "## Key facts {#blk-key-facts}\n\nA paragraph typed under the heading.")
+  edit_qmd("gary-in", "^\\{summary_sentence\\}$", "Edited inside the fences.")
+  expect_error(harvest_report("gary-in"), "outside the editable fields")
+  expect_equal(report_record("key-facts.prose"), character())   # nothing saved
+})
+
 test_that("gr.R new adds a report whose manifest comes from chosen subjects and metrics", {
   withr::local_envvar(GR_ROOT = temp_project())
   new_report("travis-housing", list(geo = "county:48453", subjects = "housing", metrics = "median_age_acs"))
@@ -100,4 +110,31 @@ test_that("bulk export and import update the same records and reject stale expor
   write_table(x, path)
   expect_error(text_import(path), "changed in content since export")
   expect_equal(report_record("key-facts.caption"), edited)
+  # After a rebuild, text imported to the default scope stays hidden in gary-in by its report record.
+  fake_report("gary-in")
+  x <- text_export("gary-in", path)
+  x$text[x$field_id == "key-facts.caption"] <- "For every report"
+  x$edit_scope <- "default"
+  write_table(x, path)
+  run_reset(offline = TRUE)
+  text_import(path)
+  expect_match(run$warnings, "keeps its own report:gary-in record", all = FALSE)
+})
+
+test_that("a build reuses the last compose only while nothing it read has changed", {
+  withr::local_envvar(GR_ROOT = temp_project())
+  fake_report("gary-in")
+  for (f in c("values.json", "theme.scss")) write_text_file("{}", file.path(snapshot_dir("gary-in"), f))
+  raw <- file.path(cache_root(), "raw", "test", "table.parquet")
+  dir.create(dirname(raw), recursive = TRUE, showWarnings = FALSE)
+  write_cache_file(data.frame(a = 1), raw)
+  prev <- list(status = "ok", complete = TRUE, compose_key = compose_key("gary-in"),
+               sources = list(list(file = "raw/test/table.parquet", stamp = file_stamp(raw))))
+  expect_true(reusable_compose("gary-in", prev))
+  expect_false(reusable_compose("gary-in", utils::modifyList(prev, list(complete = FALSE))))  # a source had failed
+  Sys.setFileTime(raw, Sys.time() + 60)                                                        # raw data replaced
+  expect_false(reusable_compose("gary-in", prev))
+  prev$sources[[1]]$stamp <- file_stamp(raw)
+  save_text_records(upsert_record(load_text_records(), "key-facts.title", "default", "Changed"))  # text edited
+  expect_false(reusable_compose("gary-in", prev))
 })

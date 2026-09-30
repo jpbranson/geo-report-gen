@@ -15,34 +15,43 @@
 
 # ---- Parsing report.qmd ----------------------------------------------------------------
 
+# Returns the editable fields; attribute "skeleton" holds every other non-blank line (the
+# generated structure), so harvest can tell when text was typed where it would be lost.
 parse_qmd_fields <- function(path) {
   lines <- readLines(path, encoding = "UTF-8", warn = FALSE)
   fields <- list()
   order <- character()
+  skeleton <- character()
   # Front matter title and subtitle.
   if (length(lines) && lines[1] == "---") {
     end <- which(lines == "---")[2]
     fm <- yaml::yaml.load(paste(lines[2:(end - 1)], collapse = "\n"))
     if (!is.null(fm$title)) fields[["report.title"]] <- fm$title
     if (!is.null(fm$subtitle)) fields[["report.subtitle"]] <- fm$subtitle
+    skeleton <- grep("^(title|subtitle):", lines[1:end], value = TRUE, invert = TRUE)
     i <- end + 1
   } else i <- 1
   in_chunk <- FALSE
   chunk_opts <- character()
+  field_option <- "^#\\| ?(fig-cap|tbl-cap|fig-alt|gr-x-label|gr-y-label|gr-legend-title|gr-labels):|^#\\|   "
   while (i <= length(lines)) {
     ln <- lines[i]
     if (!in_chunk && grepl("^```\\{r", ln)) {
       in_chunk <- TRUE
       chunk_opts <- character()
+      skeleton <- c(skeleton, ln)
     } else if (in_chunk && grepl("^```\\s*$", ln)) {
       in_chunk <- FALSE
       fields <- c(fields, chunk_fields(chunk_opts))
+      skeleton <- c(skeleton, ln)
     } else if (in_chunk && grepl("^#\\|", ln)) {
       chunk_opts <- c(chunk_opts, sub("^#\\| ?", "", ln))
+      if (!grepl(field_option, ln)) skeleton <- c(skeleton, ln)
     } else if (!in_chunk && grepl("^#{1,6} .*\\{#(sec|blk)-[a-z0-9-]+\\}\\s*$", ln)) {
       id <- sub("^.*\\{#(sec|blk)-([a-z0-9-]+)\\}\\s*$", "\\2", ln)
       fields[[paste0(id, ".title")]] <- trimws(sub("\\s*\\{#.*$", "", sub("^#{1,6} ", "", ln)))
       order <- c(order, id)
+      skeleton <- c(skeleton, sub("^(#+) .*(\\{#.*\\})\\s*$", "\\1 \\2", ln))
     } else if (!in_chunk && grepl("^:::+ *\\{[^}]*gr-field=\"[^\"]+\"", ln)) {
       colons <- sub("^(:+).*$", "\\1", ln)
       field <- sub("^.*gr-field=\"([^\"]+)\".*$", "\\1", ln)
@@ -51,12 +60,24 @@ parse_qmd_fields <- function(path) {
       if (j > length(lines)) stop(basename(path), ": the text block for '", field, "' (line ", i, ") has no closing ", colons, call. = FALSE)
       body <- if (j > i + 1) lines[(i + 1):(j - 1)] else character()
       fields[[field]] <- paste(body, collapse = "\n")
+      skeleton <- c(skeleton, ln, colons)
       i <- j
+    } else if (nzchar(trimws(ln))) {
+      skeleton <- c(skeleton, ln)
     }
     i <- i + 1
   }
   attr(fields, "order") <- order
+  attr(fields, "skeleton") <- sub("\\s+$", "", skeleton)
   fields
+}
+
+# The generated structure of report.qmd as written, kept for the next harvest.
+skeleton_path <- function(report_id) file.path(snapshot_dir(report_id), "qmd_skeleton.txt")
+
+save_qmd_skeleton <- function(report_id) {
+  fields <- parse_qmd_fields(file.path(report_dir(report_id), "report.qmd"))
+  write_text_file(attr(fields, "skeleton"), skeleton_path(report_id))
 }
 
 chunk_fields <- function(opt_lines) {
@@ -77,32 +98,10 @@ chunk_fields <- function(opt_lines) {
 
 # ---- Canonical records -------------------------------------------------------------------
 
-# The text currently in effect for a field of a report: the same resolution compose uses
-# (resolve_block_texts), with block kinds and library references from the report snapshot.
+# The text currently in effect for a field of a report, resolved as compose does (field_text)
+# with the block kinds, library references and labels of the report snapshot.
 current_field_text <- function(records, field, report_id, profile, snap, events) {
-  resolve <- function(f, kind = NULL, ref = NULL) resolve_text(records, f, kind, report_id, profile, ref)
-  if (grepl("^event\\.", field)) {
-    t <- resolve(field)
-    if (!identical(t$scope, "none")) return(t$text)
-    ev <- events[paste0("event.", events$event_id) == field, , drop = FALSE]
-    return(if (nrow(ev)) ev$statement[1] else "")
-  }
-  if (grepl("\\.label\\.", field)) {
-    m <- sub("^.*\\.label\\.", "", field)
-    for (f in c(field, paste0("label.", m))) {
-      t <- resolve(f)
-      if (!identical(t$scope, "none")) return(t$text)
-    }
-    rec <- recipes()
-    if (m %in% rec$metric_id && nzchar(rec$category[rec$metric_id == m])) return(rec$category[rec$metric_id == m])
-    return(tryCatch(metric_doc(m)$label, error = function(e) ""))
-  }
-  block <- sub("\\..*$", "", field)
-  row <- snap$rows[snap$rows$id == block, , drop = FALSE]
-  kind <- if (block == "report") "report" else if (!nrow(row)) NULL else
-    if (row$type[1] %in% c("section", "subsection")) "section" else
-      if (identical(snap$blocks[[block]]$kind, "error")) "error" else row$kind[1]
-  resolve(field, kind, if (nrow(row)) row$ref[1])$text
+  field_text(records, field, report_id, profile, snap$rows, snap$blocks, events)$text
 }
 
 # Insert or update one record (field + scope). Markdown-backed records are updated in their file.
@@ -178,6 +177,7 @@ harvest_report <- function(report_id) {
   }
   base <- jsonlite::fromJSON(base_path, simplifyVector = FALSE)
   now <- parse_qmd_fields(qmd)
+  check_skeleton(report_id, attr(now, "skeleton"))
   snap <- readRDS(snap_path)
   changed <- names(now)[vapply(names(now), function(f) !is.null(base[[f]]) && !identical(now[[f]], base[[f]]), TRUE)]
   removed <- setdiff(names(base), names(now))
@@ -218,6 +218,25 @@ harvest_report <- function(report_id) {
   list(status = "applied", applied = applied)
 }
 
+# Text typed outside the editable fields (e.g. a paragraph under a heading, not between :::
+# fences) would be lost when the report is regenerated, so the build stops before that happens.
+# Generated lines that were deleted only come back, so that is a warning.
+check_skeleton <- function(report_id, now) {
+  if (!file.exists(skeleton_path(report_id))) return(invisible())
+  was <- readLines(skeleton_path(report_id), encoding = "UTF-8", warn = FALSE)
+  added <- setdiff(now, was)
+  if (length(added)) {
+    stop("reports/", report_id, "/report.qmd has text outside the editable fields, which the next build would ",
+         "overwrite:\n  ", paste(utils::head(added, 5), collapse = "\n  "),
+         "\nNothing was saved. Move new prose into a text block between ::: fences (or add a manifest row of type ",
+         "text), or remove it, then rebuild.", call. = FALSE)
+  }
+  if (length(setdiff(was, now))) {
+    warn("Generated lines deleted from ", report_id, "/report.qmd come back when it is regenerated; ",
+         "change the manifest to remove blocks.")
+  }
+}
+
 # ---- Bulk export / import --------------------------------------------------------------------
 
 text_export <- function(report_id, path) {
@@ -241,6 +260,7 @@ text_import <- function(path) {
   need <- c("report_id", "field_id", "text", "base_hash", "edit_scope")
   miss <- setdiff(need, names(x))
   if (length(miss)) stop("Import file is missing column(s): ", paste(miss, collapse = ", "), call. = FALSE)
+  reports_in_file <- unique(x$report_id)
   x <- x[vapply(x$text, hash_text, "") != x$base_hash, , drop = FALSE]
   if (!nrow(x)) {
     note("No changed rows in ", path)
@@ -274,6 +294,22 @@ text_import <- function(path) {
          "). Nothing was imported. Details: ", out, ". Re-export, re-apply your edits, and import again.", call. = FALSE)
   }
   save_text_records(records)
+  for (i in seq_len(nrow(x))) warn_hidden(records, x$field_id[i], x$edit_scope[i], reports_in_file)
   note("Imported ", nrow(x), " changed text field(s) from ", path)
   invisible(list(applied = nrow(x), conflicts = 0))
+}
+
+# Text saved to a broad scope (default or a profile) does not show in a report that has a
+# narrower record for the same field: say so, rather than let the import look applied.
+warn_hidden <- function(records, field, scope, report_ids) {
+  for (id in report_ids) {
+    scopes <- text_scopes(id, report_config(id)$profile)
+    k <- match(scope, scopes)
+    if (is.na(k) || k == 1) next
+    narrower <- Filter(function(s) any(records$field_id == field & records$scope == s), scopes[seq_len(k - 1)])
+    if (length(narrower)) {
+      warn(field, ": imported to ", scope, ", but ", id, " keeps its own ", narrower[1], " record for this field, ",
+           "which takes precedence there. Delete that record in content/text.csv, or import to ", narrower[1], ".")
+    }
+  }
 }

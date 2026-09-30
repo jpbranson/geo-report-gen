@@ -36,10 +36,35 @@ price_index_table <- function(index = "r_cpi_u_rs") {
       yr <- suppressWarnings(as.integer(body[[1]]))
       val <- suppressWarnings(as.numeric(body[[avg_col]]))
       keep <- !is.na(yr) & !is.na(val)
-      return(data.frame(year = yr[keep], index = val[keep]))
+      rs <- data.frame(year = yr[keep], index = val[keep])
+      # The series begins in 1978. Earlier years follow the Census Bureau's historical income
+      # index (the CPI-U-X1 for 1967-1977 and the CPI-U before, joined by ratio), scaled to meet
+      # the R-CPI-U-RS in 1978, as the Census Bureau joins them.
+      early <- tryCatch(census_price_history(), error = function(e) {
+        warn("Constant dollars before 1978 are unavailable (", conditionMessage(e), ").")
+        NULL
+      })
+      if (is.null(early)) return(rs)
+      first <- min(rs$year)
+      k <- rs$index[rs$year == first] / early$index[early$year == first]
+      early <- early[early$year < first, ]
+      return(rbind(data.frame(year = early$year, index = early$index * k), rs))
     }
     stop("Unknown price_index '", index, "' (use r_cpi_u_rs or cpi_u).", call. = FALSE)
   })
+}
+
+# The Census Bureau's index for adjusting historical income (table with its income report, P60),
+# 1947 on: only its years before 1978 are used, for their year-to-year changes.
+census_price_history <- function() {
+  url <- "https://www2.census.gov/programs-surveys/demo/tables/p60/289/annual-index-value_annual-percent-change.xls"
+  f <- cached_download(url, cache_path("raw", "census_p60", basename(url)), "census_p60")
+  x <- readxl::read_excel(f, col_names = FALSE, col_types = "text", .name_repair = "minimal")
+  yr <- suppressWarnings(as.integer(x[[1]]))
+  val <- suppressWarnings(as.numeric(x[[2]]))
+  keep <- !is.na(yr) & !is.na(val) & yr >= 1900
+  if (!any(keep)) stop("Unexpected layout in the Census Bureau's historical price index file.")
+  data.frame(year = yr[keep], index = val[keep])
 }
 
 price_index_label <- function(index) {

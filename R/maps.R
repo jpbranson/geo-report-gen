@@ -154,7 +154,7 @@ compute_block_map <- function(row, ctx, settings, opts) {
                      latest_period = get_provider(recipe$source_id)$period_label(release),
                      n_tracts = as.character(nrow(sub)), n_unreliable = as.character(n_unrel),
                      tract_note = if (isTRUE(attr(sub, "exact"))) phrase(ctx, "tracts_exact", list()) else phrase(ctx, "tracts_overlap", list())),
-       fields = c("title", "prose", "caption", "alt", "legend_title", "note", "source_note"),
+       fields = c("title", "prose", "caption", "alt", "legend_title", "legend", "note", "source_note"),
        sources = source_row(recipe$source_id, paste(metric_doc(metric_id)$table_or_series, "(census tracts)")),
        figure = TRUE)
 }

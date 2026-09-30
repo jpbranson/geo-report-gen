@@ -3,7 +3,6 @@
 
 suppressPackageStartupMessages({
   library(dplyr)
-  library(tidyr)
   library(ggplot2)
 })
 
@@ -48,6 +47,7 @@ run_reset <- function(offline = FALSE, refresh = character()) {
   run$cache <- c(hit = 0L, miss = 0L)
   run$warnings <- character()
   run$timings <- list()
+  run$incomplete <- FALSE          # a source failed or a block errored (the compose may differ next time)
   invisible(run)
 }
 run_reset()
@@ -208,6 +208,7 @@ parse_options <- function(x) {
   if (any(bad)) stop("Options must look like key=value; got: ", paste(items[bad], collapse = ", "))
   keys <- trimws(sub("=.*$", "", items))
   vals <- trimws(sub("^[^=]*=", "", items))
+  if (anyDuplicated(keys)) stop("Option given twice: ", paste(unique(keys[duplicated(keys)]), collapse = ", "))
   stats::setNames(as.list(vals), keys)
 }
 

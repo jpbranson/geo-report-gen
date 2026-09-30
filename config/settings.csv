@@ -2,7 +2,7 @@ scope,key,value,note
 default,boundary_vintage,2024,Geography vintage: GEOIDs and names are those of this ACS release (boundaries as of January 1 of that year)
 default,acs_release,2024,"Release-selection policy: every area in a report uses this ACS 5-year release (2020-2024) for current values; no per-area 'latest'"
 default,acs_periods,nonoverlapping,"ACS trend periods: 'nonoverlapping' = every 5th release back to 2005-2009; 'all' shows overlapping releases (labeled, never treated as annual)"
-default,history_start,1990,Earliest year shown in history charts for annual and decennial series (blocks may override)
+default,history_start,1990,"Earliest year shown in history charts for annual and decennial series (a library block may set its own window; report settings and manifest options override it)"
 default,dollar_year,2024,Constant-dollar base year for monetary comparisons over time
 default,price_index,r_cpi_u_rs,"Price index for constant dollars: r_cpi_u_rs (BLS R-CPI-U-RS, used by the Census Bureau for income trends) or cpi_u"
 default,benchmark_levels,county;state;region;nation,Levels offered as benchmarks (add division to include Census divisions)
@@ -13,7 +13,7 @@ default,cv_caution,15,Coefficient of variation (%) above which estimates are fla
 default,cv_unreliable,30,Coefficient of variation (%) above which estimates are flagged unreliable (hollow markers; ‡ in tables)
 default,dependence_adjustment,TRUE,Adjust significance tests when the study area is part of a benchmark (weighted-mean statistics)
 default,theme,default,Theme from config/themes.csv (cosmetic only)
-default,detail,standard,"Explanatory depth: brief hides the method notes under figures; standard shows them (a profile can add definitions through its own text records)"
+default,detail,standard,"Explanatory depth: brief leaves out the notes on definitions and methods under figures (legends and comparability caveats are always shown); standard shows them (a profile can add definitions through its own text records)"
 profile:early-childhood,history_start,2000,Focus history on the period with child care data
 profile:economic-development,detail,brief,Compact economic profile
 report:ct-capitol,theme,civic,Theme-change demonstration: every part of this report uses the civic theme

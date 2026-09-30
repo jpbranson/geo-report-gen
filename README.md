@@ -23,10 +23,12 @@ The output of every report is an editable Quarto document (`report.qmd`) and its
    The Census Data API needs the key for every request. BLS rejects automated downloads that
    carry no contact, so the email is sent in the User-Agent of BLS requests, and only those. The
    FBI Crime Data Explorer needs the api.data.gov key, sent only as a request header (never in
-   URLs or logs); without it, the crime blocks stop with a message saying so. Census years
-   1970-2000 come from IPUMS NHGIS, which needs the IPUMS key (sent only as a request header)
-   and an IPUMS account registered for NHGIS (https://uma.pop.umn.edu/nhgis/registration/new).
-   The first build requests one extract, which IPUMS takes about 6 minutes to produce.
+   URLs or logs). Census years 1970-2000 come from IPUMS NHGIS, which needs the IPUMS key (sent
+   only as a request header) and an IPUMS account registered for NHGIS
+   (https://uma.pop.umn.edu/nhgis/registration/new). The first build requests the extracts, which
+   IPUMS takes about 5 minutes each to produce; adding an NHGIS table to the catalog requests a
+   new extract. Without a key, the sources that need it are listed in each report's "What is not
+   shown" appendix with the reason, and every other value is still shown.
 4. Run commands from the project root. On Windows, call the R 4.6 `Rscript.exe` explicitly if
    another R version is first on the PATH.
 
@@ -89,8 +91,15 @@ Everything runs through one entry point, `Rscript gr.R <command>`:
 | `test` | automated tests (offline, with fixtures) |
 
 Options: `--offline` (cache only), `--refresh <source,...>` (re-download the raw files in those
-`cache/raw/<source>` folders, e.g. `census_acs5`, `bls`, `bea`), `--force` (re-render),
-`--no-render`, `--workers <n>`, `--formats html,typst`.
+`cache/raw/<source>` folders, e.g. `census_acs5`, `bls`, `bea`), `--force` (recompose and re-render),
+`--no-render`, `--workers <n>`, `--formats html,typst`. A build whose inputs, code and raw
+files are unchanged since its last compose reuses that compose (build.json says so).
+
+The cache only grows. `cache/metrics/` holds computed results, including ones no longer used
+after code or data changes; it can be deleted whenever no build is running, and the next build
+recomputes what it needs (about 7 seconds per report). The `.lock` files beside cache entries
+can be deleted at the same time. `cache/raw/` holds downloads, some slow to get again (IPUMS
+extracts need a new request on your account), so delete from it only with `--refresh` in mind.
 
 PDF: `--formats typst` (or `--formats html,typst`) also writes `reports/<id>/report.pdf` through
 Quarto's Typst engine, with the same text, tables, charts and maps, a table of contents and
@@ -180,7 +189,10 @@ wins over the default; a field falls back to the library block's text and then t
 for its kind (e.g. `@metric.caption`). Long prose can live in `content/prose/*.md`, referenced as
 `@prose/<file>.md`. Templates use `{placeholders}` filled from computed values; they are never
 evaluated. A number typed into text that matches a computed value is remembered, and later builds
-warn when the data no longer match.
+warn when the data no longer match. Under a figure, the `legend` field says what its marks show
+and what limits comparisons (always shown); the `note` field holds definitions and methods (left
+out when the `detail` setting is `brief`). A block without data shows its `no_data` text instead
+of its prose.
 
 - **Inline:** edit `reports/<id>/report.qmd` itself: headings, the text between `:::` fences,
   and the `fig-cap`, `fig-alt`, `tbl-cap` and `gr-*` chunk options (axis labels, legend title,
@@ -207,8 +219,12 @@ above it. Moving a row moves the block; numbering and the table of contents foll
 - **Change text:** edit the report inline or `content/text.csv` (see above).
 - **Change the look:** edit `config/themes.csv` (fonts, colors, sizes, number formats, print), or
   add a theme and select it with the `theme` setting. Themes never change a statistic.
-- **Change the historical window:** `history_start` in `config/settings.csv`, for everyone, a
-  profile, one report (`report:<id>`), or one block (`history_start=2000` in the manifest options).
+- **Change the historical window:** `history_start` (the first year shown). Later layers win:
+  `config/settings.csv` for everyone, then a profile; then a library block's own window in
+  `catalog/blocks.csv` (e.g. 1790 for the long population chart); then one report
+  (`report:<id>`); then one block (`history_start=2000` in the manifest row's options).
+  `build.json` lists each block's window and the layer it came from. A metric's catalog
+  `history_start` is a floor that no setting crosses.
 - **Add a data source:** write `R/providers/<name>.R` returning the long-data contract documented
   in `R/core.R` and call `register_provider()`. Add a block kind with `compute_block_<kind>()`
   and `render_block_<kind>()`. Neither needs changes elsewhere.
@@ -230,8 +246,8 @@ above it. Moving a row moves the block; numbering and the table of contents foll
 | `kc-core` | two-state union; state benchmarks labeled with their share of residents; untested union medians |
 | `travis-austin` | a county plus the overlapping city, resolved with published place-by-county parts |
 | `austin-78704` | a ZCTA plus an overlapping city: rejected with an explanation (the batch continues) |
-| `ct-capitol` | a Connecticut planning region: the 2022 boundary change breaks the county history; civic theme |
-| `lake-in` | tract maps within a county and time-only blocks without parent charts |
+| `ct-capitol` | a Connecticut planning region: the 2022 boundary change breaks the county history (census counts are summed from its towns); civic theme |
+| `lake-in` | tract maps within a county, income and rent distributions, and time-only blocks without parent charts |
 | `tx-cities` | four cities compared side by side against their shared benchmarks |
 | `in-cities` | one list split into one report per city |
 
@@ -247,29 +263,28 @@ The catalog of subjects, sources and metrics, with verification status and known
 - `Rscript gr.R verify`: live checks of every operational source; results with dates and
   evidence go to `catalog/verification_log.csv`.
 - `Rscript demos/round_trip.R`: the editing round trip on a real report through a data refresh.
-- `Rscript demos/benchmark.R`: cold, warm and resumed batches and what each kind of edit
-  invalidates (results in `docs/benchmark.csv`).
+- `Rscript demos/benchmark.R [--warm]`: cold (or, with `--warm`, the project's cache), warm
+  and resumed batches and what each kind of edit invalidates (results in `docs/benchmark.csv`).
 
-Results on 2026-09-28 (Windows laptop; the 12 sample builds; 4 parallel renders):
+Results on 2026-09-29 (Windows laptop; the 12 sample builds and the intended rejection; 4
+parallel renders; `--warm`, so no cold run and no data refresh):
 
-| Step | Seconds | Requests | Cache hits / misses | Rendered |
-|---|---:|---:|---:|---|
-| Cold: empty cache | 690 | 536 | 879 / 1,117 | 11 |
-| Warm: nothing changed | 86 | 0 | 1,528 / 23 | 11 (see note) |
-| Warm: forced re-render | 84 | 0 | 1,551 / 0 | 11 |
-| Resumed after an interruption (default intro edited) | 53 | 0 | 1,551 / 0 | 3; 8 up to date |
-| Theme edit (default accent color) | 84 | 0 | 1,551 / 0 | 10; the civic-themed report untouched |
-| Geography edit (one report becomes a union) | 55 | 2 | 1,536 / 21 | 1 |
-| Data refresh (building permits; data unchanged) | 89 | 102 | 1,555 / 103 | 0 |
+| Step | Seconds | Compose / render | Rendered |
+|---|---:|---:|---|
+| First build of a fresh copy (warm cache) | 327 | 232 / 95 | 12 |
+| Nothing changed | 8 | 8 / 0 | 0; every compose reused |
+| Forced re-render | 329 | 234 / 95 | 12 |
+| Resumed after an interruption (default intro edited) | 271 | 195 / 77 | 9; 3 up to date |
+| Theme edit (default accent color) | 307 | 221 / 86 | 11; the civic-themed report reused |
+| Geography edit (one report becomes a union) | 29 | 17 / 12 | 1; the other reports reused |
 
-Note: in this run, values computed right after a download differed in row names from their
-cached copies, so the first warm run re-rendered every report. Fixed afterwards (`cached()`
-returns the stored copy); a rebuild after a fresh computation is now reported as up to date.
-
-The cold run is dominated by downloads (compose 639 s, of which the first report took 435 s
-while fetching the shared national tables; BLS asks for one request per second). A warm run
-spends about 37 s composing twelve reports (reading cached tables and boundaries) and 13-19 s
-per Quarto render, so rendering is the main cost whenever many reports change.
+A build reuses its last compose when its code, catalog, content, own configuration, raw files
+and report.qmd are unchanged; a text or theme edit therefore recomposes every report it may
+touch (about 20 s each), and rendering takes 20-40 s per report. For one report (gary-in), a
+prose edit takes about 68 s (compose 37 s, render 29 s). The last cold run (2026-09-28, when
+48 metrics were operational) took 690 s and 536 requests; the current catalog needs far more
+(the review of 2026-09-29 counted 2,488 requests and 978 MB for the samples), and IPUMS takes
+about 5 minutes per extract.
 
 ## Limitations
 
@@ -305,10 +320,13 @@ per Quarto render, so rendering is the main cost whenever many reports change.
   with coordinates). Rates per 100,000 residents use 5-year totals and the ACS 5-year population.
   Connecticut's planning regions are not coded (FARS keeps the former counties).
 - Census years before the ACS (IPUMS NHGIS) cover income and poverty (1970 or 1980 to 2000),
-  education, work and commuting (commuting modes 1990 and 2000). They come from the census long
-  form, a sample; NHGIS publishes no margins of error for them, so they are drawn as dots and
-  never tested. Areas are linked across censuses by name and code, on each census's boundaries.
-  Connecticut's planning regions and combined areas' medians have no census values. The NHGIS
+  education, work, commuting (commuting modes 1990 and 2000) and homeownership (1970 to 2000).
+  Most come from the census long form, a sample; NHGIS publishes no margins of error for them,
+  so they are drawn as dots and never tested. Areas are linked across censuses by name and code,
+  on each census's boundaries. A chart with census years and ACS periods also states the change
+  from the first census to the latest period, as approximate and untested. Connecticut's planning
+  regions get census counts and shares summed from their towns (which kept their codes); their
+  medians, and combined areas' medians, have no census values. The NHGIS
   terms forbid redistributing the data: extracts stay in the cache, and the test fixtures are
   made up. Other NHGIS holdings (constant-boundary counts, Connecticut crosswalks) are described
   in `docs/nhgis.md`.
@@ -319,9 +337,11 @@ per Quarto render, so rendering is the main cost whenever many reports change.
   payroll and establishments from 1974 for counties, states and the nation, under SIC industry
   codes; they are drawn as a separate series from the NAICS years. National files start in 1977
   and state files skip 1971, 1973 and 1976. The 1975 state file reports payroll in thousands
-  of dollars; the provider converts it. Payroll per employee starts in 1978, the first year of
-  the R-CPI-U-RS price index.
-- Crime rates (FBI Crime Data Explorer, 2016-2025) need a free api.data.gov key in `.env`
+  of dollars; the provider converts it. Payroll per employee starts in 1974.
+- Constant dollars use the R-CPI-U-RS from 1978. Earlier years follow the Census Bureau's
+  historical income index (the CPI-U-X1 for 1967-1977, the CPI-U before), joined by ratio at
+  1978 as the Census Bureau joins them.
+- Crime rates (FBI Crime Data Explorer, 1985-2025) need a free api.data.gov key in `.env`
   (`DATA_GOV_API_KEY`), sent only as a request header. The FBI publishes police agencies: a city
   is its police department (matched by name) and needs all 12 months reported in a year (Gary did
   not report in 2020 or 2021); states and the nation cover the agencies that reported. A county
@@ -329,9 +349,11 @@ per Quarto render, so rendering is the main cost whenever many reports change.
   by where its residents live; agencies listed in no county (most state police, and the New York
   City and D.C. police) are left out, and a year needs agencies serving 75% of the county's
   residents to report every month, so county figures are approximate. An agency's year with under
-  a quarter of its usual offenses (its median year, when that is at least 20) also counts as not
-  reported: Kansas City, Kansas marked 2023 as reported while moving to NIBRS but sent almost
-  nothing.
+  a quarter of its usual offenses (the median of the three years on each side, when that is at
+  least 20) also counts as not reported: Kansas City, Kansas marked 2023 as reported while moving
+  to NIBRS but sent almost nothing. From 2013 violent crime counts rape under a revised, broader
+  definition, so the years before and after are separate series. Agencies that report through
+  NIBRS are converted by the FBI to the same summary counts, so that move is not a break.
 - Government finances (2022 Census of Governments) describe the county government for counties
   and the city's own government for cities, not all local governments in an area. Connecticut
   has no county governments, and consolidated city-counties (Indianapolis, Wyandotte County and

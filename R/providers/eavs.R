@@ -57,7 +57,7 @@ eavs_counties <- function(code, state) {
   town <- full & is.na(county) & state %in% new_england
   county[town & first5 %in% counties] <- first5[town & first5 %in% counties]
   ct <- town & state == "09"
-  if (any(ct)) county[ct] <- ct_town_regions()[last5[ct]]
+  if (any(ct)) county[ct] <- ct_town_regions(eavs_vintage)[last5[ct]]
   split <- rep("", length(code))
   for (i in which(full & is.na(county) & !town)) {
     parts <- tryCatch(place_parts(substr(code[i], 1, 7), eavs_vintage), error = function(e) NULL)
@@ -66,13 +66,6 @@ eavs_counties <- function(code, state) {
     if (max(share) >= 0.99) county[i] <- parts$county[which.max(share)] else split[i] <- paste(parts$county, collapse = ";")
   }
   data.frame(county = county, split = split, stringsAsFactors = FALSE)
-}
-
-# Connecticut planning region of each town code (towns kept their codes in 2022).
-ct_town_regions <- function() {
-  regions <- grep("^09", geo_catalog("county", eavs_vintage)$geoid, value = TRUE)
-  towns <- do.call(rbind, lapply(regions, function(r) geo_catalog("cousub", eavs_vintage, paste0("cousub-", r))))
-  stats::setNames(substr(towns$geoid, 1, 5), substr(towns$geoid, 6, 10))
 }
 
 # Totals of a group of jurisdictions. code: 0 = total, 1 = does not apply, 2 = not reported by

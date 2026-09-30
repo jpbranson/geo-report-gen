@@ -1,6 +1,7 @@
 # Configuration and editable content.
 #
-#   config/settings.csv   scoped settings: default < profile:<id> < report:<id> < block options
+#   config/settings.csv   scoped settings: default < profile:<id> < library block options <
+#                         report:<id> < manifest row options
 #   config/reports.csv    report instances (geography, mode, profile, optional manifest)
 #   profiles/<id>.csv     audience manifests; config/manifests/<report>.csv overrides one report
 #   catalog/blocks.csv    block library (what a block shows by default)
@@ -15,30 +16,33 @@
 
 settings_table <- function() read_table(root_path("config", "settings.csv"))
 
-# Resolve settings for a report. Keys must be declared in the default scope, so a typo in a
-# profile/report/block override is an error rather than a silently ignored setting.
-resolve_settings <- function(report_id = NULL, profile = NULL, block_options = list()) {
+# Resolve settings for a report or one of its blocks. Later layers win: the default scope, the
+# profile, the library block's options (catalog/blocks.csv, e.g. a chart's own history_start),
+# the report, then the manifest row's options. Keys must be declared in the default scope, so
+# a typo in an override is an error rather than a silently ignored setting.
+resolve_settings <- function(report_id = NULL, profile = NULL, library = list(), block_options = list()) {
   s <- settings_table()
-  known <- s$key[s$scope == "default"]
-  scopes <- c("default", if (!is_blank(profile)) paste0("profile:", profile),
-              if (!is_blank(report_id)) paste0("report:", report_id))
-  out <- list()
-  origin <- list()
-  for (sc in scopes) {
+  scoped <- function(sc) {
     rows <- s[s$scope == sc, , drop = FALSE]
-    for (i in seq_len(nrow(rows))) {
-      out[[rows$key[i]]] <- rows$value[i]
-      origin[[rows$key[i]]] <- sc
-    }
+    stats::setNames(as.list(rows$value), rows$key)
   }
-  unknown <- setdiff(c(s$key[s$scope %in% scopes], names(block_options)), known)
+  layers <- list(default = scoped("default"))
+  if (!is_blank(profile)) layers[[paste0("profile:", profile)]] <- scoped(paste0("profile:", profile))
+  layers[["block library"]] <- library
+  if (!is_blank(report_id)) layers[[paste0("report:", report_id)]] <- scoped(paste0("report:", report_id))
+  layers[["manifest options"]] <- block_options
+  unknown <- setdiff(unlist(lapply(layers, names)), names(layers$default))
   if (length(unknown)) {
     stop("Unknown setting(s): ", paste(unique(unknown), collapse = ", "),
          ". Declare new settings in the default scope of config/settings.csv first.", call. = FALSE)
   }
-  for (k in names(block_options)) {
-    out[[k]] <- block_options[[k]]
-    origin[[k]] <- "block options"
+  out <- list()
+  origin <- list()
+  for (layer in names(layers)) {
+    for (k in names(layers[[layer]])) {
+      out[[k]] <- layers[[layer]][[k]]
+      origin[[k]] <- layer
+    }
   }
   attr(out, "origin") <- origin
   out
@@ -189,6 +193,7 @@ load_manifest <- function(path) {
   }
   m$kind <- m$type
   m$metrics <- ""
+  m$library_options <- ""   # the library block's options; the row's own `options` override them
   m$kind[m$type == "custom"] <- "custom"
   for (i in which(m$type == "metric")) {
     # A single metric: shown over time with benchmarks when it has history, else vs benchmarks.
@@ -203,9 +208,23 @@ load_manifest <- function(path) {
     m$metrics[i] <- b$metrics
     if (is_blank(m$compare[i])) m$compare[i] <- b$compare
     if (is_blank(m$viz[i])) m$viz[i] <- b$viz
-    m$options[i] <- paste(c(b$options, m$options[i])[nzchar(c(b$options, m$options[i]))], collapse = "; ")
+    m$library_options[i] <- b$options
+  }
+  bad_viz <- m$id[nzchar(m$viz) & !mapply(viz_allowed, m$kind, m$viz, m$compare)]
+  if (length(bad_viz)) {
+    stop(basename(path), ": `viz` does not match what the block draws in row(s) ", paste(bad_viz, collapse = ", "),
+         " (metric blocks: line with compare time, dot otherwise; compositions: stacked_bar or bar).", call. = FALSE)
   }
   m
+}
+
+# The chart form (`viz`) each block kind draws; any other value would be silently ignored. A
+# metric block draws lines over time and dots when it compares the latest values only.
+viz_allowed <- function(kind, viz, compare) {
+  allowed <- switch(kind, metric = if (grepl("time", compare)) "line" else "dot", composition = c("stacked_bar", "bar"),
+                    distribution = "bar", facts = "table", availability = "table", map = "map", locator = "map",
+                    history = "list", sources = "list", character())
+  viz %in% allowed
 }
 
 validate_manifest <- function(m) {
@@ -299,6 +318,36 @@ resolve_text <- function(records, field_id, kind, report_id, profile, ref = NULL
     }
   }
   list(text = "", scope = "none", record = NA_character_, fixed_facts = "")
+}
+
+# The text in effect for one field of a report and where it came from. Compose writes it into
+# report.qmd, and harvest and import check edits against it, so all use this one function.
+# `rows` and `blocks` are the report's manifest rows and computed blocks (or its snapshot's).
+# Category labels fall back to "label.<metric>" and then to the block's catalog label; event
+# statements to content/history_events.csv.
+field_text <- function(records, field, report_id, profile, rows, blocks, events) {
+  resolve <- function(f, kind = NULL, ref = NULL) resolve_text(records, f, kind, report_id, profile, ref)
+  fallback <- function(text, scope) list(text = if (length(text) && !is.na(text)) text else "", scope = scope,
+                                         record = NA_character_, fixed_facts = "")
+  block <- sub("\\..*$", "", field)
+  if (block == "event") {
+    t <- resolve(field)
+    statement <- events$statement[match(field, paste0("event.", events$event_id))]
+    if (identical(t$scope, "none")) t <- fallback(statement, "history_events.csv")
+    return(t)
+  }
+  if (grepl(".label.", field, fixed = TRUE)) {
+    m <- sub("^.*\\.label\\.", "", field)
+    t <- resolve(field)
+    if (identical(t$scope, "none")) t <- resolve(paste0("label.", m))
+    if (identical(t$scope, "none")) t <- fallback(blocks[[block]]$labels[[m]], "catalog")
+    return(t)
+  }
+  row <- rows[rows$id == block, , drop = FALSE]
+  kind <- if (block == "report") "report" else if (!nrow(row)) NULL else
+    if (row$type[1] %in% c("section", "subsection")) "section" else
+      if (identical(blocks[[block]]$kind, "error")) "error" else row$kind[1]
+  resolve(field, kind, if (nrow(row)) row$ref[1])
 }
 
 # ---- Templates ----------------------------------------------------------------------------

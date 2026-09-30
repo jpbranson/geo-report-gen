@@ -190,8 +190,10 @@ acs_fetch <- function(variables, pieces, releases) {
   scopes <- unique(mapply(census_scope, pieces$type, pieces$geoid))
   jobs <- expand.grid(release = releases, table = tables, scope = scopes, stringsAsFactors = FALSE)
   prefetch_acs(jobs)
+  piece_scopes <- mapply(census_scope, pieces$type, pieces$geoid)
   out <- lapply(seq_len(nrow(jobs)), function(i) {
     d <- acs_table(jobs$release[i], jobs$table[i], jobs$scope[i])
+    if (!nrow(d)) d <- acs_unpublished(jobs$release[i], jobs$table[i], variables, pieces$key[piece_scopes == jobs$scope[i]])
     d <- d[d$geo %in% pieces$key & d$variable %in% variables, , drop = FALSE]
     if (nrow(d)) d$period <- as.character(jobs$release[i])
     d
@@ -202,6 +204,23 @@ acs_fetch <- function(variables, pieces, releases) {
   out$period_end <- as.integer(out$period)
   out$source_id <- "census_acs5"
   out
+}
+
+# A table missing from a release (its group metadata is empty: the table was introduced later)
+# makes its values unavailable for that reason. An empty response for a published table leaves
+# the pieces absent, and the metric engine names them.
+acs_unpublished <- function(release, table, variables, keys) {
+  published <- tryCatch(nrow(acs_variables(release, table)) > 0, error = function(e) TRUE)
+  if (published || !length(keys)) return(empty_census_long())
+  vars <- variables[toupper(sub("_.*$", "", variables)) == table]
+  d <- expand.grid(geo = keys, variable = vars, stringsAsFactors = FALSE)
+  d$name <- ""
+  d$estimate <- NA_real_
+  d$moe <- NA_real_
+  d$status <- "unavailable"
+  d$bound <- NA_character_
+  d$note <- paste0("the source table is not published in the ", as.integer(release) - 4L, "–", release, " ACS release")
+  d
 }
 
 # Bounded-concurrency warm-up of the raw cache (4 requests at a time, throttled per source).

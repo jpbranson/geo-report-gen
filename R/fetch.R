@@ -62,10 +62,24 @@ cached <- function(path, compute, source = NA_character_) {
   }
   run$cache["miss"] <- run$cache["miss"] + 1L
   write_cache_file(compute(), path)
-  if (!is.na(source)) run$refreshed <- c(run$refreshed, path)
+  if (!is.na(source)) {
+    run$refreshed <- c(run$refreshed, path)
+    write_json_file(list(retrieved = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")), paste0(path, ".meta.json"))
+  }
   # Return the stored copy, so a value is identical (row names, types) whether it was just
   # computed or read from the cache; otherwise hashes of it change once after a download.
   read_cache_file(path)
+}
+
+# When a raw file or API response entered the cache: the time recorded at retrieval (so copying
+# or restoring the cache changes nothing), or the file's time for entries cached before that record.
+retrieved_at <- function(path) {
+  meta <- paste0(path, ".meta.json")
+  if (file.exists(meta)) {
+    t <- jsonlite::fromJSON(meta)$retrieved
+    if (!is.null(t)) return(as.POSIXct(t, format = "%Y-%m-%dT%H:%M:%S%z"))
+  }
+  file.mtime(path)
 }
 
 # Derived tables built from raw downloads carry the version of the provider code that built

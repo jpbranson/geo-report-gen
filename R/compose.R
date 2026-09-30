@@ -46,7 +46,6 @@ report_values <- function(ctx) {
        benchmark_list = if (length(bm)) join_list(bm, ctx) else phrase(ctx, "no_benchmarks", list()),
        n_benchmarks = as.character(length(bm)),
        acs_period = paste0(as.integer(ctx$settings$acs_release) - 4, "–", ctx$settings$acs_release),
-       report_date = format(Sys.Date(), "%B %d, %Y"),
        vintage = as.character(ctx$area$vintage),
        area_population = fmt_value(ctx$area$pop, "persons", ctx$theme))
 }
@@ -72,6 +71,7 @@ compute_blocks <- function(rows, ctx) {
   for (i in which(!rows$type %in% c("section", "subsection"))) {
     row <- as.list(rows[i, ])
     blocks[[row$id]] <- tryCatch(compute_block(row, ctx), error = function(e) {
+      run$incomplete <- TRUE
       warn("Block '", row$id, "' could not be computed: ", conditionMessage(e))
       list(id = row$id, kind = "error", error = conditionMessage(e), fields = "title",
            values = list(block_id = row$id), section = row$section)
@@ -108,7 +108,7 @@ sources_markdown <- function(srcs, ctx) {
     paste0("- **", row$name, "** (", row$agency, "). ", detail, ". Documentation: <", row$doc_url, ">.")
   }, "")
   # When the data entered the local cache (downloaded or retrieved from an API).
-  times <- file.mtime(unique(run$used))
+  times <- do.call(c, lapply(unique(run$used), retrieved_at))
   if (length(times)) {
     span <- unique(format(range(times), "%B %d, %Y"))
     lines <- c(lines, paste0("- **Retrieval**: data files and API responses were retrieved ",
@@ -129,9 +129,14 @@ availability_markdown <- function(unav, blocks, ctx) {
   if (!is.null(unav) && nrow(unav)) {
     unav <- unique(unav[, c("metric_id", "entity", "period", "status", "reason")])
     unav$metric <- vapply(unav$metric_id, function(m) metric_doc(m)$label, "")
-    tab <- data.frame(Measure = unav$metric, Area = unav$entity, Period = unav$period,
-                      Status = gsub("_", " ", unav$status), Reason = unav$reason, stringsAsFactors = FALSE)
-    lines <- c(lines, knitr::kable(tab, format = "pipe"))
+    # Rows that differ only in the measure become one row listing the measures (e.g. every CDC
+    # PLACES measure for a region), so the list stays complete but short.
+    key <- paste(unav$entity, unav$period, unav$status, unav$reason, sep = "\r")
+    tab <- do.call(rbind, lapply(split(unav, factor(key, levels = unique(key))), function(g) {
+      data.frame(Measure = paste(unique(g$metric), collapse = "; "), Area = g$entity[1], Period = g$period[1],
+                 Status = gsub("_", " ", g$status[1]), Reason = g$reason[1], stringsAsFactors = FALSE)
+    }))
+    lines <- c(lines, knitr::kable(tab, format = "pipe", row.names = FALSE))
   }
   if (length(errs)) {
     lines <- c(lines, "", paste0("- Block **", names(errs), "** could not be produced: ",
@@ -144,49 +149,37 @@ availability_markdown <- function(unav, blocks, ctx) {
 
 # Resolve every editable field of every block (plus report and section titles).
 resolve_block_texts <- function(rows, blocks, ctx) {
-  get <- function(field, kind = NULL, ref = NULL) {
-    resolve_text(ctx$text_records, field, kind, ctx$report_id, ctx$profile, ref)
-  }
-  # Text without a record: series labels from the catalog, event statements from history_events.csv.
-  fallback <- function(text, scope) list(text = text, scope = scope, record = NA_character_, fixed_facts = "")
-  texts <- list(report.title = get("report.title", "report"), report.subtitle = get("report.subtitle", "report"))
+  fields <- c("report.title", "report.subtitle")
   for (i in seq_len(nrow(rows))) {
     r <- rows[i, ]
     if (r$type %in% c("section", "subsection")) {
-      texts[[paste0(r$id, ".title")]] <- get(paste0(r$id, ".title"), "section")
+      fields <- c(fields, paste0(r$id, ".title"))
       next
     }
     b <- blocks[[r$id]]
-    kind <- if (identical(b$kind, "error")) "error" else r$kind
-    for (f in setdiff(b$fields, "labels")) texts[[paste0(r$id, ".", f)]] <- get(paste0(r$id, ".", f), kind, r$ref)
-    if ("labels" %in% b$fields) {
-      for (m in names(b$labels)) {
-        t <- get(paste0(r$id, ".label.", m))
-        if (identical(t$scope, "none")) t <- get(paste0("label.", m))
-        if (identical(t$scope, "none")) t <- fallback(b$labels[[m]], "catalog")
-        texts[[paste0(r$id, ".label.", m)]] <- t
-      }
-    }
-    for (ef in b$event_fields) {
-      t <- get(ef)
-      if (identical(t$scope, "none")) {
-        t <- fallback(ctx$events$statement[paste0("event.", ctx$events$event_id) == ef][1], "history_events.csv")
-      }
-      texts[[ef]] <- t
-    }
+    fields <- c(fields, paste0(r$id, ".", setdiff(b$fields, "labels")),
+                if ("labels" %in% b$fields) paste0(r$id, ".label.", names(b$labels)), b$event_fields)
   }
-  texts
+  stats::setNames(lapply(fields, function(f) {
+    field_text(ctx$text_records, f, ctx$report_id, ctx$profile, rows, blocks, ctx$events)
+  }), fields)
 }
 
-# Every placeholder must resolve; a typo in a template stops the report with a clear list.
+# Every placeholder must resolve; a typo in a template stops the report with a clear list. A
+# placeholder whose value is missing (NA) would print as "{name}", so it is a warning.
 check_placeholders <- function(texts, values) {
   problems <- character()
   for (field in names(texts)) {
-    avail <- c(names(values$report), names(values[[sub("\\..*$", "", field)]]))
-    bad <- unknown_placeholders(texts[[field]]$text, avail)
+    vals <- c(values[[sub("\\..*$", "", field)]], values$report)   # the block's own values first
+    vals <- vals[!duplicated(names(vals))]
+    bad <- unknown_placeholders(texts[[field]]$text, names(vals))
     if (length(bad)) {
       problems <- c(problems, paste0(field, ": {", paste(bad, collapse = "}, {"), "} (available: ",
-                                     paste(sort(avail), collapse = ", "), ")"))
+                                     paste(sort(names(vals)), collapse = ", "), ")"))
+    }
+    for (n in intersect(template_names(texts[[field]]$text), names(vals))) {
+      v <- vals[[n]]
+      if (length(v) != 1 || is.na(v)) warn(field, ": {", n, "} has no value, so the text would show the placeholder itself.")
     }
   }
   if (length(problems)) {
@@ -253,6 +246,7 @@ write_qmd <- function(report_id, ctx, rows, blocks, texts) {
   }
   write_text_file(out, file.path(report_dir(report_id), "report.qmd"))
   write_json_file(base, file.path(snapshot_dir(report_id), "qmd_base.json"))
+  save_qmd_skeleton(report_id)
   invisible(out)
 }
 
@@ -262,7 +256,7 @@ qmd_header <- function(report_id, title, subtitle, th) {
   c("---",
     paste0("title: ", yaml_str(title)),
     paste0("subtitle: ", yaml_str(subtitle)),
-    paste0("date: ", yaml_str(format(Sys.Date(), "%Y-%m-%d"))),
+    "date: today",   # filled in by Quarto when it renders, so a new day alone never re-renders a report
     "format:",
     "  html:",
     "    theme: [default, _snapshot/theme.scss]",
@@ -321,10 +315,13 @@ block_markdown <- function(r, b, level, track, ctx) {
     return(c(heading(), paste0("::: {.gr-unavailable}\nThis block could not be produced: ", b$error, "\n:::"), ""))
   }
   out <- if ("title" %in% b$fields) heading()
-  for (f in intersect(c("body", "prose"), b$fields)) out <- c(out, text_div(field(f), track(field(f)), r$id))
+  for (f in intersect(c("body", "prose", "no_data"), b$fields)) out <- c(out, text_div(field(f), track(field(f)), r$id))
   if (isTRUE(b$figure) || isTRUE(b$table)) out <- c(out, figure_chunk(r, b, track, ctx$theme))
   if (identical(r$kind, "history")) out <- c(out, history_markdown(b, r$id, track, ctx))
   if (!is.null(b$markdown)) out <- c(out, b$markdown, "")
+  # The legend (what marks mean, breaks in comparability) is always shown; brief detail leaves
+  # out only the note on definitions and methods.
+  if ("legend" %in% b$fields) out <- c(out, text_div(field("legend"), track(field("legend")), r$id, "gr-note"))
   if ("note" %in% b$fields && !identical(ctx$settings$detail, "brief")) {
     out <- c(out, text_div(field("note"), track(field("note")), r$id, "gr-note"))
   }

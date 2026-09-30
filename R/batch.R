@@ -32,8 +32,9 @@ batch_build <- function(ids = NULL, workers = 4, offline = FALSE, refresh = char
     data.frame(report_id = id, status = m$status,
                action = if (!identical(m$status, "ok")) "failed" else if (id %in% todo) "rendered" else "up to date",
                requests = m$requests$total %||% 0, cache_hits = m$cache$hit %||% 0, cache_misses = m$cache$miss %||% 0,
-               compose_s = m$timings$compose %||% NA, render_s = render_results[[id]]$seconds %||% NA,
-               error = substr(m$error %||% "", 1, 160), stringsAsFactors = FALSE)
+               warnings = length(m$warnings), compose_s = m$timings$compose %||% NA,
+               render_s = render_results[[id]]$seconds %||% NA, error = substr(m$error %||% "", 1, 160),
+               stringsAsFactors = FALSE)
   }))
   total <- as.numeric(difftime(Sys.time(), started, units = "secs"))
   log <- list(started = format(started, "%Y-%m-%dT%H:%M:%S%z"), reports = length(ids),
@@ -44,9 +45,11 @@ batch_build <- function(ids = NULL, workers = 4, offline = FALSE, refresh = char
               cache_misses = sum(summary$cache_misses), results = summary)
   dir.create(root_path("reports", "_batch"), showWarnings = FALSE, recursive = TRUE)
   write_json_file(log, root_path("reports", "_batch", paste0(format(started, "%Y%m%d-%H%M%S"), ".json")))
-  print(summary[, c("report_id", "status", "action", "requests", "cache_hits", "cache_misses", "compose_s", "render_s")], row.names = FALSE)
-  note(sprintf("Batch finished in %.1fs (compose %.1fs, render %.1fs); %d requests; %d failed.",
-               total, compose_secs, render_secs, sum(summary$requests), sum(summary$status != "ok")))
+  print(summary[, c("report_id", "status", "action", "requests", "cache_hits", "cache_misses", "warnings", "compose_s",
+                    "render_s")], row.names = FALSE)
+  note(sprintf(paste("Batch finished in %.1fs (compose %.1fs, render %.1fs); %d requests; %d failed;",
+                     "%d with warnings (see build.json)."),
+               total, compose_secs, render_secs, sum(summary$requests), sum(summary$status != "ok"), sum(summary$warnings > 0)))
   invisible(log)
 }
 
@@ -62,6 +65,7 @@ record_render <- function(id, r) {
     m$error <- r$error
   }
   m$timings$render <- round(r$seconds, 2)
+  m$warnings <- c(m$warnings, as.list(render_warnings(readLines(file.path(report_dir(id), "render.log"), warn = FALSE))))
   write_json_file(m, path)
 }
 

@@ -6,7 +6,7 @@ history-context,overview,history,,none,list,,Cited historical context events for
 pop-history,demographics,metric,pop_total_dec,time,line,history_start=2000,Population by census (decennial counts)
 pop-growth,demographics,metric,pop_total_dec,time+parents,line,index=first; history_start=2000,Population growth indexed to the first census shown (study area and benchmarks)
 age-structure,demographics,composition,group:age_groups,time,stacked_bar,,Age structure over non-overlapping ACS periods (no parent chart)
-race-ethnicity,demographics,composition,group:race_ethnicity,time,stacked_bar,"periods=2019,2024",Race and Hispanic origin (2015-2019 vs 2020-2024; coding break noted)
+race-ethnicity,demographics,composition,group:race_ethnicity,time,stacked_bar,,Race and Hispanic origin by 5-year period (the 2020 coding change is drawn as a break)
 median-age,demographics,metric,median_age_acs,parents,dot,,Median age compared with benchmarks
 income-trend,income_poverty_hardship,metric,median_household_income_acs;median_household_income_census,time+parents,line,history_start=1970,Median household income over time in constant dollars: censuses 1980-2000 (1979-1999 incomes; IPUMS NHGIS) and ACS periods
 income-distribution,income_poverty_hardship,distribution,median_household_income_acs,distribution,bar,,Household income distribution (study area vs widest containing benchmark)
@@ -17,7 +17,7 @@ labor-force,employment_labor,metric,labor_force_participation_acs;labor_force_pa
 education,education,metric,bachelors_plus_share_acs;bachelors_plus_share_census,time+parents,line,history_start=1970,Adults with a bachelor's degree or higher: censuses 1970-2000 (IPUMS NHGIS) and ACS periods
 snap,income_poverty_hardship,metric,snap_households_share_acs,parents,dot,,Households receiving SNAP
 housing-units-history,housing,metric,housing_units_dec,time,line,history_start=2000,Housing units by census
-tenure-trend,housing,metric,owner_occupied_share_acs,time+parents,line,,Homeownership rate over time
+tenure-trend,housing,metric,owner_occupied_share_acs;owner_occupied_share_census,time+parents,line,history_start=1970,Homeownership rate over time: censuses 1970-2000 (IPUMS NHGIS) and ACS periods
 home-value-trend,housing,metric,median_home_value_acs,time+parents,line,,Median home value over time in constant dollars
 rent-trend,housing,metric,median_gross_rent_acs,time+parents,line,,Median gross rent over time in constant dollars
 rent-burden,housing,metric,rent_burden_30plus_share_acs,time+parents,line,,Renters paying 30% or more of income on rent
@@ -30,11 +30,11 @@ poverty-map,income_poverty_hardship,map,poverty_rate_acs,within,map,,Poverty rat
 income-map,income_poverty_hardship,map,median_household_income_acs,within,map,,Median household income by census tract within the study area
 availability,appendix,availability,,none,table,,Measures not shown and why
 sources,appendix,sources,,none,list,,"Geography, benchmarks and sources"
-pop-long-history,demographics,metric,pop_total_dec;pop_census_nhgis;pop_estimate_pep,time,line,history_start=1790,"Population across the longest available record: census counts 1790-2020 (counties from 1790 and places from 1970, via IPUMS NHGIS until 1990) and annual estimates 2000-2025"
+pop-long-history,demographics,metric,pop_total_dec;pop_estimate_pep;pop_census_nhgis,time,line,history_start=1790,"Population across the longest available record: census counts 1790-2020 (counties from 1790 and places from 1970, via IPUMS NHGIS until 1990) and annual estimates 2000-2025"
 pop-estimates,demographics,metric,pop_estimate_pep,time+parents,line,index=first; history_start=2000,"Annual population estimates indexed to 2000, by estimate series (not spliced)"
 unemployment-trend,employment_labor,metric,unemployment_rate_laus,time+parents,line,history_start=1990,Annual unemployment rate since 1990 with recessions shaded
 pcpi-trend,income_poverty_hardship,metric,per_capita_personal_income_bea,time+parents,line,index=relative; history_start=1969,Per capita personal income since 1969 (county context for places)
-house-prices,housing,metric,house_price_index_fhfa,time+parents,line,history_start=1990,House price index (2000 = 100)
+house-prices,housing,metric,house_price_index_fhfa,time+parents,line,history_start=1975,"House price index (2000 = 100) from 1975, as each county enters the FHFA series"
 permits-trend,housing,metric,housing_units_authorized_bps,time,line,history_start=2000,New housing units authorized each year
 childcare-prices,childcare,metric,childcare_price_center_infant_ndcp,time+parents,line,history_start=2008,Weekly price of center-based infant care (county)
 childcare-affordability,childcare,metric,childcare_price_infant_share_income_ndcp,time+parents,line,history_start=2008,Infant care price as a share of median family income
@@ -76,16 +76,17 @@ jobs-trend,industries_business,metric,employment_cbp,time+parents,line,index=fir
 jobs-long-history,industries_business,metric,employment_cbp;employment_cbp_sic,time,line,history_start=1970,"Jobs located in the area since 1970: County Business Patterns under SIC (1970-1997, IPUMS NHGIS) and NAICS (from 1998), as separate series"
 business-summary,industries_business,facts,establishments_cbp;employment_cbp;annual_payroll_per_employee_cbp,parents,table,,"Business establishments, jobs and payroll per employee (County Business Patterns, latest year)"
 jobs-industry-mix,industries_business,composition,group:jobs_industry,parents,bar,,"Jobs located in the area by the employer's industry, against comparison areas (County Business Patterns, latest year)"
-payroll-trend,employment_labor,metric,annual_payroll_per_employee_cbp;annual_payroll_per_employee_cbp_sic,time+parents,line,history_start=1978,"Annual payroll per employee since 1978 (the first year of the price index) in constant dollars: County Business Patterns under SIC (1978-1997, IPUMS NHGIS) and NAICS (from 1998)"
+payroll-trend,employment_labor,metric,annual_payroll_per_employee_cbp;annual_payroll_per_employee_cbp_sic,time+parents,line,history_start=1974,"Annual payroll per employee since 1974 in constant dollars: County Business Patterns under SIC (1974-1997, IPUMS NHGIS) and NAICS (from 1998)"
 childcare-jobs,childcare,metric,childcare_employment_cbp,time,line,history_start=1998,Paid employees of child day care establishments since 1998
 hazard-risk,environment_climate,facts,nri_risk_score_nri;nri_social_vulnerability_score_nri;nri_community_resilience_score_nri;nri_heat_wave_risk_score_nri,parents,table,,"Natural hazard risk, social vulnerability and resilience scores of the county (FEMA National Risk Index)"
 hazard-losses,environment_climate,facts,nri_expected_annual_loss_nri;nri_eal_per_resident_nri;nri_building_loss_rate_nri,parents,table,,"Expected annual losses from natural hazards, in total, per resident and per $1 million of buildings"
 hazard-loss-mix,environment_climate,composition,group:hazard_loss,parents,bar,,"Expected annual loss by hazard (FEMA National Risk Index), against comparison areas"
 food-environment,food_access,facts,low_access_population_share_fea;low_income_low_access_share_fea;households_no_car_low_access_share_fea;grocery_stores_per_10k_fea;snap_authorized_stores_per_10k_fea;convenience_stores_per_10k_fea;fast_food_restaurants_per_10k_fea,parents,table,,"Low access to grocery stores and the number of grocery, SNAP-authorized and convenience stores and fast-food restaurants (USDA Food Environment Atlas, county values)"
 voting,civic_participation,facts,active_registration_rate_eavs;voter_turnout_eavs,parents,table,,Voter registration and turnout in the latest presidential election (EAC Election Administration and Voting Survey)
+voter-turnout-trend,civic_participation,metric,voter_turnout_eavs,time+parents,line,,Turnout in the 2020 and 2024 presidential elections (EAC Election Administration and Voting Survey)
 local-government-finance,public_services_finance,facts,county_gov_property_tax_per_capita_govfin;county_gov_taxes_per_capita_govfin;county_gov_debt_per_capita_govfin;county_gov_police_per_capita_govfin;city_gov_property_tax_per_capita_govfin;city_gov_taxes_per_capita_govfin;city_gov_debt_per_capita_govfin;city_gov_police_per_capita_govfin,parents,table,,"Taxes, debt and police spending per resident of the county government and the city government (2022 Census of Governments)"
 crime-rates,public_safety,facts,violent_crime_rate_fbi;property_crime_rate_fbi;ucr_population_coverage_fbi,parents,table,,"Violent and property crime per 100,000 residents and the share of residents covered by reporting agencies (FBI, latest year)"
-violent-crime-trend,public_safety,metric,violent_crime_rate_fbi,time+parents,line,history_start=2016,"Violent crime rate since 2016 for the city's police department or the county's agencies, the state and the nation (FBI)"
+violent-crime-trend,public_safety,metric,violent_crime_rate_fbi,time+parents,line,history_start=1985,"Violent crime rate since 1985 (the 2013 rape-definition change splits the series) for the city's police department or the county's agencies, the state and the nation (FBI)"
 jobs-and-workers,industries_business,facts,jobs_total_lodes;employed_residents_lodes;jobs_to_employed_residents_ratio_lodes;jobs_low_earnings_share_lodes,parents,table,,"Primary jobs located in the area, employed residents, jobs per 100 employed residents and low-paying jobs (LODES, latest year)"
 primary-jobs-trend,industries_business,metric,jobs_total_lodes,time+parents,line,index=first,"Primary jobs located in the area since 2002, including government (LODES), indexed to the first year"
 jobs-per-resident-trend,transportation,metric,jobs_to_employed_residents_ratio_lodes,time+parents,line,,Jobs per 100 employed residents since 2002 (LODES)

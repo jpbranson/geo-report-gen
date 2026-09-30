@@ -635,3 +635,124 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   run here (no PowerShell on this Mac). README section "Moving the data to another machine".
 - Committed and pushed at the user's request.
 - Resume point: NCES CCD (PLAN.md step of 16:24, item 3) once the user agrees.
+
+## 2026-09-29 19:50 (session 6, Windows): fixes from two reviews
+
+- The user had two reviews of 711d8f3 (copied to docs/review-2026-09-29-a.md and -b.md) merged
+  into one list, leaving out where they disagree, and asked to execute it with this log kept
+  current. Checklist: PLAN.md "Step agreed with the user 2026-09-29 19:50" (items 1-35).
+- Machine: this Windows PC; cache/ and reports/ came from the Mac bundle (cache/BUNDLE.txt,
+  3.9 GB). HEAD 61e7521; engine changes since 711d8f3 touch no finding.
+- Decisions taken without asking (the user can reverse): history precedence default < library
+  < profile < report < manifest (B's proposal); item 35 (email in git history) left to the user.
+- 20:30 items 1-13 done (PLAN.md), tests 303 -> 305 with the new ones. Tools: tools/fingerprint.R
+  (compose all offline + fingerprint; --compare a b); session scratchpad fp/*.rds hold the
+  baseline (base.rds = before any change; base2.rds = HEAD re-run in a worktree with numbers).
+  Text edits go through small scratchpad scripts that keep content/text.csv row order
+  (save_text_records() re-sorts the whole file); catalog CSVs are edited line by line (a
+  read_table/write_table round trip adds a BOM and re-quotes rows).
+- Findings while doing them: fingerprint after items 1-8 showed only intended changes (legends,
+  notes, turning points, no_data fields, CT jobs 2022-2023, appendix wording); race periods
+  2005-09/2010-14 needed 8 ACS requests (fetched online). R files had CRLF in the working copy
+  (build.R, content.R, bls.R): normalized to LF (code hashes changed once).
+- Item 12 decision changed after checking the data: B's "profile above library" would cut
+  econ-dev pop-long-history to 1969 and early-childhood child care jobs to 2000; implemented
+  default < profile < library < report < manifest (both reviews agree on report and manifest
+  above library) and left profile-vs-library for the user.
+- 20:35 items 14-17 done (tests 309). Item 14 checked on gary-in with the NHGIS cache hidden: 0
+  error blocks, ACS lines kept, the appendix names the missing census years with the reason.
+- !! CACHE NEEDS A MANUAL FIX (the restoring move was blocked by the permission classifier):
+  hiding cache/raw/ipums_nhgis for that check left it nested. The real files (extract zips,
+  derived parquet, metadata) are now in cache/raw/ipums_nhgis/ipums_nhgis.hidden/ipums_nhgis.hidden/;
+  the other folders under cache/raw/ipums_nhgis hold only empty metadata folders and .lock
+  files made by the offline runs. To restore (PowerShell, from the project root):
+    Move-Item cache\raw\ipums_nhgis cache\raw\nhgis_broken
+    Move-Item cache\raw\nhgis_broken\ipums_nhgis.hidden\ipums_nhgis.hidden cache\raw\ipums_nhgis
+    (then delete cache\raw\nhgis_broken after checking it holds only .lock files and empty folders)
+  Until then, offline composes show NHGIS values as unavailable. Do not build online before the
+  fix: it would submit new IPUMS extracts on the user's account.
+- The step-2 fingerprint (items 10-17) was stopped because of this; rerun it after the fix:
+  Rscript tools/fingerprint.R <scratchpad>/fp/step2.rds, compare with fp/step1.rds.
+- 20:55 items 18-20 and 29-32 done in code (tests 315); not yet checked on composed reports
+  (waiting for the NHGIS cache fix above). 18: build.json gets compose_key, complete and per-file
+  stamps; a build reuses the last compose when all match (--force or --refresh recompose).
+  19: report.qmd says `date: today` (Quarto fills it); the unused {report_date} value is gone.
+  20: cached() writes <file>.meta.json for new raw entries; retrieved_at() reads it.
+  29: catalog --check compares recipe vs documented stat_type through a compatibility table
+  (a recipe "share" may be documented as rate or ratio; the 23 "differences" were all of that
+  kind, none a contradiction). 32: README note instead of a prune command.
+- 20:45 more items (tests 318): 23 long-run sentence ({long_run_sentence} in @metric.prose, both
+  scopes; needs NHGIS points to show, so unchecked until the cache fix); 25 price index before
+  1978 from the Census Bureau's P60 table (cache/raw/census_p60, new source row
+  census_p60_price_index, verify check; 1977 = 104.4 x 39.5/42.2); payroll-trend from 1974;
+  27 voter-turnout-trend block (general profile; gary-in checked: Lake County 63.0% -> 57.7%);
+  28 FHFA county indexes start 1975 for 419 counties and all sample counties but Madison MS
+  (1979): house-prices from 1975; the FBI API serves national and state data from 1985
+  (fbi_years is 2016-2025; extending means refetching every agency series and adding the 2013
+  rape-definition change, so it is left for the user); 33 lake-in manifest gets
+  income-distribution and rent-distribution (rent table fetched with scratchpad one_block.R,
+  2 requests, no NHGIS involved).
+- Paused (20:50): waiting for the user to restore cache/raw/ipums_nhgis (steps above). Then:
+  step-2 fingerprint vs fp/step1.rds and review; batch render; grep rendered HTML for "{";
+  items 17 (profile fbi), 21-22, 24, 26, 34; decisions for the user: census_hist, history
+  precedence (profile vs library), FBI years before 2016, item 35.
+
+## 2026-09-29 21:00 (session 6, continued): the user's decisions
+
+- NHGIS cache restored by the user. Decisions: keep the history order (default < profile <
+  library < report < manifest); remove census_hist; extend FBI data back to 1985 and mark the
+  2013 rape-definition change; submit the NHGIS extract for homeownership (B37); the BLS email
+  in the flight log history stays (item 35 closed, no action).
+- Next: step-2 fingerprint vs fp/step1.rds; then census_hist removal, FBI 1985, B37, CT towns,
+  appendix grouping, timing items, batch render and review.
+- 21:20 step-2 fingerprint (items 10-20, 23, 25, 27-33) against the HEAD baseline: numbers
+  changed only in house-prices (1975-1989 added), payroll-trend (1974-1977 added),
+  race-ethnicity (four periods), voter-turnout-trend (new) and ct-capitol jobs; every existing
+  value unchanged. Long-run sentences read well (Gary income $69,741 in the 1980 census to
+  $38,731, -44.5%); "the" added before the measure.
+- census_hist removed (pep.R section, recipe and metric rows, verify check; the source row stays,
+  marked unused). FBI: fbi_years 1985:2025; violent crime split into two series at 2013
+  (legacy/revised rape definition; history event ucr_rape_definition_2013 cites CIUS 2013);
+  the quarter-of-usual screen now uses the median of the three years on each side; Delaware
+  fixtures refetched for 1985-2025 (27 requests). B37: recipe owner_occupied_share_census,
+  tenure-trend from 1970; the NHGIS census request now includes B37, so the next online build
+  submits a new extract (fixture extract renamed census-ad848833.zip). Item 24: nhgis_fetch sums
+  Connecticut towns into planning regions for counts, shares and ratios (ct_town_regions moved
+  to geography.R). Tests 321.
+- Next: online batch --no-render (FBI refetch for all sample agencies; the NHGIS extract).
+- 21:25 online compose of all reports (21:03-21:15): NHGIS extract 10 (with B37) took about 5
+  minutes; FBI refetch 1985-2025: 250 requests in all; every build ok, complete, no warnings.
+  Checked: Gary tenure 58.6% (1970 census) to 49.1%; Gary violent crime 1985-2025 in two series
+  (break line 2013; change now 2013-2025, +23.2%); Capitol Planning Region census counts from
+  towns (1970 858,874; poverty and homeownership 1970-2000; medians stay unavailable).
+  Fingerprint step3 vs step2: numbers changed only in violent-crime-trend, tenure-trend and
+  ct-capitol's census-year blocks. pop-long-history now lists PEP before NHGIS so a region
+  without decennial API counts is described by its latest estimate (as before), not 1990.
+- Running: gr.R batch --offline (render all), then HTML checks, figures, timings.
+- 21:45 batch --offline: 12 rendered, 0 warnings (austin-78704 rejected as intended); no "{name}"
+  in any report's visible text (Quarto keeps chunk options as hidden data-gr-* attributes).
+  Charts checked as images: race break line, crime 1985-2025 split at 2013, tenure dots,
+  CT population dots 1970-1990, distributions. Fixed while checking: distribution axis said
+  "2020-2024 dollars" ({dollar_year} now); distribution notes moved to legends; jobs- and
+  pop-long-history prose now include {turning_sentence} (Gary: "peaked in 1979 at 201,847").
+  austin-core (brief) now shows the asterisk legend, the census-dot legend and "years of school".
+- Timings (gary-in, warm, offline): unchanged rebuild 1.3 s (compose reused; was 30.6 s); prose
+  edit 68 s (compose 37, render 29). Profile: ACS table reading 10 s (the excluded parquet
+  item), NHGIS rows 0.4 s (was 5 s), FBI 1.8 s. Item 21 (block cache) not built: user's call.
+- Running: demos/benchmark.R --warm (temp copy, project cache; no refresh step), then
+  demos/round_trip.R.
+- 22:10 warm benchmark run 1 (demos/benchmark.R --warm; results kept in scratchpad
+  benchmark.run1.csv): nothing changed 7.5 s (was 166 s); first build 325 s; theme edit 311 s
+  and geography edit 246 s because the compose key hashed all of config/. The key now uses the
+  report's own row, resolved settings, theme and manifest file instead; run 2 started 22:12.
+- 22:45 done. Benchmark run 2 (docs/benchmark.csv, README): nothing changed 8 s; geography edit
+  29 s (only that report recomposes); theme edit 307 s (every default-theme report recomposes;
+  the civic one is reused). demos/round_trip.R 10/10. gr.R verify: 29 sources ok, 424 ACS
+  recipe checks without gaps. catalog --check clean; catalog.html written. Final batch: 12
+  rendered, 0 warnings, austin-78704 rejected as intended. Tests 321.
+- Final fingerprint vs the HEAD baseline (fp/base2.rds -> fp/final.rds): 2,173 new rows (house
+  prices 1975-1989, payroll 1974-1977, race 2005-2014, turnout, crime 1985-2015, tenure census
+  years, CT census years) and 53 changed rows, all in ct-capitol (24 false zero-job years now
+  unavailable; 29 census-year values now summed from towns). Nothing else changed.
+- Not done: item 21 (block-result cache; the user decides). Nothing committed (the user commits
+  on request). Temporary baseline worktree removed.

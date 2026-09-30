@@ -1,8 +1,7 @@
 "step","seconds","compose_s","render_s","requests","cache_hits","cache_misses","rendered","up_to_date","failed"
-"cold: empty cache",690,639.2,50.8,536,879,1117,11,0,1
-"warm: nothing changed",85.9,37.1,48.8,0,1528,23,11,0,1
-"warm: forced re-render of everything",84.1,36.3,47.8,0,1551,0,11,0,1
-"resumed after the interruption (default intro text edited)",52.8,36.4,16.4,0,1551,0,3,8,1
-"theme edit (default accent color)",83.7,36.9,46.8,0,1551,0,10,1,1
-"geography edit (lake-in becomes Lake + Porter counties)",54.9,39,15.8,2,1536,21,1,10,1
-"data refresh (building permits)",89,89,0,102,1555,103,0,11,1
+"first build of a fresh copy (warm cache)",326.8,231.9,94.9,0,13053,0,12,0,1
+"warm: nothing changed",7.7,7.6,0,0,3,0,0,12,1
+"warm: forced re-render of everything",329.3,234.1,95.2,0,13053,0,12,0,1
+"resumed after the interruption (default intro text edited)",271.3,194.5,76.8,0,10259,0,9,3,1
+"theme edit (default accent color)",306.7,221,85.6,0,12152,0,11,1,1
+"geography edit (lake-in becomes Lake + Porter counties)",28.6,16.8,11.8,0,120,0,1,11,1

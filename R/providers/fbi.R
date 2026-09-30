@@ -10,7 +10,8 @@
 #    coverage is V_POP / POP. A county's year needs agencies serving 75% of its residents.
 #  - The FBI advises comparing a city with its state and a state with the nation, not ranking areas.
 
-fbi_years <- 2016:2025
+fbi_years <- 1985:2025
+fbi_rape_revised <- 2013L  # violent crime counts rape under the revised, broader definition from 2013
 fbi_offenses <- c(V = "violent", P = "property")
 fbi_vintage <- 2024L  # Census populations that divide city departments listed in several counties
 fbi_min_coverage <- 0.75  # the FBI's rule for metropolitan areas asks for 75% of agencies
@@ -57,7 +58,7 @@ fbi_city_name <- function(place_name) {
   sub("\\s+(city|town|village|borough|cdp|municipality|(consolidated|unified|metropolitan|metro) government)(\\s+balance)?$", "", x)
 }
 
-# Monthly offenses, population and population covered by reporting agencies, 2016-2025. `path` is
+# Monthly offenses, population and population covered by reporting agencies, 1985-2025. `path` is
 # the API path without the offense; `name` labels the series in the response (the agency, state or
 # "United States").
 fbi_series <- function(path, name, offense) {
@@ -75,8 +76,9 @@ fbi_series <- function(path, name, offense) {
 
 # Annual totals: one agency needs every month reported in full; states and the nation use the
 # agencies that reported and the population they cover. An agency's year with under a quarter of
-# its usual offenses (its median year, when that is at least 20) also counts as not reported: some
-# agencies marked months as reported while moving to NIBRS but sent almost nothing.
+# its usual offenses (the median of the other years within three years, when that is at least 20)
+# also counts as not reported: some agencies marked months as reported while moving to NIBRS but
+# sent almost nothing. Nearby years set what is usual, so a real decline over decades is kept.
 fbi_annual <- function(s, agency) {
   y <- do.call(rbind, lapply(split(s, s$year), function(y) {
     reported <- nrow(y) == 12 && !anyNA(y$offenses) && !anyNA(y$covered)
@@ -85,7 +87,7 @@ fbi_annual <- function(s, agency) {
                covered = if (reported) mean(y$covered) else NA_real_, population = mean(y$population))
   }))
   if (agency) {
-    usual <- stats::median(y$offenses, na.rm = TRUE)
+    usual <- vapply(y$year, function(yr) stats::median(y$offenses[abs(y$year - yr) <= 3 & y$year != yr], na.rm = TRUE), 0)
     low <- !is.na(usual) & usual >= fbi_usual_min & !is.na(y$offenses) & y$offenses < usual / 4
     y$offenses[low] <- NA
     y$covered[low] <- NA
@@ -202,7 +204,8 @@ fbi_fetch <- function(variables, pieces, periods, options = list()) {
       if (is.null(y)) {
         g <- expand.grid(year = years, variable = vars, stringsAsFactors = FALSE)
         rows[[length(rows) + 1]] <- data.frame(geo = p$key, g, estimate = NA_real_, status = "unavailable",
-                                               note = fbi_notes[[if (p$type == "county") "county" else "place"]], stringsAsFactors = FALSE)
+                                               note = fbi_notes[[if (p$type == "county") "county" else "place"]],
+                                               series = fbi_series_label(off, g$year), stringsAsFactors = FALSE)
         next
       }
       y <- y[y$year %in% years, , drop = FALSE]
@@ -211,14 +214,24 @@ fbi_fetch <- function(variables, pieces, periods, options = list()) {
       rows[[length(rows) + 1]] <- data.frame(geo = p$key, year = rep(y$year, 3), variable = rep(vars, each = nrow(y)),
                                              estimate = c(y$offenses, y$covered, y$population),
                                              status = c(ifelse(ok, "ok", "unavailable"), ifelse(ok, "ok", "unavailable"), rep("ok", nrow(y))),
-                                             note = c(why, why, rep("", nrow(y))), stringsAsFactors = FALSE)
+                                             note = c(why, why, rep("", nrow(y))),
+                                             series = rep(fbi_series_label(off, y$year), 3),
+                                             stringsAsFactors = FALSE)
     }
   }
   d <- do.call(rbind, rows)
   d <- d[d$variable %in% variables & !duplicated(d[, c("geo", "year", "variable")]), , drop = FALSE]
   data.frame(geo = d$geo, name = "", variable = d$variable, estimate = d$estimate, moe = NA_real_, status = d$status,
              bound = NA_character_, note = d$note, period = as.character(d$year), period_start = d$year, period_end = d$year,
-             source_id = "fbi_cde", stringsAsFactors = FALSE)
+             source_id = "fbi_cde", series = d$series, stringsAsFactors = FALSE)
+}
+
+# Violent crime counts rape under the legacy definition before 2013 and the revised one after,
+# so the two are separate series (charts never join them, and change is described within one).
+fbi_series_label <- function(offense, year) {
+  if (!identical(offense, "V")) return(rep("FBI Uniform Crime Reporting", length(year)))
+  ifelse(year < fbi_rape_revised, "FBI Uniform Crime Reporting, legacy rape definition",
+         "FBI Uniform Crime Reporting, revised rape definition")
 }
 
 register_provider("fbi_cde", list(
@@ -228,4 +241,5 @@ register_provider("fbi_cde", list(
   periods = function(settings, recipe) fbi_years,
   period_label = function(period) as.character(period),
   period_kind = "annual",
+  series = "FBI Uniform Crime Reporting",
   availability_note = "The FBI publishes police agencies: here a city is its police department and a county adds up the agencies listed in it; states and the nation cover the agencies that reported."))

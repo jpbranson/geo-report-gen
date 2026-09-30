@@ -44,8 +44,8 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
       published pieces, benchmark policy, national scope, support matrix (catalog/geo_support.csv)
 - [x] Statistics: counts, shares, ratios, medians from distributions, MOE propagation, significance tests
       incl. overlap + part-whole dependence, status codes, constant dollars (R-CPI-U-RS)
-- [x] Providers: ACS 5-yr (2009-2024), decennial 2000/2010/2020 (1990 is not in the API), PEP, 1900-1990
-      county counts, LAUS, BEA CAINC1 and county GDP, CPI, building permits, FHFA HPI, NDCP, CBP (all industries), Texas HHSC,
+- [x] Providers: ACS 5-yr (2009-2024), decennial 2000/2010/2020 (1990 is not in the API), PEP,
+      LAUS, BEA CAINC1 and county GDP, CPI, building permits, FHFA HPI, NDCP, CBP (all industries), Texas HHSC,
       SAIPE, SAHIE, CDC PLACES, Nonemployer Statistics, LEHD LODES, BLS QCEW, NHTSA FARS, FEMA National Risk Index, USDA Food Environment Atlas, EAC EAVS,
       Census of Governments finance, FBI Crime Data Explorer, IPUMS NHGIS (census years
       1790-2000, County Business Patterns 1970-1997)
@@ -62,7 +62,7 @@ sample reports and tests, `[~]` implemented but unfinished, `[ ]` not started.
       logs, build manifests; cold/warm/resumed benchmark and invalidation checks (README, docs/)
 - [x] Demos 1-11: sample reports, demos/round_trip.R (10/10), benchmark, README; PDF via Typst works
       (basic page layout, documented)
-- [x] Tests: 288 expectations pass offline with fixtures (`gr.R test`)
+- [x] Tests: 321 expectations pass offline with fixtures (`gr.R test`)
 - [x] Docs and lean review: README complete; dead code removed; R/blocks.R, R/geography.R and
       R/compose.R restructured, each with every report's output proven identical
 
@@ -209,15 +209,15 @@ Reports may keep growing (the user edits down), so every new block goes into the
 
 ## Proposed next steps (saved 2026-09-29, not started)
 
-1. [ ] Constant dollars before 1978: extend the price index back with the regular CPI-U (BLS
+1. [x] Constant dollars before 1978: extend the price index back with the regular CPI-U (BLS
        suggests CPI-U for years before the R-CPI-U-RS begins in 1978), scaled to meet the
        R-CPI-U-RS in 1978. Adds payroll per employee for 1974-1977 (payroll-trend could then
        start in 1974) and allows constant dollars before 1978 anywhere.
-2. [ ] Connecticut planning regions: sum town (county subdivision) census values from NHGIS into
+2. [x] Connecticut planning regions: sum town (county subdivision) census values from NHGIS into
        the 2022 planning regions, mapping towns by code as the EAVS provider does
        (ct_town_regions()). Works for counts and shares (poverty, education, work, commuting,
        population); not for medians such as household income.
-3. [ ] Long-run sentences in chart text: add a sentence on the change since the earliest census
+3. [x] Long-run sentences in chart text: add a sentence on the change since the earliest census
        year to charts that mix census years and ACS periods (e.g. "Since 1979, median household
        income fell from $70,000 to $38,000"), since the text now describes only the ACS years.
 
@@ -298,17 +298,17 @@ so work can resume after an interruption.
        traffic-safety, traffic-death-rate-trend, traffic-deaths-trend (general, safety section).
        Engine: providers can name their multiyear period note (period_phrase). Tests 288; verify
        ok (FEMA 403 only); round trip 10/10; batch 12 ok. Cache 555 MB plus 72 MB of TIGER boundaries
-3. [ ] NCES Common Core of Data (nces_ccd), 1986-2025: public school enrollment by grade (public
+3. [x] NCES Common Core of Data (nces_ccd), 1986-2025: public school enrollment by grade (public
        pre-K for early childhood), schools, student-teacher ratios; built from school locations
        (EDGE geocodes) since districts are not a supported geography; large files (school
        membership about 190 MB a year)
-4. [ ] NOAA Storm Events (noaa_storm_events), 1950-present: storm deaths, injuries and damage by
+4. [x] NOAA Storm Events (noaa_storm_events), 1950-present: storm deaths, injuries and damage by
        event type and year for counties; zone-based events (43% in 2024) need NOAA's zone-county
        correlation; damage is rough and nominal
-5. [ ] County Health Rankings (uwphi_chrr), 2010-2025, counties: premature death, life expectancy,
+5. [x] County Health Rankings (uwphi_chrr), 2010-2025, counties: premature death, life expectancy,
        injury deaths and other county measures; secondary compilation with pooled years; terms
        allow non-profit use (commercial use needs written consent)
-6. [ ] Verify (tests, gr.R verify, demos/round_trip.R, batch) after each source; check back with
+6. [x] Verify (tests, gr.R verify, demos/round_trip.R, batch) after each source; check back with
        the user after all five
 
 ## Step agreed with the user 2026-09-29 17:49: data bundle command (done 17:55)
@@ -317,3 +317,67 @@ so work can resume after an interruption.
        <Downloads>/geo-report-data-<date>-<commit>.tar (cache/ and reports/, never .env) and a
        .sha256; tested on the Mac (4.0 GB, extraction identical); README "Moving the data to
        another machine". Windows script reviewed, not run (no PowerShell on the Mac)
+
+## Step agreed with the user 2026-09-29 19:50: fixes from two reviews of 711d8f3
+
+Merged from docs/review-2026-09-29-a.md (A) and docs/review-2026-09-29-b.md (B), ordered by harm.
+Left out where the reviews disagree: the LAUS break marker year, saving normalized ACS tables as
+parquet, and keeping or removing the per-entity metric cache (with its lock file per entry).
+Before each change: fingerprint every report (values.json, report.qmd, block digests) and compare
+after, so only the intended output changes. Progress notes in FLIGHT_LOG.md.
+
+Wrong or unexplained output in published reports
+1. [x] CBP: zero-fill a sector only when the county's all-industries row exists that year; otherwise
+       unavailable with a reason; `change_values()` never says "higher than" from a first value of 0 [B]
+2. [x] Placeholders: a missing value (NA) is a build warning (a typo stays an error); batch copies
+       gr-placeholders warnings into build.json and counts them; no-data text field `no_data` [A]
+3. [x] Race composition: no change sentence across a definitional break; show all four ACS periods [B]
+4. [x] `detail = brief` keeps legends and caveats: new `legend` field shown at every level (marks,
+       census dots, missing bars, breaks, county crime caveat); `note` keeps definitions/methods [A]
+5. [x] `figure_notes()` (was method_note) collects `breaks` from every plotted metric [A]
+6. [x] Appendix: keep the piece-level reason unless the provider says the table is not published;
+       names instead of keys such as county:09110 [A + B]
+7. [x] Turning points for census counts and administrative series (catalog `uncertainty`) [A]
+8. [x] `@map.note` describes the dashed outline the map draws [A]
+9. [x] Crime across the 2021 NIBRS change: FBI converts NIBRS reports to summary counts with the
+       hierarchy rule reapplied, so no split; stated in the FBI rate metrics' breaks [both]
+
+Author edits or settings silently lost
+10. [x] Harvest stops when text outside the `:::` fences changed [A]
+11. [x] text-import warns when a narrower record will hide the imported text [A]
+12. [x] Block options: manifest row beats library option; precedence default < profile < library <
+        report < manifest; effective window in build.json; README. Open for the user: B proposed
+        profile above library, but then the economic-development profile (1969) would cut the
+        long population chart from 1790 and early childhood (2000) would drop 1998-1999 child
+        care jobs; the user chose to keep profiles below library windows (2026-09-29 21:00) [both]
+13. [x] `viz` validated per block kind [B]
+
+Failures and cache correctness
+14. [x] Per-metric failure isolation (a missing IPUMS key keeps the ACS values); census_hist removed [A]
+15. [x] Metric cache key includes the provider's code version [A]
+16. [x] One text resolver for compose, harvest/import and labels [A]
+
+Iteration speed
+17. [x] NHGIS lookup key built once (nhgis_rows 5 s -> 0.4 s); FBI code is 1.8 s of a 37 s compose: left as is [both]
+18. [x] Skip compose when the report's inputs and raw files are unchanged (unchanged batch 166 s -> 8 s) [B]
+19. [x] Report date out of the render hash [both]
+20. [x] "Retrieved on" dates from .meta.json, not file times [A]
+21. [-] Block-result cache: not built. After 17-18 a prose edit of gary-in takes 68 s (compose 37, render 29); the user decides whether that needs the cache [A]
+22. [x] README benchmark and docs/benchmark.csv refreshed (demos/benchmark.R --warm): unchanged batch 8 s [both]
+
+History in the prose
+23. [x] Long-run sentence across census years and ACS periods (proposed step 3), checked on all reports [both]
+24. [x] Connecticut planning regions: NHGIS census counts and shares summed from towns (ct-capitol 1970-2000) [both]
+25. [x] Price index before 1978: Census Bureau joins (CPI-U-X1 1967-1977, CPI-U before), payroll-trend from 1974 [both]
+26. [x] Homeownership 1970-2000 from NHGIS B37 in tenure-trend (extract 10) [A]
+27. [x] Both EAVS elections: new block voter-turnout-trend (general profile) [A]
+28. [x] FHFA counties from 1975 -> house-prices from 1975; FBI from 1985 with the 2013 rape-definition break [B]
+
+Cleanup
+29. [x] `catalog --check`: `stat_type` agrees between recipes.csv and metrics.csv [A]
+30. [x] Relative-index blocks: nominal dollars not blamed on a missing price index [B]
+31. [x] Remove `library(tidyr)` and the `data/local` reference [B]
+32. [x] Cache prune note in README (what can be deleted, and when) [A]
+33. [x] lake-in shows income-distribution and rent-distribution [A]
+34. [x] Availability appendix: rows that differ only in the measure are one row [B]
+35. [x] BLS contact email in FLIGHT_LOG.md history: the user keeps it (no action) [B]

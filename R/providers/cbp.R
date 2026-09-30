@@ -6,8 +6,10 @@
 #
 # Small cells: before 2017, employment and payroll that would disclose a business were
 # withheld (published as 0 with a flag); from 2017 they are published with noise, and cells
-# with fewer than 3 establishments are not published at all. So a missing row means no
-# establishments before 2017, and "fewer than 3 establishments or none" from 2017.
+# with fewer than 3 establishments are not published at all. So for a county in the
+# all-industries file, a missing industry row means no establishments before 2017, and "fewer
+# than 3 establishments or none" from 2017. A county missing from the all-industries file did
+# not exist under that code (e.g. the Connecticut planning regions before 2022): unavailable.
 
 # Flags of withheld values: D (would disclose a business), S (below publication standards) and,
 # before 2018, the employment-size range (a-m) shown in place of withheld employment. Other flags
@@ -43,14 +45,17 @@ cbp_fetch <- function(variables, pieces, periods, options = list()) {
         df <- cbp_raw(yr, scope, code)
         want <- pieces$key[pieces$type == scope]
         row <- match(want, if (nrow(df)) census_keys(df, scope) else character())
+        all_industries <- if (code == "00") df else cbp_raw(yr, scope, "00")
+        listed <- want %in% (if (nrow(all_industries)) census_keys(all_industries, scope) else character())
         for (measure in wanted$measure[wanted$code == code]) {
           est <- suppressWarnings(as.numeric(df[[measure]]))[row]
           withheld <- if (measure == "ESTAB") FALSE else df[[paste0(measure, "_F")]][row] %in% cbp_withheld
-          status <- ifelse(withheld, "suppressed", ifelse(is.na(row) & yr >= 2017, "suppressed", "ok"))
+          status <- ifelse(!listed, "unavailable", ifelse(withheld | (is.na(row) & yr >= 2017), "suppressed", "ok"))
           est[is.na(row) & yr < 2017] <- 0
-          est[status == "suppressed"] <- NA
-          note <- ifelse(withheld, "withheld by the Census Bureau to avoid disclosing data of individual businesses",
-                         ifelse(status == "suppressed", "fewer than 3 establishments or none (not published from 2017)", ""))
+          est[status != "ok"] <- NA
+          note <- ifelse(!listed, paste0("not in the County Business Patterns files for ", yr, " (county boundaries changed)"),
+                         ifelse(withheld, "withheld by the Census Bureau to avoid disclosing data of individual businesses",
+                                ifelse(status == "suppressed", "fewer than 3 establishments or none (not published from 2017)", "")))
           out[[length(out) + 1]] <- data.frame(geo = want, name = "", variable = paste0(measure, "_", code), estimate = est,
                                                moe = NA_real_, status = status, bound = NA_character_, note = note,
                                                period = as.character(yr), period_start = yr, period_end = yr,

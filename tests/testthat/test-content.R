@@ -1,10 +1,25 @@
-test_that("settings resolve default < profile < report < block options; typos are errors", {
+test_that("settings resolve default < profile < library block < report < manifest options; typos are errors", {
   expect_equal(resolve_settings()$history_start, "1990")
   expect_equal(resolve_settings(NULL, "early-childhood")$history_start, "2000")
-  s <- resolve_settings("gary-in", "early-childhood", list(history_start = "1995"))
-  expect_equal(s$history_start, "1995")
-  expect_equal(attr(s, "origin")$history_start, "block options")
-  expect_error(resolve_settings(NULL, NULL, list(histroy_start = "1")), "Unknown setting")
+  s <- resolve_settings("gary-in", "early-childhood", library = list(history_start = "1970"))
+  expect_equal(s$history_start, "1970")
+  expect_equal(attr(s, "origin")$history_start, "block library")
+  expect_equal(resolve_settings("ct-capitol", "general", library = list(theme = "default"))$theme, "civic")  # report wins
+  s <- resolve_settings("ct-capitol", "general", list(theme = "default"), list(theme = "minimal", history_start = "2010"))
+  expect_equal(c(s$theme, s$history_start), c("minimal", "2010"))
+  expect_equal(attr(s, "origin")$history_start, "manifest options")
+  expect_error(resolve_settings(NULL, NULL, block_options = list(histroy_start = "1")), "Unknown setting")
+})
+
+test_that("a manifest row's options override its library block's options", {
+  m <- load_manifest(root_path("profiles", "general.csv"))
+  row <- as.list(m[m$id == "unemployment-trend", ])
+  row$options <- "history_start=2010"
+  lib <- split_block_options(row$library_options)
+  own <- split_block_options(row$options)
+  expect_equal(lib$settings$history_start, "1990")
+  expect_equal(resolve_settings("gary-in", "general", lib$settings, own$settings)$history_start, "2010")
+  expect_error(parse_options("history_start=1970; history_start=2000"), "given twice")
 })
 
 test_that("text resolves report > profile > default, then the library block, then the kind template", {
@@ -24,6 +39,14 @@ test_that("templates fill named values only and never evaluate anything", {
   expect_equal(fill_template("{x} and {missing}", list(x = "1")), "1 and {missing}")
   expect_equal(fill_template("{system('echo hi')}", list()), "{system('echo hi')}")
   expect_equal(unknown_placeholders("{a} {b}", "a"), "b")
+})
+
+test_that("an unknown placeholder stops compose; a known one without a value is a warning", {
+  run_reset(offline = TRUE)
+  texts <- list(b.prose = list(text = "Relative to its {index_base} count in {area}."))
+  check_placeholders(texts, list(report = list(area = "Gary"), b = list(index_base = NA)))
+  expect_match(run$warnings, "b.prose: \\{index_base\\} has no value")
+  expect_error(check_placeholders(texts, list(report = list(area = "Gary"), b = list())), "Unknown placeholders")
 })
 
 test_that("CSV tables keep Unicode, commas, quotes, line breaks and leading zeros", {
@@ -46,6 +69,11 @@ test_that("manifests reject duplicate ids, unknown blocks and rows before the fi
   expect_match(p, "Duplicate IDs: intro")
   expect_match(p, "first row must be a section")
   expect_match(p, "Unknown block reference")
+  # A chart form the block does not draw is an error, not silently ignored.
+  path <- tempfile(fileext = ".csv")
+  write_table(data.frame(id = c("s", "unemployment-trend"), type = c("section", "block"), ref = c("", "unemployment-trend"),
+                         enabled = "TRUE", compare = "", viz = c("", "dot"), options = ""), path)
+  expect_error(load_manifest(path), "viz")
 })
 
 test_that("every profile, manifest and catalog table in the project is valid", {

@@ -83,7 +83,12 @@ nhgis_table_years <- function() {
   split(pairs$year, pairs$table)
 }
 
-nhgis_default_years <- function(table) intersect(nhgis_census_years, nhgis_info("time_series_tables", table)$years)
+# Without the table's metadata (no API key and nothing cached), the project's census years stand
+# in, so a report still lists those years, unavailable with the reason the data could not be read.
+nhgis_default_years <- function(table) {
+  years <- tryCatch(nhgis_info("time_series_tables", table)$years, error = function(e) nhgis_census_years)
+  intersect(nhgis_census_years, years)
+}
 
 # An extract as a zip in the cache (named by its request), requested and downloaded under a file
 # lock like any other download.
@@ -110,6 +115,7 @@ nhgis_extract <- function(name, body) {
   check_status(resp, paste("IPUMS NHGIS extract", x$number))
   replace_file(tmp, path)
   run$refreshed <- c(run$refreshed, path)
+  write_json_file(list(extract = x$number, retrieved = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")), paste0(path, ".meta.json"))
   path
 }
 
@@ -146,7 +152,7 @@ nhgis_read_csv <- function(file, codes = character()) {
 nhgis_read_extract <- function(name, body, codes = character()) {
   name <- paste0(name, "-", substr(digest::digest(body), 1, 8))
   memoize(paste0("nhgis_", name), function() {
-    cached(derived_path("ipums_nhgis", name, "nhgis.R"), source = "ipums_nhgis", compute = function() {
+    d <- cached(derived_path("ipums_nhgis", name, "nhgis.R"), source = "ipums_nhgis", compute = function() {
       dir <- tempfile("nhgis")
       on.exit(unlink(dir, recursive = TRUE))
       files <- grep("_(nation|region|division|state|county|cty_sub|place)\\.csv$", utils::unzip(nhgis_extract(name, body), exdir = dir), value = TRUE)
@@ -154,6 +160,8 @@ nhgis_read_extract <- function(name, body, codes = character()) {
       cols <- unique(unlist(lapply(parts, names)))
       do.call(rbind, lapply(parts, function(p) { p[setdiff(cols, names(p))] <- NA; p[cols] }))
     })
+    d$lookup <- paste(d$key, d$year)   # built once per session: nhgis_rows matches on it for every metric
+    d
   })
 }
 
@@ -202,7 +210,7 @@ nhgis_cbp_values <- function() {
 # and the reason for a missing one (`why(row, variable)`).
 nhgis_rows <- function(d, variables, pieces, periods, source_id, why) {
   g <- expand.grid(geo = pieces$key, year = as.integer(periods), variable = variables, stringsAsFactors = FALSE)
-  row <- match(paste(g$geo, g$year), paste(d$key, d$year))
+  row <- match(paste(g$geo, g$year), d$lookup)
   estimate <- mapply(function(r, v) if (is.na(r) || !v %in% names(d)) NA_real_ else d[[v]][r], row, g$variable)
   reason <- why(row, g)
   status <- ifelse(!nzchar(reason$status), ifelse(is.na(estimate), "unavailable", "ok"), reason$status)
@@ -218,8 +226,34 @@ nhgis_notes <- c(missing = "not in the NHGIS census tables for this year (the ar
                  cbp_blank = "not published for this year (1970-1973 have no annual payroll or establishment counts)",
                  cbp_withheld = "withheld to avoid disclosing data of individual businesses")
 
+# Connecticut's planning regions (county-equivalents from 2022) have no census rows of their own.
+# Counts are summed from their towns, which kept their codes; a region-year lacking any town's
+# value stays missing. Medians and other published values cannot be summed.
+ct_region_rows <- function(d, variables) {
+  variables <- intersect(variables, names(d))
+  regions <- ct_town_regions()
+  towns <- d[startsWith(d$key, "cousub:09"), , drop = FALSE]
+  towns$region <- regions[substr(towns$key, nchar(towns$key) - 4, nchar(towns$key))]
+  towns <- towns[!is.na(towns$region), , drop = FALSE]
+  if (!nrow(towns) || !length(variables)) return(d[0, , drop = FALSE])
+  by <- list(region = towns$region, year = towns$year)
+  out <- stats::aggregate(towns[variables], by, sum)   # a missing town value makes the sum missing
+  n <- stats::aggregate(list(n = towns$key), by, length)$n
+  out[n < as.vector(table(regions)[out$region]), variables] <- NA
+  rows <- d[rep(NA_integer_, nrow(out)), , drop = FALSE]
+  rows$key <- paste0("county:", out$region)
+  rows$year <- out$year
+  rows[variables] <- out[variables]
+  rows$lookup <- paste(rows$key, rows$year)
+  rows
+}
+
 nhgis_fetch <- function(variables, pieces, periods, options = list()) {
-  nhgis_rows(nhgis_values(), variables, pieces, periods, "ipums_nhgis", function(row, g) {
+  d <- nhgis_values()
+  if (any(grepl("^county:091[1-9]0$", pieces$key)) && isTRUE(options$recipe$stat_type %in% c("count", "share", "ratio"))) {
+    d <- rbind(d, ct_region_rows(d, variables))
+  }
+  nhgis_rows(d, variables, pieces, periods, "ipums_nhgis", function(row, g) {
     # A table NHGIS has only for some levels (A00: the nation, states and counties).
     tables <- substr(g$variable, 1, 3)
     levels <- lapply(stats::setNames(nm = unique(tables)), function(t) nhgis_info("time_series_tables", t)$levels)

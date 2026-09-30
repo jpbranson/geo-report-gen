@@ -162,7 +162,7 @@ render_block_composition <- function(b, txt, th) {
   # Categories run left to right in catalog order (first category at the left), the same
   # order as the legend, in every period and area.
   d$shown <- ifelse(d$value >= 6, paste0(round(d$value), "%"), "")
-  ggplot(d, aes(x = value, y = row, fill = category)) +
+  p <- ggplot(d, aes(x = value, y = row, fill = category)) +
     geom_col(width = 0.65, color = th$color_background, linewidth = 0.3, position = position_stack(reverse = TRUE)) +
     geom_text(aes(label = shown), position = position_stack(vjust = 0.5, reverse = TRUE),
               size = 2.8, color = "white", family = fam) +
@@ -171,6 +171,20 @@ render_block_composition <- function(b, txt, th) {
     labs(x = txt$y_label, y = NULL) +
     guides(fill = legend_columns(shown_cats)) +
     gr_ggtheme(th) + theme(panel.grid.major.y = element_blank())
+  # A definitional break is a dashed line between the last period before it and the first after
+  # (the latest period is the bottom row).
+  ev <- b$data$events
+  if (!by_entity && NROW(ev)) {
+    ends <- tapply(d$period_end, d$row, max)
+    y <- vapply(ev$year, function(yr) sum(ends >= yr, na.rm = TRUE) + 0.5, 0)
+    keep <- y > 1 & y < length(ends) + 0.5
+    if (any(keep)) {
+      p <- p + geom_hline(yintercept = y[keep], linetype = "22", color = th$color_muted, linewidth = 0.35) +
+        annotate("text", x = 0, y = y[keep], label = ev$label[keep], hjust = 0, vjust = -0.4, size = 2.6,
+                 color = th$color_muted, family = fam)
+    }
+  }
+  p
 }
 
 # Legend entries wrap after about 28 characters, so two columns always fit the plot width.

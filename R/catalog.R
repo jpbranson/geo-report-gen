@@ -65,6 +65,15 @@ validate_catalog <- function() {
   if (length(unknown_src)) problems <- c(problems, paste("Metrics citing unknown sources:", paste(unknown_src, collapse = ", ")))
   bad_type <- rec$metric_id[!rec$stat_type %in% c("count", "share", "ratio", "median", "value")]
   if (length(bad_type)) problems <- c(problems, paste("Unknown stat_type in recipes:", paste(bad_type, collapse = ", ")))
+  # The recipe's stat_type says how a value is computed; the documentation's says what it is. They
+  # must agree (a share may be documented as a rate, a published value as an index, never a count).
+  documented_as <- list(count = "count", share = c("share", "rate", "ratio"), ratio = c("ratio", "mean"),
+                        median = "median", value = c("value", "index", "median", "per_capita", "ratio"))
+  doc_type <- doc$stat_type[match(rec$metric_id, doc$metric_id)]
+  clash <- rec$metric_id[!mapply(function(r, d) is.na(d) || d %in% documented_as[[r]], rec$stat_type, doc_type)]
+  if (length(clash)) {
+    problems <- c(problems, paste("stat_type in recipes.csv and metrics.csv disagree:", paste(clash, collapse = ", ")))
+  }
   subj <- subjects()
   bad_subj <- setdiff(unique(doc$subject_id), subj$subject_id)
   if (length(bad_subj)) problems <- c(problems, paste("Unknown subject ids:", paste(bad_subj, collapse = ", ")))
@@ -99,7 +108,7 @@ verify_acs_recipes <- function(settings) {
 
 # Sources used by the engine itself rather than as metric providers (price indexes for
 # constant dollars; boundaries and relationship files for geography; curated history).
-support_adapters <- c("bls_r_cpi_u_rs", "bls_cpi_u", "census_geo", "history_events")
+support_adapters <- c("bls_r_cpi_u_rs", "bls_cpi_u", "census_p60_price_index", "census_geo", "history_events")
 
 source_status <- function() {
   src <- sources_doc()
@@ -172,7 +181,6 @@ verify_sources <- function() {
       paste0("Texas HHSC operations records: ", jsonlite::fromJSON(httr2::resp_body_string(resp))$n)
     },
     census_pep = head_check(paste0(pep_base, pep_files$file[1]), "census_pep"),
-    census_hist = head_check("https://data.nber.org/census/population/cencounts/cencounts.csv", "census_hist"),
     bea_cainc = head_check("https://apps.bea.gov/regional/zip/CAINC1.zip", "bea"),
     bea_cagdp = head_check("https://apps.bea.gov/regional/zip/CAGDP2.zip", "bea"),
     fhfa_hpi = head_check("https://www.fhfa.gov/hpi/download/annual/hpi_at_county.xlsx", "fhfa"),
@@ -207,7 +215,9 @@ verify_sources <- function() {
     bls_laus = head_check("https://download.bls.gov/pub/time.series/la/la.area", "bls"),
     bls_qcew = head_check(paste0("https://data.bls.gov/cew/data/files/", max(qcew_years), "/csv/", max(qcew_years),
                                  "_annual_singlefile.zip"), "bls_qcew"),
-    bls_r_cpi_u_rs = head_check("https://www.bls.gov/cpi/research-series/r-cpi-u-rs-allitems.xlsx", "bls"))
+    bls_r_cpi_u_rs = head_check("https://www.bls.gov/cpi/research-series/r-cpi-u-rs-allitems.xlsx", "bls"),
+    census_p60_price_index = head_check(paste0("https://www2.census.gov/programs-surveys/demo/tables/p60/289/",
+                                               "annual-index-value_annual-percent-change.xls"), "census_p60"))
   rows <- lapply(names(checks), function(id) {
     ev <- tryCatch(list(result = "ok", evidence = checks[[id]]()),
                    error = function(e) list(result = "failed", evidence = substr(conditionMessage(e), 1, 200)))

@@ -85,8 +85,14 @@ source_note <- function(x) {
   if (length(notes)) notes[1] else NULL
 }
 
-# Compute one entity for one period from its long data `d`.
-aggregate_entity <- function(recipe, d, piece_keys, period) {
+# Compute one entity for one period from its long data `d`. Pieces without data are named in
+# the method by `piece_names`.
+aggregate_entity <- function(recipe, d, piece_keys, period, piece_names = piece_keys) {
+  absent_note <- function(absent) {
+    names <- piece_names[match(absent, piece_keys)]
+    paste0("no published data for ", paste(ifelse(is.na(names), absent, names), collapse = ", "),
+           " for this period (a boundary change, or the source did not publish this geography then)")
+  }
   type <- recipe$stat_type
   if (!type %in% c("count", "share", "ratio", "median", "value")) {
     stop("Unknown stat_type '", type, "' for metric ", recipe$metric_id)
@@ -148,13 +154,6 @@ aggregate_entity <- function(recipe, d, piece_keys, period) {
   out
 }
 
-# Explain an unavailable value caused by pieces without data (a boundary change, or a table
-# not yet published in an older release).
-absent_note <- function(absent) {
-  paste0("not available for this period: no published data for ", paste(absent, collapse = ", "),
-         " (boundary change or table not published in this release)")
-}
-
 # Periods a metric uses in a report: the provider's periods that begin at or after the first
 # year of comparable data (catalog `history_start`, e.g. "2008-2012" or "1990"), then an
 # optional block override. Earlier periods are never computed, so a table whose line numbers
@@ -189,13 +188,23 @@ compute_metric <- function(metric_id, entities, settings, periods = NULL, consta
       return(unavailable_rows(e, periods, prov, "not_applicable",
                               paste0(prov$name, " does not publish data for ", paste(geo_type_names[unsupported], collapse = " or "))))
     }
-    data <- prov$fetch(vars, pieces, periods, list(var_by_period = var_by_period, recipe = recipe, settings = settings))
-    key <- hash_value(recipe, sort(pieces$key), periods, digest::digest(data), metric_code_version())
+    # A source that cannot be reached (no API key, offline without a cached copy, a service
+    # outage) makes this metric unavailable with the reason; the block's other series still show.
+    fetch_options <- list(var_by_period = var_by_period, recipe = recipe, settings = settings)
+    data <- tryCatch(prov$fetch(vars, pieces, periods, fetch_options),
+                     error = function(err) {
+                       run$incomplete <- TRUE
+                       warn(prov$name, ": ", conditionMessage(err))
+                       conditionMessage(err)
+                     })
+    if (is.character(data)) return(unavailable_rows(e, periods, prov, "unavailable", data))
+    key <- hash_value(recipe, sort(pieces$key), pieces$name[order(pieces$key)], periods, digest::digest(data),
+                      metric_code_version(), provider_code_version(recipe$source_id))
     path <- cache_path("metrics", metric_id, paste0(key, ".rds"))
     res <- cached(path, function() {
       do.call(rbind, lapply(periods, function(p) {
         d <- data[data$period == as.character(p), , drop = FALSE]
-        a <- aggregate_entity(recipe, d, pieces$key, p)
+        a <- aggregate_entity(recipe, d, pieces$key, p, pieces$name %||% pieces$key)
         # Model-based sources (SAIPE, SAHIE) give no way to combine the margins of error of
         # several areas, whose model errors are correlated: a combined area gets no MOE.
         if (nrow(pieces) > 1 && isFALSE(prov$combine_moe) && !is.na(a$moe)) {
@@ -247,6 +256,19 @@ empty_metric_result <- function() {
 # Code that shapes computed metrics; editing it invalidates cached metric results.
 metric_code_version <- function() {
   memoize("metric_code_version", function() code_version(c("R/metrics.R", "R/stats.R")))
+}
+
+# The provider file that registers a source is part of its metrics' cache key too: settings
+# there (e.g. whether margins of error can be combined, series names) shape the results.
+provider_code_version <- function(source_id) {
+  memoize(paste0("provider_code_", source_id), function() {
+    files <- list.files(root_path("R", "providers"), pattern = "[.]R$")
+    registers <- vapply(files, function(f) {
+      code <- readLines(root_path("R", "providers", f), warn = FALSE)
+      any(grepl(paste0("register_provider(\"", source_id, "\""), code, fixed = TRUE))
+    }, TRUE)
+    code_version(file.path("R", "providers", files[registers]))
+  })
 }
 
 # Monetary values: keep nominal values and add constant dollars of `dollar_year` using the
