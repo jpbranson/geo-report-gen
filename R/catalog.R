@@ -160,6 +160,17 @@ verify_sources <- function() {
   checks <- list(
     census_acs5 = census_check("2024/acs/acs5", list(get = "NAME,B01003_001E", `for` = "us:1"), "2020-2024 ACS U.S. population", "B01003_001E"),
     census_dec = census_check("2020/dec/dhc", list(get = "NAME,P1_001N", `for` = "us:1"), "2020 Census U.S. population", "P1_001N"),
+    nces_ccd = function() {
+      url <- paste0(nces_base, "EDGE_ADMINDATA_PUBLICSCH_2425/MapServer/1/query")
+      x <- nces_json(http_request(url, "nces_ccd", query = list(where = "1=1", returnCountOnly = "true", f = "json")), "NCES CCD")
+      if (is.null(x$count) || x$count < 90000) stop("NCES returned an unexpected school count")
+      paste0("2024-25 school administrative layer: ", x$count, " records")
+    },
+    noaa_storm_events = function() {
+      d <- noaa_list_files()
+      paste0("Storm Events details files for ", min(d$year), "-", max(d$year), " (newest ", d$file[which.max(d$year)], "); zone file ", noaa_zone_file())
+    },
+    hrsa_hpsa = head_check(paste0(hpsa_base, hpsa_disciplines[["PC"]]), "hrsa_hpsa"),
     nhtsa_fars = head_check(sprintf("%s%d/National/FARS%dNationalAuxiliaryCSV.zip", fars_base, max(fars_years), max(fars_years)), "nhtsa_fars"),
     census_nes = head_check(paste0(nes_base, max(nes_years), "/historical-datasets/", nes_file(max(nes_years), "co")), "census_nes"),
     census_cbp = census_check("2023/cbp", list(get = "ESTAB", `for` = "us:*", NAICS2017 = "00", EMPSZES = "001", LFO = "001"),
@@ -175,18 +186,28 @@ verify_sources <- function() {
       check_status(resp, "CDC PLACES")
       paste0("PLACES ", places_year, " U.S. adults with diagnosed diabetes: ", jsonlite::fromJSON(httr2::resp_body_string(resp))$data_value, "%")
     },
+    in_fssa_provider_listings = function() {
+      resp <- http_perform(http_request(fssa_url, "in_fssa_provider_listings"))
+      check_status(resp, "Indiana FSSA provider listings")
+      d <- fssa_parse(httr2::resp_body_string(resp))
+      paste0("Indiana provider listings: ", sum(d$type == "Licensed Center"), " centers, ", sum(d$type == "Licensed Home"), " homes, ",
+             sum(d$type == "Registered Ministry"), " ministries")
+    },
     tx_hhsc = function() {
       resp <- http_perform(http_request("https://data.texas.gov/resource/bc5r-88dy.json", "tx_hhsc", query = list(`$select` = "count(*) as n")))
       check_status(resp, "Texas HHSC")
       paste0("Texas HHSC operations records: ", jsonlite::fromJSON(httr2::resp_body_string(resp))$n)
     },
     census_pep = head_check(paste0(pep_base, pep_files$file[1]), "census_pep"),
+    census_pep_components = head_check(paste0(pep_base, pep_files$file[2]), "census_pep"),
+    census_pep_county_characteristics = head_check(paste0(pep_asrh_base, "cc-est2025-agesex-all.csv"), "census_pep"),
     bea_cainc = head_check("https://apps.bea.gov/regional/zip/CAINC1.zip", "bea"),
     bea_cagdp = head_check("https://apps.bea.gov/regional/zip/CAGDP2.zip", "bea"),
     fhfa_hpi = head_check("https://www.fhfa.gov/hpi/download/annual/hpi_at_county.xlsx", "fhfa"),
     census_bps = head_check("https://www2.census.gov/econ/bps/County/co2025a.txt", "census_bps"),
     fema_nri = head_check(nri_url, "fema_nri"),
     usda_ers_fea = head_check(fea_url, "usda_ers_fea"),
+    usda_ers_fara = head_check(fara_sram_url, "usda_ers_fara"),
     eac_eavs = head_check(eavs_cycles[["2024"]][["url"]], "eac_eavs"),
     census_govfin = head_check(govfin_url, "census_govfin"),
     fbi_cde = function() {
@@ -213,6 +234,9 @@ verify_sources <- function() {
     dol_ndcp = head_check("https://www.dol.gov/sites/dolgov/files/WB/NDCP2022.xlsx", "dol_ndcp"),
     census_geo = head_check("https://www2.census.gov/geo/tiger/GENZ2024/shp/cb_2024_us_county_500k.zip", "census_geo"),
     bls_laus = head_check("https://download.bls.gov/pub/time.series/la/la.area", "bls"),
+    bls_oews = head_check(oews_url, "bls"),
+    bls_cps_ln = head_check(cps_url, "bls"),
+    bls_laus_rates = head_check("https://download.bls.gov/pub/time.series/la/la.data.2.AllStatesU", "bls"),
     bls_qcew = head_check(paste0("https://data.bls.gov/cew/data/files/", max(qcew_years), "/csv/", max(qcew_years),
                                  "_annual_singlefile.zip"), "bls_qcew"),
     bls_r_cpi_u_rs = head_check("https://www.bls.gov/cpi/research-series/r-cpi-u-rs-allitems.xlsx", "bls"),

@@ -493,3 +493,16 @@ test_that("the price index reaches back before 1978 with the Census Bureau's joi
   expect_equal(min(p$year), 1947)
   rm("price_index_r_cpi_u_rs", envir = memo)
 })
+
+test_that("period-specific recipes fetch the denominator variables of each period", {
+  seen <- NULL
+  real <- get_provider("census_dec")
+  on.exit(register_provider("census_dec", real))
+  probe <- real
+  probe$fetch <- function(variables, pieces, periods, options = list()) { seen <<- options$var_by_period; empty_values() }
+  register_provider("census_dec", probe)
+  area <- entity("x", "study", "x", data.frame(key = "state:10", type = "state", geoid = "10", name = "x", pop = NA_real_))
+  compute_metric("homeownership_rate_decennial", list(area), resolve_settings())
+  expect_equal(seen[["2010"]], c("H004002", "H004003", "H004001"))
+  expect_equal(seen[["2020"]], c("H4_002N", "H4_003N", "H4_001N"))
+})

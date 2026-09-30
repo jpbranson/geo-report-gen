@@ -5,6 +5,11 @@
 # intercensal (2020 boundaries), and Vintage 2025 (2020-2025, boundaries of January 1, 2025).
 # Charts draw them as separate lines; nothing is spliced. PEP publishes incorporated
 # places and county subdivisions, not census designated places (CDPs).
+#
+# Vintage 2025 state and county files also carry the components of change for 2021-2025 (natural
+# change, domestic and international migration, total change). They come with the previous
+# July 1 estimate and the average of the two, the denominators of the yearly change percent and
+# of the rates per 1,000 residents (the Census Bureau's rates use that average).
 
 pep_base <- "https://www2.census.gov/programs-surveys/popest/datasets/"
 
@@ -29,6 +34,10 @@ pep_read <- function(file) {
 }
 
 pad <- function(x, n) formatC(as.integer(x), width = n, flag = "0")
+
+# The count columns of pep_long (all but the key, year and series): they add up across areas.
+pep_counts <- c("population", "population_prior", "population_avg", "population_change", "natural_change",
+                "domestic_migration", "international_migration")
 
 # Geography keys for one PEP file's rows (summary levels differ between files).
 pep_keys <- function(d) {
@@ -66,11 +75,18 @@ pep_long <- function() {
       d <- pep_read(pep_files$file[i])
       d$key <- pep_keys(d)
       d <- d[!is.na(d$key) & !duplicated(d$key), , drop = FALSE]
+      num <- function(col) if (col %in% names(d)) as.numeric(d[[col]]) else rep(NA_real_, nrow(d))
       for (yr in pep_files$first[i]:pep_files$last[i]) {
-        col <- paste0("POPESTIMATE", yr)
-        if (!col %in% names(d)) next
-        out[[length(out) + 1]] <- data.frame(key = d$key, year = yr, population = as.numeric(d[[col]]),
-                                             series = pep_files$series[i], stringsAsFactors = FALSE)
+        if (!paste0("POPESTIMATE", yr) %in% names(d)) next
+        # A file's first year changes from April 1, not July 1, so it has no yearly components.
+        part <- function(...) if (yr == pep_files$first[i]) rep(NA_real_, nrow(d)) else num(...)
+        pop <- num(paste0("POPESTIMATE", yr))
+        prior <- part(paste0("POPESTIMATE", yr - 1))
+        out[[length(out) + 1]] <- data.frame(key = d$key, year = yr, population = pop, population_prior = prior,
+          population_avg = (prior + pop) / 2,
+          population_change = part(if (paste0("NPOPCHG_", yr) %in% names(d)) paste0("NPOPCHG_", yr) else paste0("NPOPCHG", yr)),  # state file: NPOPCHG_2021
+          natural_change = part(paste0("NATURALCHG", yr)), domestic_migration = part(paste0("DOMESTICMIG", yr)),
+          international_migration = part(paste0("INTERNATIONALMIG", yr)), series = pep_files$series[i], stringsAsFactors = FALSE)
       }
     }
     long <- do.call(rbind, out)
@@ -86,9 +102,8 @@ add_state_aggregates <- function(long) {
   states$state <- sub("^state:", "", states$key)
   states <- merge(states, st[st$in_nation == "TRUE", c("state", "region", "division")], by = "state")
   agg <- function(level, codes) {
-    a <- stats::aggregate(states$population, by = list(code = codes, year = states$year, series = states$series), FUN = sum)
-    data.frame(key = if (level == "nation") "nation:US" else paste0(level, ":", a$code), year = a$year,
-               population = a$x, series = a$series, stringsAsFactors = FALSE)
+    a <- stats::aggregate(states[pep_counts], by = list(code = codes, year = states$year, series = states$series), FUN = sum)
+    cbind(key = if (level == "nation") "nation:US" else paste0(level, ":", a$code), a[c("year", pep_counts, "series")])
   }
   extra <- rbind(agg("nation", rep("US", nrow(states))), agg("region", states$region), agg("division", states$division))
   extra <- extra[!paste(extra$key, extra$year) %in% paste(long$key, long$year), , drop = FALSE]
@@ -99,10 +114,16 @@ pep_fetch <- function(variables, pieces, periods, options = list()) {
   long <- pep_long()
   d <- long[long$key %in% pieces$key & long$year %in% as.integer(periods), , drop = FALSE]
   if (!nrow(d)) return(empty_values())
-  data.frame(geo = d$key, name = "", variable = "population", estimate = d$population, moe = NA_real_,
-             status = ifelse(is.na(d$population), "missing", "ok"), bound = NA_character_, note = "",
-             period = as.character(d$year), period_start = d$year, period_end = d$year,
-             source_id = "census_pep", series = d$series, stringsAsFactors = FALSE)
+  # Components exist only for 2021-2025 and only for states and counties: elsewhere they are absent, not zero.
+  out <- do.call(rbind, lapply(intersect(variables, pep_counts), function(v) {
+    x <- d[v == "population" | !is.na(d[[v]]), , drop = FALSE]
+    if (!nrow(x)) return(NULL)
+    data.frame(geo = x$key, name = "", variable = v, estimate = x[[v]], moe = NA_real_,
+               status = ifelse(is.na(x[[v]]), "missing", "ok"), bound = NA_character_, note = "",
+               period = as.character(x$year), period_start = x$year, period_end = x$year,
+               source_id = "census_pep", series = x$series, stringsAsFactors = FALSE)
+  }))
+  if (is.null(out)) empty_values() else out
 }
 
 register_provider("census_pep", list(
@@ -113,3 +134,92 @@ register_provider("census_pep", list(
   period_label = function(period) as.character(period),
   period_kind = "annual",
   availability_note = "PEP publishes incorporated places and county subdivisions, not census designated places (CDPs)."))
+
+# The Vintage 2025 components of change (2021-2025) exist for nation, regions, divisions, states and
+# counties only, so they are a second provider: places and county subdivisions are then reported as
+# not covered, and their reports show the county and larger areas.
+register_provider("census_pep_components", list(
+  name = "U.S. Census Bureau, Population Estimates Program, components of change (Vintage 2025)",
+  geo_types = c("nation", "region", "division", "state", "county"),
+  fetch = function(variables, pieces, periods, options = list()) {
+    d <- pep_fetch(variables, pieces, periods, options)
+    d$source_id <- rep("census_pep_components", nrow(d))
+    d
+  },
+  periods = function(settings, recipe) seq(max(2021L, as.integer(settings$history_start %||% 2021)), 2025L),
+  period_label = function(period) as.character(period),
+  period_kind = "annual",
+  series = "Estimates 2020–2025 (Vintage 2025)",
+  availability_note = "Components of change are published for the nation, regions, divisions, states and counties, not for cities or county subdivisions."))
+
+# ---- Age, sex, race and Hispanic origin by county (Vintage 2025) ----------------------------
+#
+# County estimates by age group, sex, race and Hispanic origin for July 1, 2020-2025. Race follows
+# the 1997 OMB standards with Some Other Race responses reassigned (so shares differ from the census
+# and the ACS): Hispanic origin first, then non-Hispanic single races and two or more races. The
+# files' YEAR 1 is April 1, 2020 and 2-7 are July 1, 2020-2025. Counts add up to states, regions
+# and the nation; a median age is published for counties only.
+
+pep_asrh_base <- paste0(pep_base, "2020-2025/counties/asrh/")
+
+pep_asrh_read <- function(file) {
+  path <- cached_download(paste0(pep_asrh_base, file), cache_path("raw", "census_pep", file), "census_pep_county_characteristics")
+  as.data.frame(readr::read_csv(path, col_types = readr::cols(.default = "c"), locale = readr::locale(encoding = "latin1"),
+                                progress = FALSE, show_col_types = FALSE))
+}
+
+# One row per county and year: POP, AGE65PLUS, MEDIAN_AGE and the race and Hispanic origin counts.
+pep_asrh_long <- function() {
+  memoize("pep_asrh_long", function() cached(derived_path("census_pep", "asrh_long", "pep.R"), source = "census_pep_county_characteristics", compute = function() {
+    num <- function(d, ...) rowSums(sapply(c(...), function(col) as.numeric(d[[col]])))
+    keyed <- function(d) data.frame(key = paste0("county:", pad(d$STATE, 2), pad(d$COUNTY, 3)), year = as.integer(d$YEAR) + 2018L)
+    age <- pep_asrh_read("cc-est2025-agesex-all.csv")
+    age <- age[age$YEAR != "1", , drop = FALSE]
+    a <- cbind(keyed(age), POP = as.numeric(age$POPESTIMATE), AGE65PLUS = as.numeric(age$AGE65PLUS_TOT), MEDIAN_AGE = as.numeric(age$MEDIAN_AGE_TOT))
+    all <- pep_asrh_read("cc-est2025-alldata.csv")
+    all <- all[all$AGEGRP == "0" & all$YEAR != "1", , drop = FALSE]
+    r <- cbind(keyed(all), RACE_TOTAL = as.numeric(all$TOT_POP), HISPANIC = num(all, "H_MALE", "H_FEMALE"), NH_WHITE = num(all, "NHWA_MALE", "NHWA_FEMALE"),
+               NH_BLACK = num(all, "NHBA_MALE", "NHBA_FEMALE"), NH_ASIAN = num(all, "NHAA_MALE", "NHAA_FEMALE"),
+               NH_MULTI = num(all, "NHTOM_MALE", "NHTOM_FEMALE"), NH_OTHER = num(all, "NHIA_MALE", "NHIA_FEMALE", "NHNA_MALE", "NHNA_FEMALE"))
+    merge(a, r, by = c("key", "year"))
+  }))
+}
+
+pep_asrh_fetch <- function(variables, pieces, periods, options = list()) {
+  d <- pep_asrh_long()
+  st <- state_table()
+  d <- d[d$year %in% as.integer(periods), , drop = FALSE]
+  states <- substr(d$key, 8, 9)
+  out <- list()
+  for (i in seq_len(nrow(pieces))) {
+    type <- pieces$type[i]
+    geoid <- pieces$geoid[i]
+    sel <- switch(type, county = d$key == pieces$key[i], state = states == geoid,
+                  region = , division = states %in% st$state[st[[type]] == geoid & st$in_nation == "TRUE"],
+                  nation = states %in% st$state[st$in_nation == "TRUE"])
+    x <- d[sel, , drop = FALSE]
+    if (!nrow(x)) next
+    for (v in intersect(variables, names(d)[-(1:2)])) {
+      est <- if (v == "MEDIAN_AGE") (if (type == "county") x$MEDIAN_AGE else rep(NA_real_, nrow(x))) else NULL
+      by_year <- if (is.null(est)) tapply(x[[v]], x$year, sum) else stats::setNames(est, x$year)
+      out[[length(out) + 1]] <- data.frame(geo = pieces$key[i], name = "", variable = v, estimate = as.numeric(by_year), moe = NA_real_,
+        status = ifelse(is.na(by_year), "unavailable", "ok"), bound = NA_character_,
+        note = ifelse(is.na(by_year), "a median cannot be added up: it is published for counties only", ""), period = names(by_year),
+        period_start = as.integer(names(by_year)), period_end = as.integer(names(by_year)), source_id = "census_pep_county_characteristics",
+        series = "Estimates 2020–2025 (Vintage 2025)", stringsAsFactors = FALSE)
+    }
+  }
+  if (!length(out)) return(empty_values())
+  do.call(rbind, out)
+}
+
+register_provider("census_pep_county_characteristics", list(
+  name = "U.S. Census Bureau, Population Estimates Program, county age, sex, race and Hispanic origin (Vintage 2025)",
+  geo_types = c("nation", "region", "division", "state", "county"),
+  fetch = pep_asrh_fetch,
+  periods = function(settings, recipe) seq(max(2020L, as.integer(settings$history_start %||% 2020)), 2025L),
+  period_label = function(period) as.character(period),
+  period_kind = "annual",
+  series = "Estimates 2020–2025 (Vintage 2025)",
+  availability_note = paste("County age, sex, race and Hispanic origin estimates exist for counties and add up to states, regions and the nation;",
+                            "medians are published for counties only, and there are no cities. Race follows the Bureau's modified 1997 standards.")))

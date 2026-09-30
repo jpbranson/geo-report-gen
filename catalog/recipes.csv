@@ -34,18 +34,80 @@ mean_commute_minutes_acs,census_acs5,ratio,B08013_001,B08012_001,,,1,,,
 broadband_households_share_acs,census_acs5,share,B28002_004,B28002_001,,,100,,,
 pop_total_dec,census_dec,count,2000:P001001; 2010:P001001; 2020:P1_001N,,,,1,,,
 housing_units_dec,census_dec,count,2000:H001001; 2010:H001001; 2020:H1_001N,,,,1,,,
+households_decennial,census_dec,count,2000:P015001; 2010:P018001; 2020:P16_001N,,,,1,,,
+average_household_size_decennial,census_dec,ratio,2000:P016001; 2010:P016001; 2020:P15_001N,2000:P015001; 2010:P018001; 2020:P16_001N,,,1,,,
+vacancy_rate_decennial,census_dec,share,2000:H003003; 2010:H003003; 2020:H3_003N,2000:H003001; 2010:H003001; 2020:H3_001N,,,100,,,
+homeownership_rate_decennial,census_dec,share,2000:H004002; 2010:H004002+H004003; 2020:H4_002N+H4_003N,2000:H004001; 2010:H004001; 2020:H4_001N,,,100,,,
+median_age_decennial,census_dec,value,2000:P013001; 2010:P013001; 2020:P13_001N,,,,1,,,
+family_households_share_decennial,census_dec,share,2000:P018006; 2010:P018002; 2020:P16_002N,2000:P015001; 2010:P018001; 2020:P16_001N,,,100,,,
+married_couple_households_share_decennial,census_dec,share,2000:P018007; 2010:P018003; 2020:P16_003N,2000:P015001; 2010:P018001; 2020:P16_001N,,,100,,,
+living_alone_share_decennial,census_dec,share,2000:P018002; 2010:P018008; 2020:P16_008N,2000:P015001; 2010:P018001; 2020:P16_001N,,,100,,,
+hispanic_share_decennial,census_dec,share,2000:P008010; 2010:P005010; 2020:P5_010N,2000:P008001; 2010:P005001; 2020:P5_001N,,,100,,race_ethnicity_decennial,Hispanic or Latino
+nh_white_share_decennial,census_dec,share,2000:P008003; 2010:P005003; 2020:P5_003N,2000:P008001; 2010:P005001; 2020:P5_001N,,,100,,race_ethnicity_decennial,"White alone, not Hispanic"
+nh_black_share_decennial,census_dec,share,2000:P008004; 2010:P005004; 2020:P5_004N,2000:P008001; 2010:P005001; 2020:P5_001N,,,100,,race_ethnicity_decennial,"Black alone, not Hispanic"
+nh_asian_share_decennial,census_dec,share,2000:P008006; 2010:P005006; 2020:P5_006N,2000:P008001; 2010:P005001; 2020:P5_001N,,,100,,race_ethnicity_decennial,"Asian alone, not Hispanic"
+nh_multiracial_share_decennial,census_dec,share,2000:P008009; 2010:P005009; 2020:P5_009N,2000:P008001; 2010:P005001; 2020:P5_001N,,,100,,race_ethnicity_decennial,"Two or more races, not Hispanic"
+nh_other_share_decennial,census_dec,share,2000:P008005+P008007+P008008; 2010:P005005+P005007+P005008; 2020:P5_005N+P5_007N+P5_008N,2000:P008001; 2010:P005001; 2020:P5_001N,,,100,,race_ethnicity_decennial,"Other single race, not Hispanic"
 pop_estimate_pep,census_pep,count,population,,,,1,,,
+population_change_pct_pep,census_pep_components,share,population_change,population_prior,,,100,,,
+natural_change_rate_pep,census_pep_components,ratio,natural_change,population_avg,,,1000,,,
+net_domestic_migration_rate_pep,census_pep_components,ratio,domestic_migration,population_avg,,,1000,,,
+net_international_migration_rate_pep,census_pep_components,ratio,international_migration,population_avg,,,1000,,,
 per_capita_personal_income_bea,bea_cainc,ratio,personal_income,population,per_capita_personal_income,,1,year,,
+personal_income_bea,bea_cainc,count,personal_income,,,,1,year,,
+transfer_receipts_share_bea,bea_cainc,share,TRANSFER_RECEIPTS,PERSONAL_INCOME_30,,,100,,,
+income_maintenance_benefits_per_capita_bea,bea_cainc,ratio,INCOME_MAINTENANCE,POPULATION_30,,,1,year,,
+earnings_by_place_of_work_bea,bea_cainc,count,EARNINGS_POW,,,,1,year,,
+earnings_farm_share_bea,bea_cainc,share,EARN_FARM,EARN_TOTAL,,,100,,earnings_industry_bea,Farm
+earnings_natural_share_bea,bea_cainc,share,EARN_NATURAL,EARN_TOTAL,,,100,,earnings_industry_bea,"Forestry, fishing and mining"
+earnings_construction_share_bea,bea_cainc,share,EARN_CONSTRUCTION,EARN_TOTAL,,,100,,earnings_industry_bea,Construction
+earnings_manufacturing_share_bea,bea_cainc,share,EARN_MANUFACTURING,EARN_TOTAL,,,100,,earnings_industry_bea,Manufacturing
+earnings_trade_share_bea,bea_cainc,share,EARN_TRADE,EARN_TOTAL,,,100,,earnings_industry_bea,Wholesale and retail trade
+earnings_transport_utilities_share_bea,bea_cainc,share,EARN_TRANSPORT_UTILITIES,EARN_TOTAL,,,100,,earnings_industry_bea,Transportation and utilities
+earnings_information_share_bea,bea_cainc,share,EARN_INFORMATION,EARN_TOTAL,,,100,,earnings_industry_bea,Information
+earnings_fire_share_bea,bea_cainc,share,EARN_FIRE,EARN_TOTAL,,,100,,earnings_industry_bea,"Finance, insurance and real estate"
+earnings_business_services_share_bea,bea_cainc,share,EARN_BUSINESS_SERVICES,EARN_TOTAL,,,100,,earnings_industry_bea,Professional and business services
+earnings_education_health_share_bea,bea_cainc,share,EARN_EDUCATION_HEALTH,EARN_TOTAL,,,100,,earnings_industry_bea,"Education, health care and social assistance"
+earnings_leisure_share_bea,bea_cainc,share,EARN_LEISURE,EARN_TOTAL,,,100,,earnings_industry_bea,"Arts, recreation, lodging and food services"
+earnings_other_services_share_bea,bea_cainc,share,EARN_OTHER_SERVICES,EARN_TOTAL,,,100,,earnings_industry_bea,Other services
+earnings_government_share_bea,bea_cainc,share,EARN_GOVERNMENT,EARN_TOTAL,,,100,,earnings_industry_bea,Government
 house_price_index_fhfa,fhfa_hpi,value,hpi2000,,,,1,,,
 housing_units_authorized_bps,census_bps,count,units,,,,1,,,
+permitted_units_single_family_bps,census_bps,count,units_1,,,,1,,,
+permitted_units_5plus_bps,census_bps,count,units_5plus,,,,1,,,
+permitted_units_per_1000_residents_bps,census_bps,ratio,units,POPULATION,,,1000,,,
 childcare_price_center_infant_ndcp,dol_ndcp,value,MCINFANT,,,,1,year,,
 childcare_price_center_preschool_ndcp,dol_ndcp,value,MCPRESCHOOL,,,,1,year,,
 childcare_price_family_infant_ndcp,dol_ndcp,value,MFCCINFANT,,,,1,year,,
 childcare_price_infant_share_income_ndcp,dol_ndcp,value,SHARE_MFI_CINFANT,,,,1,,,
+childcare_price_center_toddler_ndcp,dol_ndcp,value,MCTODDLER,,,,1,year,,
+childcare_price_center_schoolage_ndcp,dol_ndcp,value,MCSA,,,,1,year,,
+childcare_price_family_toddler_ndcp,dol_ndcp,value,MFCCTODDLER,,,,1,year,,
+childcare_price_family_preschool_ndcp,dol_ndcp,value,MFCCPRESCHOOL,,,,1,year,,
+childcare_price_family_schoolage_ndcp,dol_ndcp,value,MFCCSA,,,,1,year,,
+childcare_price_center_infant_p75_ndcp,dol_ndcp,value,P75CINFANT,,,,1,year,,
+childcare_price_family_infant_p75_ndcp,dol_ndcp,value,P75FCCINFANT,,,,1,year,,
+female_lfpr_children_under6_ndcp,dol_ndcp,value,FLFPR_20to64_UNDER6,,,,1,,,
 childcare_establishments_cbp,census_cbp,count,ESTAB_624410,,,,1,,,
 childcare_capacity_tx,tx_hhsc,count,capacity,,,,1,,,
+childcare_licensed_centers_tx_hhsc,tx_hhsc,count,centers,,,,1,,,
+childcare_licensed_homes_tx_hhsc,tx_hhsc,count,licensed_homes,,,,1,,,
+childcare_registered_homes_tx_hhsc,tx_hhsc,count,registered_homes,,,,1,,,
+childcare_centers_accepting_subsidy_share_tx_hhsc,tx_hhsc,share,centers_subsidy,centers,,,100,,,
+childcare_capacity_per_100_under5_tx,tx_hhsc,ratio,capacity,UNDER5,,,100,,,
+childcare_licensed_centers_in_fssa,in_fssa_provider_listings,count,centers,,,,1,,,
+childcare_licensed_homes_in_fssa,in_fssa_provider_listings,count,homes,,,,1,,,
+childcare_registered_ministries_in_fssa,in_fssa_provider_listings,count,ministries,,,,1,,,
+childcare_licensed_capacity_in_fssa,in_fssa_provider_listings,count,capacity,,,,1,,,
+childcare_ptq_level3_4_capacity_in_fssa,in_fssa_provider_listings,count,capacity_ptq34,,,,1,,,
+childcare_ptq_level3_4_capacity_share_in_fssa,in_fssa_provider_listings,share,capacity_ptq34,capacity,,,100,,,
+childcare_capacity_per_100_under5_in,in_fssa_provider_listings,ratio,capacity,UNDER5,,,100,,,
 unemployment_rate_laus,bls_laus,share,unemployed,labor_force,rate,,100,,,
 labor_force_laus,bls_laus,count,labor_force,,,,1,,,
+unemployed_persons_laus,bls_laus,count,unemployed,,,,1,,,
+employed_persons_laus,bls_laus,count,employed,,,,1,,,
+labor_force_participation_rate_laus,bls_laus_rates,share,labor_force,population,,,100,,,
+employment_population_ratio_laus,bls_laus_rates,share,employed,population,,,100,,,
 children_under3_acs,census_acs5,count,B09001_003,,,,1,,,
 children_age3_4_acs,census_acs5,count,B09001_004,,,,1,,,
 children_under18_acs,census_acs5,count,B09001_001,,,,1,,,
@@ -334,3 +396,37 @@ traffic_fatality_rate_per_100k_fars,nhtsa_fars_5yr,ratio,DEATHS_5YR,PERSON_YEARS
 pedestrian_bicyclist_rate_per_100k_fars,nhtsa_fars_5yr,ratio,PED_DEATHS_5YR+BIKE_DEATHS_5YR,PERSON_YEARS,,,100000,,,
 pedestrian_bicyclist_share_fars,nhtsa_fars_5yr,share,PED_DEATHS_5YR+BIKE_DEATHS_5YR,DEATHS_5YR,,,100,,,
 owner_occupied_share_census,ipums_nhgis,share,B37AA,B37AA+B37AB,,,100,,,
+public_schools_count_ccd,nces_ccd,count,SCHOOLS,,,,1,,,
+public_school_membership_ccd,nces_ccd,count,STUDENTS,,,,1,,,
+public_prek_membership_ccd,nces_ccd,count,PREK_STUDENTS,,,,1,,,
+public_school_teachers_ccd,nces_ccd,count,TEACHERS,,,,1,,,
+public_school_students_per_teacher_ccd,nces_ccd,ratio,STUDENTS_WITH_TEACHERS,TEACHERS,,,1,,,
+storm_events_count_noaa,noaa_storm_events,count,EVENTS,,,,1,,,
+storm_event_deaths_noaa,noaa_storm_events,count,DEATHS,,,,1,,,
+storm_event_property_damage_noaa,noaa_storm_events,count,DAMAGE,,,,1,year,,
+low_income_low_access_tract_sram,usda_ers_fara,count,SD_LILA,,,,1,,,
+low_income_low_access_tract_driving_sram,usda_ers_fara,count,DD_LILA,,,,1,,,
+low_income_low_access_tract_share_sram,usda_ers_fara,share,SD_LILA,TRACTS,,,100,,,
+low_access_population_share_sram,usda_ers_fara,share,SD_LAPOP,POP,,,100,,,
+low_access_population_share_driving_sram,usda_ers_fara,share,DD_LAPOP,POP,,,100,,,
+low_income_low_access_tract_lram,usda_ers_fara,count,LRAM_LILA,,,,1,,,
+population_65plus_share_pep,census_pep_county_characteristics,share,AGE65PLUS,POP,,,100,,,
+median_age_pep,census_pep_county_characteristics,value,MEDIAN_AGE,,,,1,,,
+hispanic_share_pep,census_pep_county_characteristics,share,HISPANIC,RACE_TOTAL,,,100,,race_ethnicity_pep,Hispanic or Latino (any race)
+nh_white_share_pep,census_pep_county_characteristics,share,NH_WHITE,RACE_TOTAL,,,100,,race_ethnicity_pep,"White alone, not Hispanic"
+nh_black_share_pep,census_pep_county_characteristics,share,NH_BLACK,RACE_TOTAL,,,100,,race_ethnicity_pep,"Black alone, not Hispanic"
+nh_asian_share_pep,census_pep_county_characteristics,share,NH_ASIAN,RACE_TOTAL,,,100,,race_ethnicity_pep,"Asian alone, not Hispanic"
+nh_multiracial_share_pep,census_pep_county_characteristics,share,NH_MULTI,RACE_TOTAL,,,100,,race_ethnicity_pep,"Two or more races, not Hispanic"
+nh_other_share_pep,census_pep_county_characteristics,share,NH_OTHER,RACE_TOTAL,,,100,,race_ethnicity_pep,"Other single race, not Hispanic"
+primary_care_hpsa_count_hrsa,hrsa_hpsa,count,PC_COUNT,,,,1,,,
+primary_care_hpsa_score_hrsa,hrsa_hpsa,value,PC_SCORE,,,,1,,,
+dental_hpsa_count_hrsa,hrsa_hpsa,count,DH_COUNT,,,,1,,,
+dental_hpsa_score_hrsa,hrsa_hpsa,value,DH_SCORE,,,,1,,,
+mental_health_hpsa_count_hrsa,hrsa_hpsa,count,MH_COUNT,,,,1,,,
+mental_health_hpsa_score_hrsa,hrsa_hpsa,value,MH_SCORE,,,,1,,,
+occupational_employment_oews,bls_oews,count,EMPLOYMENT,,,,1,,,
+median_annual_wage_oews,bls_oews,value,MEDIAN_WAGE,,,,1,year,,
+mean_annual_wage_oews,bls_oews,value,MEAN_WAGE,,,,1,year,,
+unemployment_rate_cps,bls_cps_ln,value,UNEMPLOYMENT_RATE,,,,1,,,
+labor_force_participation_rate_cps,bls_cps_ln,value,PARTICIPATION_RATE,,,,1,,,
+employment_population_ratio_cps,bls_cps_ln,value,EMPLOYMENT_POP_RATIO,,,,1,,,

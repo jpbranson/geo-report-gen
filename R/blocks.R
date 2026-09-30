@@ -148,6 +148,16 @@ context_entities <- function(ctx, sources) {
   Filter(function(e) e$role == "benchmark" && all(e$pieces$type %in% prov$geo_types), ctx$entities)
 }
 
+# A block that fell back to context areas and has values for the nation alone says nothing
+# about the study area: compute_blocks() leaves it out of the report (the availability appendix
+# says so).
+nation_only <- function(res, context, ctx) {
+  if (!length(context)) return(FALSE)
+  with_data <- unique(res$entity_id[!is.na(res$value)])
+  nations <- vapply(ctx$entities, function(e) all(e$pieces$type == "nation"), TRUE)
+  length(with_data) > 0 && all(with_data %in% vapply(ctx$entities, `[[`, "", "id")[nations])
+}
+
 # ---- metric: one concept over time and/or against benchmarks ----------------------------
 
 compute_block_metric <- function(row, ctx, settings, opts) {
@@ -207,6 +217,7 @@ compute_block_metric <- function(row, ctx, settings, opts) {
                 else c("title", "no_data", "source_note"),
        sources = metric_sources(metrics),
        unavailable = block_unavailable_rows(res, row$id, ctx),
+       nation_only = nation_only(res, context, ctx),
        figure = has_data)
 }
 
@@ -677,6 +688,7 @@ compute_block_composition <- function(row, ctx, settings, opts) {
        labels = stats::setNames(members$category, members$metric_id)[!duplicated(members$category)],
        sources = unique(metric_sources(members$metric_id)),
        unavailable = block_unavailable_rows(res, row$id, ctx),
+       nation_only = nation_only(res, context, ctx),
        figure = TRUE)
 }
 
@@ -796,6 +808,7 @@ compute_block_facts <- function(row, ctx, settings, opts) {
        labels = labels,
        sources = metric_sources(metrics),
        unavailable = block_unavailable_rows(res, row$id, ctx),
+       nation_only = nation_only(res, context, ctx),
        table = has_data)
 }
 

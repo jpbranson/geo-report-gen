@@ -214,6 +214,27 @@ cbsa_counties <- function(cbsa, vintage) {
   d$county[d$cbsa == cbsa]
 }
 
+# Full-resolution TIGER/Line polygons of one layer ("place" or "tract") in one state, for placing
+# points such as crashes and schools in areas (the cartographic files in maps.R are generalized).
+tiger_polygons <- function(layer, state, vintage) {
+  memoize(paste("tiger_poly", layer, state, vintage), function() {
+    file <- sprintf("tl_%d_%s_%s.zip", vintage, state, layer)
+    url <- sprintf("https://www2.census.gov/geo/tiger/TIGER%d/%s/%s", vintage, toupper(layer), file)
+    zip <- cached_download(url, cache_path("geo", "tiger", vintage, file), "census_geo")
+    shp <- sf::st_read(paste0("/vsizip/", zip), quiet = TRUE)
+    sf::st_make_valid(shp[, "GEOID"])
+  })
+}
+
+# The GEOID of the polygon of `layer` that contains each point (NA outside every polygon).
+locate_points <- function(lon, lat, layer, state, vintage) {
+  if (!length(lon)) return(character())
+  poly <- tiger_polygons(layer, state, vintage)
+  pts <- sf::st_as_sf(data.frame(lon = lon, lat = lat), coords = c("lon", "lat"), crs = 4269)
+  hit <- sf::st_within(pts, poly)
+  vapply(hit, function(i) if (length(i)) poly$GEOID[i[1]] else NA_character_, "")
+}
+
 # Counties a geography lies in or consists of (NA for a state; NULL for larger areas).
 geo_counties <- function(key, vintage) {
   g <- split_key(key)

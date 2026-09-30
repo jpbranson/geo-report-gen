@@ -14,7 +14,17 @@ towns and places. Additions 4 and 5: population counts from 1790 (A00; places an
 industries, SIC) in a jobs history chart and the payroll chart. For Connecticut's planning
 regions (addition 2), census counts and shares are summed from their towns, which kept their
 codes, rather than carried through the crosswalks; medians have no census values there.
-Additions 3 and 6, and the topics without time series tables, are still open.
+The topics without time series tables are still open.
+
+**Tried and removed (2026-09-30):** addition 3 was built (one extract of CL8, CW5, CM1, CP4, CM4,
+CM7, CM9 and CN1 for states, counties, tracts and block groups, 1990-2020) and taken out again at
+the user's request: for reports on places its charts repeated what the ACS and census blocks
+already show, and the standardized values are estimates (fractional where boundaries changed,
+with bounds but no margins of error). Tracts and block groups in those tables are 2010 tracts,
+so a report would need a `boundary_vintage` of 2019 or earlier. Addition 6, in part: `nhgis_boundaries(level, year)` fetches the boundary shapefiles of
+counties (1790-2010) or tracts (1910-2000) through the API into `cache/geo/nhgis/`, and the map
+block `historical_map` (option `boundary_year`, default 1900) draws a state's counties of that
+census with the study area's present outline; no block uses tract boundaries yet.
 
 ## What it would add
 

@@ -180,7 +180,11 @@ compute_metric <- function(metric_id, entities, settings, periods = NULL, consta
   bins_vars <- if (!is_blank(recipe$bins_table)) unique(unlist(lapply(periods, function(p) acs_bins(recipe$bins_table, p)$variable))) else character()
   vars <- unique(c(recipe_vars(recipe$numerator), recipe_vars(recipe$denominator),
                    if (!is_blank(recipe$published_var)) recipe$published_var, bins_vars))
-  var_by_period <- if (grepl(":", recipe$numerator, fixed = TRUE)) parse_period_vars(recipe$numerator) else NULL
+  var_by_period <- if (grepl(":", recipe$numerator, fixed = TRUE)) {
+    maps <- lapply(c(recipe$numerator, recipe$denominator), function(e) if (grepl(":", e, fixed = TRUE)) parse_period_vars(e))
+    years <- names(maps[[1]])
+    stats::setNames(lapply(years, function(y) unique(unlist(lapply(maps, `[[`, y)))), years)
+  }
   rows <- lapply(entities, function(e) {
     pieces <- e$pieces
     unsupported <- setdiff(unique(pieces$type), prov$geo_types)

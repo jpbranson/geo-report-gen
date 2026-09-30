@@ -55,6 +55,7 @@ compose_report <- function(report_id) {
   rows <- load_manifest(manifest_path(ctx$cfg))
   rows <- rows[rows$enabled, , drop = FALSE]
   blocks <- timed("compute", compute_blocks(rows, ctx))
+  rows <- rows[rows$type %in% c("section", "subsection") | rows$id %in% names(blocks), , drop = FALSE]
   blocks <- finish_appendices(blocks, ctx)
   texts <- resolve_block_texts(rows, blocks, ctx)
   values <- c(list(report = report_values(ctx)), lapply(blocks, `[[`, "values"))
@@ -65,18 +66,23 @@ compose_report <- function(report_id) {
   invisible(list(ctx = ctx, blocks = blocks, texts = texts))
 }
 
-# Compute every block; a block that fails becomes an error block and the report goes on.
+# Compute every block; a block that fails becomes an error block and the report goes on. A
+# block whose source publishes nothing below the nation for this study area is left out (its
+# id is kept in the "skipped" attribute for the availability appendix).
 compute_blocks <- function(rows, ctx) {
   blocks <- list()
+  skipped <- character()
   for (i in which(!rows$type %in% c("section", "subsection"))) {
     row <- as.list(rows[i, ])
-    blocks[[row$id]] <- tryCatch(compute_block(row, ctx), error = function(e) {
+    b <- tryCatch(compute_block(row, ctx), error = function(e) {
       run$incomplete <- TRUE
       warn("Block '", row$id, "' could not be computed: ", conditionMessage(e))
       list(id = row$id, kind = "error", error = conditionMessage(e), fields = "title",
            values = list(block_id = row$id), section = row$section)
     })
+    if (isTRUE(b$nation_only)) skipped <- c(skipped, row$id) else blocks[[row$id]] <- b
   }
+  attr(blocks, "skipped") <- skipped
   blocks
 }
 
@@ -141,6 +147,11 @@ availability_markdown <- function(unav, blocks, ctx) {
   if (length(errs)) {
     lines <- c(lines, "", paste0("- Block **", names(errs), "** could not be produced: ",
                                  vapply(errs, `[[`, "", "error")))
+  }
+  skipped <- attr(blocks, "skipped")
+  if (length(skipped)) {
+    lines <- c(lines, "", paste0("- Block **", skipped, "** is left out: its source publishes nothing for ",
+                                 ctx$area$short, " or its comparison areas below the nation."))
   }
   paste(lines, collapse = "\n")
 }

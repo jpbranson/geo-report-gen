@@ -222,7 +222,7 @@ load_manifest <- function(path) {
 # metric block draws lines over time and dots when it compares the latest values only.
 viz_allowed <- function(kind, viz, compare) {
   allowed <- switch(kind, metric = if (grepl("time", compare)) "line" else "dot", composition = c("stacked_bar", "bar"),
-                    distribution = "bar", facts = "table", availability = "table", map = "map", locator = "map",
+                    distribution = "bar", facts = "table", availability = "table", map = "map", locator = "map", historical_map = "map",
                     history = "list", sources = "list", character())
   viz %in% allowed
 }

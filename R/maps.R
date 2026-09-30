@@ -197,3 +197,59 @@ render_block_map <- function(b, txt, th) {
                           guide = guide_legend(order = 2)) +
     coord_sf(crs = crs, datum = NA) + map_theme(th)
 }
+
+# ---- Historical county map -------------------------------------------------------------------
+
+# The counties of a census year (NHGIS boundary files) whose interior point lies in the given
+# states of today, so counties of territories that were not yet states are included too.
+historical_counties <- function(hist, context) {
+  points <- suppressWarnings(sf::st_point_on_surface(sf::st_geometry(hist)))
+  inside <- lengths(sf::st_intersects(points, sf::st_union(sf::st_transform(context, sf::st_crs(hist))))) > 0
+  hist[inside, ]
+}
+
+# Counties that contribute at least 2% of the study area's extent (or of which at least 20% lies in it).
+historical_touched <- function(hist, study) {
+  crs <- local_crs(study)
+  h <- sf::st_transform(hist, crs)
+  s <- sf::st_transform(study, crs)
+  overlap <- vapply(seq_len(nrow(h)), function(i) {
+    x <- suppressWarnings(sf::st_intersection(sf::st_geometry(h)[i], sf::st_union(sf::st_geometry(s))))
+    if (length(x)) as.numeric(sum(sf::st_area(x))) else 0
+  }, 0)
+  overlap / as.numeric(sum(sf::st_area(s))) >= 0.02 | overlap / as.numeric(sf::st_area(h)) >= 0.2
+}
+
+compute_block_historical_map <- function(row, ctx, settings, opts) {
+  year <- as.integer(opts$boundary_year %||% 1900)
+  v <- ctx$area$vintage
+  study <- do.call(rbind, lapply(ctx$studies, entity_geometry, vintage = v))
+  pieces <- do.call(rbind, lapply(ctx$studies, `[[`, "pieces"))
+  states <- unique(substr(pieces$geoid[!pieces$type %in% c("nation", "region", "division")], 1, 2))
+  if (!length(states)) stop("A historical county map needs a study area within states.", call. = FALSE)
+  context <- boundaries("state", v)
+  context <- context[context$GEOID %in% states, ]
+  hist <- historical_counties(nhgis_boundaries("county", year), context)
+  touched <- historical_touched(hist, study)
+  list(data = list(study = study, context = context, counties = hist, touched = touched),
+       values = list(boundary_year = as.character(year), area_short = ctx$area$short, context_label = paste(context$NAME, collapse = ", "),
+                     n_counties = as.character(nrow(hist)), touched_counties = paste(sort(hist$NHGISNAM[touched]), collapse = ", ")),
+       fields = c("title", "caption", "alt", "source_note"),
+       sources = source_row("ipums_nhgis", paste0("Historical county boundary file of ", year)),
+       figure = TRUE)
+}
+
+render_block_historical_map <- function(b, txt, th) {
+  d <- b$data
+  crs <- local_crs(d$context)
+  h <- sf::st_transform(d$counties, crs)
+  p <- ggplot() + geom_sf(data = sf::st_transform(d$context, crs), fill = "#f7f7f5", color = th$color_muted, linewidth = 0.4) +
+    geom_sf(data = h, fill = NA, color = th$color_rule, linewidth = 0.25) +
+    geom_sf(data = h[d$touched, ], fill = NA, color = th$color_text, linewidth = 0.5) +
+    geom_sf(data = sf::st_transform(d$study, crs), fill = th$color_accent, color = th$color_accent, alpha = 0.6, linewidth = 0.3)
+  if (any(d$touched)) {
+    p <- p + ggrepel::geom_text_repel(data = h[d$touched, ], aes(geometry = geometry, label = NHGISNAM), stat = "sf_coordinates",
+                                      size = 3, family = chart_font(th), min.segment.length = Inf, seed = 1)
+  }
+  p + coord_sf(crs = crs, datum = NA) + map_theme(th)
+}

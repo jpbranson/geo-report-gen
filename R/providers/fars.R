@@ -77,30 +77,13 @@ fars_crashes <- function(year) {
   }))
 }
 
-# Full-resolution TIGER/Line polygons of one layer ("place" or "tract") in one state.
-fars_polygons <- function(layer, state, vintage) {
-  memoize(paste("fars_poly", layer, state, vintage), function() {
-    file <- sprintf("tl_%d_%s_%s.zip", vintage, state, layer)
-    url <- sprintf("https://www2.census.gov/geo/tiger/TIGER%d/%s/%s", vintage, toupper(layer), file)
-    zip <- cached_download(url, cache_path("geo", "tiger", vintage, file), "census_geo")
-    shp <- sf::st_read(paste0("/vsizip/", zip), quiet = TRUE)
-    sf::st_make_valid(shp[, "GEOID"])
-  })
-}
-
 # The place and tract of each located crash of one state and year (NA outside any place).
 fars_locate <- function(year, state, vintage) {
   cached(derived_path("nhtsa_fars", file.path("located", paste0(year, "_", state, "_", vintage)), "fars.R"), source = "nhtsa_fars", compute = function() {
     d <- fars_crashes(year)
     d <- d[d$state == state & !is.na(d$lat), , drop = FALSE]
-    if (!nrow(d)) return(data.frame(st_case = character(), place = character(), tract = character()))
-    pts <- sf::st_as_sf(d[, c("st_case", "lon", "lat")], coords = c("lon", "lat"), crs = 4269)
-    at <- function(layer) {
-      poly <- fars_polygons(layer, state, vintage)
-      hit <- sf::st_within(pts, poly)
-      vapply(hit, function(i) if (length(i)) poly$GEOID[i[1]] else NA_character_, "")
-    }
-    data.frame(st_case = d$st_case, place = at("place"), tract = at("tract"), stringsAsFactors = FALSE)
+    data.frame(st_case = d$st_case, place = locate_points(d$lon, d$lat, "place", state, vintage),
+               tract = locate_points(d$lon, d$lat, "tract", state, vintage), stringsAsFactors = FALSE)
   })
 }
 

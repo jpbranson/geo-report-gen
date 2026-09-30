@@ -92,7 +92,7 @@ nhgis_default_years <- function(table) {
 
 # An extract as a zip in the cache (named by its request), requested and downloaded under a file
 # lock like any other download.
-nhgis_extract <- function(name, body) {
+nhgis_extract <- function(name, body, link = "tableData") {   # link: "tableData" or, for shapefiles, "gisData"
   path <- cache_path("raw", "ipums_nhgis", paste0(name, ".zip"))
   run$used <- c(run$used, path)
   if (file.exists(path) && !wants_refresh(path, "ipums_nhgis")) return(path)
@@ -111,7 +111,7 @@ nhgis_extract <- function(name, body) {
     stop("NHGIS extract ", x$number, " is ", x$status, "; run the build again later.", call. = FALSE)
   }
   tmp <- paste0(path, ".download-", Sys.getpid())
-  resp <- http_perform(nhgis_request(x$downloadLinks$tableData$url), path = tmp)
+  resp <- http_perform(nhgis_request(x$downloadLinks[[link]]$url), path = tmp)
   check_status(resp, paste("IPUMS NHGIS extract", x$number))
   replace_file(tmp, path)
   run$refreshed <- c(run$refreshed, path)
@@ -305,3 +305,25 @@ register_provider("ipums_nhgis_cbp", list(
   period_kind = "annual",
   series = "County Business Patterns, SIC (IPUMS NHGIS)",
   availability_note = "County Business Patterns before 1998 cover the nation, states and counties."))
+
+# ---- Historical boundary files (for maps) ---------------------------------------------------
+#
+# NHGIS boundary files: the counties of every census from 1790 to 2010 and the tracts of 1910-2000
+# (before 1990 only a few cities have tracts), on the TIGER/Line 2008 base. Each file is a shapefile
+# extract of its own, requested once and kept in the cache; the geometry is stored as sf, in NAD83
+# longitude and latitude.
+
+nhgis_boundaries <- function(level, year) {
+  name <- sprintf("us_%s_%d_tl2008", level, year)
+  path <- cache_path("geo", "nhgis", paste0(name, ".rds"))
+  memoize(paste0("nhgis_shape_", name), function() cached(path, source = "ipums_nhgis", compute = function() {
+    zip <- nhgis_extract(paste0("shape-", name), list(shapefiles = list(name), description = paste("geo-report-gen boundaries:", name)), link = "gisData")
+    dir <- tempfile("nhgis")
+    dir.create(dir)
+    on.exit(unlink(dir, recursive = TRUE))
+    inner <- grep("[.]zip$", utils::unzip(zip, exdir = dir), value = TRUE)
+    if (length(inner) != 1) stop("The NHGIS boundary extract ", name, " holds ", length(inner), " shapefiles, not one.", call. = FALSE)
+    shp <- sf::st_transform(sf::st_make_valid(sf::st_read(paste0("/vsizip/", inner), quiet = TRUE)), 4269)
+    shp[, intersect(c("GISJOIN", "STATENAM", "NHGISNAM", "NHGISST", "NHGISCTY"), names(shp))]
+  }))
+}

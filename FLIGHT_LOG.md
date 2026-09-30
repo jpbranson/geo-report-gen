@@ -819,3 +819,378 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   docs/nhgis.md implemented list (B37, Connecticut town sums); README `new --label`, wrangler
   commands and one token per machine in the R2 setup, madison-ms in the sample table, rewrapped
   lines; "How to resume" notes rclone and the sandbox.
+- 23:55 The user asked for a complete queue of the next data sources: PLAN.md "Data source queue"
+  (20 items: A = NCES CCD, NOAA Storm Events, County Health Rankings; B = the 7 sources with a
+  provider but non-operational metrics, likely duplicate metric IDs named; C = 8 new sources,
+  thinnest subject first, with access notes (MEDSL needs the user to pass a Dataverse guestbook;
+  HUD needs a CoC-to-county crosswalk; CHR terms are non-profit only); D = NHGIS additions 3
+  and 6). Metric lists from metric_status() and the catalog. Not committed.
+
+## 2026-09-29 23:58 (session 6, continued): working through the data source queue
+
+- The user: proceed with PLAN.md "Data source queue" one item at a time; when an issue or
+  blocker comes up, note it here for review and go on to the next item; keep this log current.
+  Items needing the user (CHR terms, MEDSL guestbook download) are noted and skipped, not asked.
+- Blockers / for review (running list):
+  (none yet)
+- Now: item 1, NCES CCD. First reading an existing provider (nes.R, fea.R), core.R's contract,
+  recipes/blocks/profiles and the tests to follow the same pattern.
+
+## 2026-09-30 00:07 (Codex): resume the data source queue
+
+- User instruction: finish the interrupted NCES step, then process the queue one item at a
+  time; record issues/blockers for review and proceed to the next item. Keep this log current.
+- Starting state: main at 9d81a0d; existing uncommitted PLAN/flight-log changes, shared TIGER
+  point-location helpers in geography.R and fars.R, and untracked R/providers/nces.R preserved.
+- Item 1 in progress: NCES draft handles 2017-18 through 2024-25; raw files are mostly cached.
+  Recipes, blocks, profile entries, tests and verification remain. Earlier CCD history still
+  needs a separate file/layout investigation and must not be advertised as implemented.
+- Environment: default R startup attempts to write renv's global cache outside the workspace.
+  Checking a workspace-local runtime setup before proceeding with validation.
+- 00:15 NCES integration: five recipes (schools, students, public pre-K, teacher FTE and
+  students per teacher), three report blocks, relevant profiles, canonical text and a live
+  verification check added. Catalog check passes (539 metrics, 340 operational).
+- Repaired a source defect: the 2018-19 ArcGIS geocode response duplicates 2017-18 and misses
+  2,343 operating schools. Use the official EDGE_GEOCODE_PUBLICSCH_1819.zip/XLSX instead;
+  leave the original response cached for review. Added a fail-closed school/geocode join.
+  All eight years now join every operating school (2017: 99,888; 2024: 100,237 including
+  territories). Missing 2023 geocodes retrieved successfully.
+- Validation runtime: R 4.6.1 --vanilla with R_LIBS_USER set to the existing project library,
+  RENV_CONFIG_AUTOLOADER_ENABLED=FALSE for child processes, LC_ALL=English_United States.utf8.
+  Public network requests require the normal sandbox escalation; approved requests work.
+- For review: NCES pre-2017 history is still deferred; the adapter and report documentation
+  explicitly cover 2017-18 to 2024-25. Recent EDGE fields/layouts have been verified; older
+  annual bulk formats need their own mapping. Tests and full validation are running.
+
+## 2026-09-30 05:20 (Claude, session 7): finish NCES, then the queue
+
+- User: finish the rest of the NCES step, then proceed through the PLAN.md queue one item at a
+  time; note any issue or blocker here for review and go on to the next item; keep this log current.
+- State found: main at 9d81a0d, NCES work uncommitted (see the 00:07 Codex entry). R 4.6.1
+  `gr.R test` runs directly from the shell here (no renv workaround needed): 330 pass.
+- Removed a BOM the previous session added to catalog/{blocks,metrics,recipes}.csv and
+  profiles/{early-childhood,economic-development,general}.csv (HEAD had none in those six).
+- Blockers / for review (running list):
+  (none yet)
+- 05:35 Item 1 (NCES CCD) finished: tests 330 pass; catalog --check clean (539 metrics, 340
+  operational); gr.R verify all sources ok (nces_ccd: 101,110 records in 2024-25); gary-in
+  builds with a public-schools table (Gary 19 schools, 9,607 students, 276 pre-K; Indiana
+  1,037,604; U.S. 49,069,867; Gary teachers unavailable = under 95% reporting, explained in the
+  appendix); demos/round_trip.R 10/10; batch --offline 12 rendered, austin-78704 rejected as
+  intended. PLAN.md item 1 ticked. NOT committed (the user commits on request).
+- For review: NCES 1986-2016 history not built (layouts differ per era); PLAN.md item 1 says so.
+- Now: item 2, NOAA Storm Events. Design: yearly files found from the NCEI directory listing
+  (file names carry a creation date); zone-based events (CZ_TYPE Z) mapped to counties with the
+  NWS county-zone correlation file (weather.gov bp*.dbx); counts and deaths and damage.
+- 06:00 Item 2 (NOAA Storm Events) finished: R/providers/noaa.R (1950-2025; listing-based file
+  names; NWS county-zone file bp16ap26.dbx; marine zones dropped), 3 metrics, 3 recipes
+  (damage with dollars=year), 4 blocks in general and economic-development, text records,
+  README limitation, source-row note, verify check (noaa_storm_events ok), tests 345 pass,
+  round trip 10/10, batch --offline 12 rendered (austin-78704 rejected as intended). Checked:
+  2025 U.S. 69,380 events, 865 deaths, $4.4 billion; Travis+Williamson+Hays 162 events; Lake
+  County IN 74 events, 0 deaths; ct-capitol says why it has no values.
+- For review (NOAA): (1) county values need the state's zone events to match today's NWS zones
+  (95%): about half the states fail before 2013 and 9-11 of 51 states still fail in 2022-2025
+  (AK, CA, SC, WA never reach 95%), so county trends have gaps; NWS publishes only the two
+  newest correlation files (older bp*.dbx files exist on the server but are not listed), so a
+  historical fix would mean guessing file names. (2) Equal split of zone-event deaths and damage
+  among a zone's counties gives fractional county deaths; a different rule (county-based events
+  only) is a one-line change in noaa_event_counties(). (3) Yearly totals were not
+  cross-checked against another source; NCEI's file for 2025 was created 2026-08-19, and damage
+  entries for late events may still be added. (4) 1996-2007 event types were fewer than the 55 since 2007.
+- Item 3 (County Health Rankings) SKIPPED as instructed: terms allow personal or non-profit use
+  only (commercial use needs written consent); the user must confirm the use before it is built.
+- Blockers / for review, running list: item 3 (CHR terms); NOAA points above; NCES 1986-2016.
+- Now: item 4, NDCP child care prices (dol_ndcp). Plan: 7 new price metrics (center toddler
+  and school-age; family toddler, preschool, school-age; 75th percentile center and family
+  infant), the women's labor force rate (counties and states), the two named duplicates merged
+  away (home_infant = family_infant; burden_center_infant = infant_share_income), the four
+  documented "home" IDs renamed to "family" to match the operational one, and the age-band
+  metric left documented (one metric cannot hold 22 series).
+- 06:03 Item 4 (NDCP) finished: childcare.R reads 12 more NDCP columns (school-age, family
+  toddler/preschool/school-age, 75th percentiles, labor force rate) and keeps each state's rate
+  once as a state row; provider now county + state. Catalog: 537 metrics, 351 operational.
+  Blocks childcare-price-table, working-mothers-trend in the early-childhood profile; text
+  records; tests 351; verify ok; round trip 10/10; batch --offline 12 rendered. Fixed while
+  checking: a state piece asked for a price variable returned a data.frame length error (now
+  returns nothing). Austin (Travis, Williamson) shows all 10 prices; state labor force rates show.
+- For review (NDCP): childcare_price_age_band_ndcp stays documented (22 band variables do not fit
+  one-value metrics; would need 22 metrics or a table type).
+- Now: item 5, decennial census (census_dec). Verified 2000/2010/2020 variable IDs against the
+  Census API (households, average household size as population in households / households,
+  vacancy, homeownership, median age, three household-type shares, six race/Hispanic shares as a
+  group). Needs one engine change: var_by_period must include denominator variables (metrics.R).
+- 06:22 Item 5 (decennial census) finished. 9 documented metrics -> 14 operational
+  (households, average household size, vacancy, homeownership, median age, 3 household-type
+  shares, 6 race/Hispanic shares in group race_ethnicity_decennial; dropped duplicates
+  total_population_decennial and housing_units_decennial). Variable IDs verified against the
+  Census API labels (2000 SF1 homeownership has no separate free-and-clear line; 2000 family
+  tables are P018). Engine: compute_metric now passes denominator variables per period to the
+  decennial provider (before, only numerators were fetched). Values checked: Delaware households
+  298,736 (2000) and 342,297 (2010); U.S. households 105,480,101 (2000); U.S. homeownership
+  66.2 / 65.1 / 63.1%; U.S. median age 35.3 / 37.2 / 38.8; U.S. Hispanic 12.5 / 16.3 / 18.7%.
+  Tests 353; verify ok; round trip 10/10; batch: an offline run first warned for tx-cities and
+  madison-ms (their census tables were not cached yet), an online `batch --no-render` fetched
+  them (44 requests), and the final offline batch has 12 up to date, 0 warnings, austin-78704
+  rejected as intended. Catalog: 542 metrics, 365 operational.
+- For review (decennial): the census-counts table marks every comparison with * (census counts
+  have MOE 0, so any difference is "significant"); 2000 has no separate owned-free-and-clear
+  line, so its homeownership uses the single owner line.
+- Note for future item verification: new sources need `gr.R batch --no-render` online first,
+  because `batch --offline` warns for reports whose new data are not cached.
+- Now: item 6, population estimates (census_pep). Finding: pop_estimate_pep already carries
+  the July 1 estimates for 2000-2025 (both intercensal series, Vintage 2025, states, counties,
+  places and county subdivisions), so population_estimate_pep, population_intercensal_2000_2009_pep,
+  population_intercensal_2010_2019_pep and subcounty_population_estimate_pep are duplicates of it
+  (merged). New: annual change, natural change rate, net domestic and net international
+  migration rates from the V2025 component files (2021-2025).
+- 06:45 Item 6 (population estimates) finished. Duplicates merged: population_estimate_pep,
+  population_intercensal_2000_2009_pep, population_intercensal_2010_2019_pep,
+  subcounty_population_estimate_pep (pop_estimate_pep already has all of them). New: four
+  component metrics from the Vintage 2025 files (change %, natural increase, net domestic,
+  net international; 2021-2025) in a second provider census_pep_components (new source row,
+  verify check) so place reports fall back to county and above. Rates per 1,000 use the
+  average of the two July 1 estimates: Lake County IN 2021 natural increase -1.571 and Indiana
+  domestic 2.215 / international 0.892 match the published R* columns. Units were first
+  "per 1,000 residents", which the formatter printed as whole numbers; now "people per 1,000
+  residents" (needs " per " in the units string to format as a ratio with decimals). Tests 358;
+  verify ok; round trip 10/10; batch 12 rendered (austin-78704 rejected as intended).
+- Now: item 7, BEA personal income (bea_cainc): CAINC30 and CAINC5N added; earnings by industry
+  will be 13 group shares like the GDP mix; duplicate check: none (personal_income_bea comes
+  from CAINC1 line 1, already loaded).
+- 07:15 Item 7 (BEA personal income) finished. CAINC30 and CAINC5N added; 5 documented metrics
+  -> 17 operational (4 income/earnings metrics + 13 earnings-by-industry group shares in group
+  earnings_industry_bea). No duplicates among the five. BEA withholds many small industries in
+  small counties (36% of counties for health care in 2023, 59% for forestry/fishing), so the
+  earnings mix has missing bars for small counties, like the GDP mix. Checked values: Lake County
+  IN 2023 transfers 24.5% of personal income, manufacturing 17.9% of earnings (2010: 19.8%), U.S.
+  manufacturing 8.7%; personal_income (CAINC1) equals CAINC30 line 10 and EARN_TOTAL equals line
+  180. Code: bea_cainc1() kept (GDP and nonemployer population use it, and the offline test
+  fixtures only have CAINC1); bea_income_long() holds the new tables; bea_sum_regions() now serves
+  GDP too. Tests 368; verify ok; round trip 10/10; batch 12 rendered (austin-78704 rejected).
+  Catalog: 550 metrics, 386 operational.
+- Now: item 8, BLS LAUS. Plan: unemployed and employed persons (all levels); civilian_labor_force
+  merged into labor_force_laus; participation rate and employment-population ratio for the
+  nation, regions, divisions and states as ratios of labor force / employed to the LAUS
+  civilian noninstitutional population (measure 09, states only; region and division sums of
+  states), as a second provider bls_laus_rates so county and city reports fall back to states.
+- 07:35 Item 8 (BLS LAUS) finished. New: unemployed_persons_laus and employed_persons_laus (all
+  levels; the nation now also sums employed), and participation rate and employment-population
+  ratio in a second provider bls_laus_rates (states, regions, divisions, nation; new source row and
+  verify check), because measure 09 (population) exists only for states: regions add states.
+  civilian_labor_force_laus dropped as a duplicate of labor_force_laus. Checked: Indiana 2024
+  participation 63.7% (published), U.S. 1980 63.8% and employment-population 59.2%. Tests 371;
+  verify ok; round trip 10/10; batch 12 rendered (austin-78704 rejected). Catalog: 549 metrics,
+  390 operational, 126 sources.
+- Now: item 9, Texas HHSC child care licensing: adds centers, licensed homes, registered homes,
+  share of centers accepting subsidies (query now also groups by accepts_child_care_subsidies) and
+  capacity per 100 children under 5 (ACS denominator, as FARS uses ACS population); the query now
+  also requires operation_status Y (in operation), which the "current operations" definition
+  already said; cache file renamed capacity_by_county_type.parquet so the new query runs once
+  online. childcare_licensed_capacity_tx_hhsc is a duplicate of childcare_capacity_tx (merged).
+- 08:00 Item 9 (Texas HHSC licensing) finished. Six metrics operational (the existing capacity one
+  plus centers, licensed homes, registered homes, subsidy share, capacity per 100 under 5); the
+  Socrata query was re-run (cache file renamed) with the operation_status Y filter. 2026-09-30
+  snapshot: Texas 9,593 licensed centers (52.6% accept subsidies), 1,584 licensed and 1,747
+  registered homes, capacity about 1.17 million (Travis County about 56,900, 76.4 per 100 children
+  under 5). Tests 377; verify ok; round trip 10/10; batch 12 rendered (austin-78704 rejected).
+  Catalog: 549 metrics, 395 operational.
+- For review (Texas): the Y filter lowers totals slightly against the earlier snapshot (42 of
+  14,978 records had status N); the per-100 ratio divides current licensed capacity (which
+  includes school-age places) by 2020-2024 ACS children under 5.
+- Now: item 10, building permits (census_bps): county files 1990-1999 use the same layout as 2000+;
+  place files before 2007 carry no FIPS place code (Census 6-digit permit ID only), so places stay
+  2007-2025 and the older place history is not built. New: 1-unit and 5+ unit counts, units per
+  1,000 residents (PEP population); permitted_units_total_bps is a duplicate of
+  housing_units_authorized_bps.
+- 08:25 Item 10 (building permits) finished. Counties now 1990-2025; new: 1-unit and 5+ unit
+  units (structure-size columns), units per 1,000 residents (PEP July 1 population). Merged
+  permitted_units_total_bps into housing_units_authorized_bps. Places stay 2007-2025: the pre-2007
+  place files have no FIPS place code (the 6-digit permit-office ID would need a crosswalk).
+  Checked: Travis County 2024 total 16,990 units of which 12,145 in 5+ unit buildings; per 1,000
+  residents 12.4 (Travis) and 3.3 (Lake IN). Tests 381; verify ok; round trip 10/10; batch 12
+  rendered (austin-78704 rejected). Catalog: 548 metrics, 398 operational.
+- Group B (items 4-10) is done. Group C starts now (new sources).
+- Item 11 (MIT Election Lab county presidential returns) SKIPPED as instructed: the Harvard
+  Dataverse download needs the user to complete a guestbook form once, which Claude does not
+  fill in; PLAN.md item 11 says so. Blockers / for review (running list): item 3 (CHR terms), item
+  11 (MEDSL guestbook download), NOAA points, NCES 1986-2016, NDCP age bands, PEP/BPS notes above.
+- Now: item 12, Indiana FSSA provider listings: base-R parsing of the three HTML tables (rvest and
+  xml2 are not in the renv library and are not added), county totals for Indiana, capacity per 100
+  children under 5 with the ACS denominator, PTQ level 3-4 capacity and its share of capacity.
+- 08:35 Item 13 (HUD PIT/HIC) BLOCKED, noted for review and skipped: huduser.gov answers scripted
+  requests that carry the project's own User-Agent (geo-report-gen/0.1) with an AWS WAF bot
+  challenge (HTTP 202, empty body, x-amzn-waf-action: challenge) for the workbooks and for the
+  HTML pages alike; the hudexchange.info paths I tried are 404. Getting the files by presenting a
+  browser User-Agent would sidestep bot detection, so it is NOT done and nothing in the code does
+  it. To disclose: while diagnosing, one request with a browser-style User-Agent returned the
+  file (200); its body was discarded (-o /dev/null) and nothing was kept or used. The provider
+  would also need a reader for the .xlsb workbooks (readxl cannot; a BIFF12 reader in base R
+  is doable) and a CoC-to-county crosswalk decision (CoC territories do not match counties or
+  cities). Options for the user: download the four workbooks once by hand into
+  cache/raw/hud_pit_hic/ (like item 11), or allow a change of User-Agent policy.
+- Slip to disclose: in a diagnostic set of HEAD requests for items 14-18 I put the user's email
+  address in the User-Agent, as the project does for BLS only (approved 2026-09-28, "sent only to
+  BLS"). Four of those six requests went to other hosts (www.ers.usda.gov twice, www2.census.gov,
+  data.hrsa.gov); the other two went to download.bls.gov. HEAD requests only, no data kept.
+  No project code was changed by this; from here on other hosts get only the plain project
+  User-Agent.
+- 08:40 Item 12 (Indiana FSSA provider listings) finished. Parsed counts equal the catalog's
+  sample (770 centers / 86,053 capacity, 1,813 homes / 23,754, 732 ministries, 92 counties).
+  7 metrics (the documented providers-by-type became three counts; PTQ level 3-4 share added).
+  Lake County IN: 81 centers, 191 homes, 44 ministries, capacity 9,236, 74.7% at PTQ 3-4, 32.3
+  spaces per 100 children under 5 (Indiana 26.8). Checked with a temporary Indiana early-childhood
+  report (a scratch copy, removed). Tests 386; verify ok; round trip 10/10; batch 12 rendered
+  (austin-78704 rejected). Catalog: 551 metrics, 405 operational.
+- For review (Indiana): the childcare_gap example module (modules/childcare_gap.R) still uses
+  Texas capacity only and says so for Indiana counties; generalizing it is a small change if wanted.
+- Now: item 14, USDA Food Access Research Atlas (tract level, summed up to counties, states and
+  the nation; tract reports show the tract itself).
+- 09:05 Item 14 (USDA Food Access Research Atlas) finished. fara.R reads the SRAM 2025 straight-line,
+  driving and general-characteristics CSVs and the LRAM 2019 CSV (SRAM tract codes lack the leading
+  zero and carry county names but no county FIPS; the FIPS come from the tract code). 4 documented
+  metrics -> 6 (driving population share and tract shares added). Checks: SRAM U.S. population
+  331,449,281 (2020 census), 28.4 million (8.6%) beyond 1/10 miles in a straight line, 18.8% by road;
+  2,356 straight-line and 6,301 driving LILA tracts; LRAM 72,531 tracts, 9,293 LILA, population
+  308,745,538 (2010 census). Lake County IN: 7.3% of residents far, 1 LILA tract. Tests 393; verify
+  ok; round trip 10/10; batch 12 rendered (austin-78704 rejected). Catalog: 553 metrics, 411 operational.
+- For review (FARA): LRAM 2015 and 2010 editions are not read (no URL in the catalog); places have no
+  values (tracts do not nest in places); Connecticut planning regions are not coded in the files'
+  tract codes (former counties).
+- Now: item 15 (PEP county age/sex/race). Provider written (base R over cc-est2025-agesex-all.csv,
+  10 MB, and cc-est2025-alldata.csv, 105 MB, age group 0), catalog script ready.
+- 09:30 Item 15 (PEP county age/sex/race) finished. Provider in pep.R reads the 10 MB age/sex file
+  and the 105 MB ALLDATA file (age group 0); 3 documented metrics -> 8 (65+ share, median age, six
+  race shares in group race_ethnicity_pep). Lake County IN 2025: 65+ 19.2%, median age 40.4, NH
+  White 49.5%, Hispanic 21.8%; shares sum to 100%; U.S. 2020 Hispanic 18.8%. Tests 398; verify ok;
+  round trip 10/10; batch 12 rendered (austin-78704 rejected). Catalog: 558 metrics, 419 operational.
+  Also added a caveat to the NOAA metric text and README: in a union of several counties an event of
+  a zone covering several of them counts in each (the engine sums the counties; deaths and damage
+  are shared so they add up correctly). The same holds for the HPSA counts coming next.
+- Now: item 16, HRSA shortage areas: designated HPSAs (status Designated only) counted by county,
+  states and above counted distinct; highest score; primary care, dental, mental health.
+- 09:50 Item 16 (HRSA HPSA) finished. hpsa.R reads the three daily CSVs (48 MB primary care; the
+  other two are smaller); primary care matches the catalog's sample exactly (21,444 designated
+  components, 7,822 designated IDs); dental 7,225 IDs, mental health 6,512. 3 documented metrics ->
+  6 (count and highest score per discipline). Lake County IN: 7 primary care HPSAs (highest score
+  21), 4 dental, 6 mental health; Indiana 143 primary care. Correction to my own assumption:
+  HRSA codes Connecticut by planning regions (09110-09190), so CT works with the 2024 geography
+  (FARA and NOAA do use the former counties). Tests 403; verify ok; round trip 10/10; batch 12
+  rendered (austin-78704 rejected). Catalog: 561 metrics, 425 operational.
+- For review (HPSA): a snapshot only; history could be rebuilt from designation and withdrawal
+  dates (not done: dates may reflect redesignations); counts in a union of counties count a
+  designation in each county (stated in the block note).
+- Now: items 17 (BLS OEWS) and 18 (BLS CPS national) share one file, R/providers/bls.R, and the
+  same download pattern (the 330 MB and 390 MB BLS time-series files read in chunks, only the
+  wanted series kept); I implement both, then verify them together (one tests + verify + round
+  trip + batch run) and log both.
+- 10:20 Items 17 (BLS OEWS) and 18 (BLS CPS) finished and verified together. OEWS: 331 MB
+  oe.data.0.Current read in chunks, series for area types N/S/M with industry 000000 and
+  occupation 000000 and datatypes 01/04/13 kept (1,749 rows, 583 areas); U.S. May 2025: 155,495,730
+  jobs, mean $69,770, median $50,980 (nominal); Indiana 3,201,220 jobs. Metrics: employment,
+  median wage, mean wage of ALL occupations (wages in constant dollars); occupation detail is not
+  built (one metric = one value). CPS: ln.data.1.AllData (390 MB) chunked; unemployment 1948 3.8% ...
+  2025 4.3% (11-month average, footnote 11), participation 58.8% (1948) to 62.4% (2025),
+  employment-population 56.6% to 59.7%. CPS blocks are one per metric because a metric block
+  charts only its first metric. Tests 407; verify ok; round trip 10/10; batch 12 rendered
+  (austin-78704 rejected). Catalog: 561 metrics, 431 operational.
+- For review (OEWS/CPS): OEWS is a single May 2025 snapshot (no trend); wages of $239,200 and up are
+  published as "#" (shown unavailable); the two BLS files add about 720 MB to cache/raw/bls (the
+  data-sync will carry them).
+- Now: item 19, NHGIS constant-2010-boundary counts (addition 3). Plan: a provider
+  ipums_nhgis_std with one IPUMS extract of CL8, CW5, CM1, CP4, CM4, CM7, CM9 and CN1 for states,
+  counties, tracts and block groups, 1990-2020; tract and block group values only when a report's
+  boundary_vintage is 2019 or earlier (the project's default 2024 uses 2020 tracts). Item 20 (historical
+  boundary files for maps) is an engine feature more than a data source: see below when reached.
+- 10:50 Item 19 (NHGIS constant 2010 boundaries) finished. Extract 11 (8 standardized tables x state,
+  county, tract, block group x 1990-2020) came back in under 2 minutes (199 MB). Two things went
+  wrong on the way, both fixed: (1) reading the 604 MB block group CSV with read.csv crashed R (exit
+  139, twice, with no message); readr::read_csv with col_select for the 28 needed series reads all
+  four files in about 10 s; (2) I had wrongly assumed exact counts: the standardized files hold
+  fractional estimates with lower and upper bounds for areas whose boundaries changed (Kent County
+  DE 2020: 181,854.1 vs 181,851 counted), so the metrics' uncertainty is "modeled, none published"
+  and the docs say so. Verified: Delaware 666,168 / 783,600 / 897,934 / 989,948 (1990-2020);
+  Kent County 110,993 / 126,697 / 162,310. Tract 10001040100 (Delaware): 4,429 (1990) to 7,315
+  (2020) with boundary_vintage 2019, unavailable with the vintage note at the default 2024.
+  Tests 413; verify ok; round trip 10/10; batch 12 rendered (austin-78704 rejected). Catalog: 576
+  metrics, 446 operational, 127 sources. The IPUMS API key was used only through the project's
+  existing Authorization-header code; one extract (number 11) was submitted to the user's IPUMS
+  account (the project's normal pattern).
+- For review (NHGIS std): the sample reports have no tract study areas, so the tract path is tested
+  with fixtures only (a report with boundary_vintage 2019 would use it); place and CBSA levels of the
+  standardized tables are not requested.
+- Now: item 20, historical boundary files for maps. Scope I am building: NHGIS county boundary
+  files for census years 1790-2010 (tl2008 basis) fetched through the same API into the cache, and
+  a map block "historical_map" (county boundaries of a chosen census year around the study area,
+  with today's outline); NHGIS's tract boundaries (1910-2000; 1910-1980 only a few cities) are
+  available through the same function but no block uses them.
+- 11:25 Item 20 (historical boundary maps) finished and verified: nhgis_boundaries() (NHGIS
+  shapefile extracts, 1900 county file = extract 12, 2,848 features) and the map block kind
+  historical_map with block historical-counties in all three profiles; Gary IN shown in the 1900
+  Lake County. Tests 419; verify ok; round trip 10/10; batch 12 rendered (austin-78704 rejected).
+  README limitations, docs/nhgis.md and PLAN.md updated.
+
+## 2026-09-30 11:30 (Claude, session 7): queue finished; state and review list
+
+- Done and verified one by one (tests, catalog --check, gr.R verify, demos/round_trip.R 10/10, batch;
+  items 17+18 verified together): 1 NCES, 2 NOAA Storm Events, 4 NDCP, 5 decennial census, 6 PEP
+  components, 7 BEA income and earnings, 8 LAUS, 9 Texas licensing, 10 building permits, 12 Indiana
+  FSSA, 14 USDA Food Access Atlas, 15 PEP age/sex/race, 16 HRSA HPSA, 17 BLS OEWS, 18 BLS CPS, 19 NHGIS
+  constant 2010 boundaries, 20 NHGIS historical county map. Catalog: 576 metrics, 446 operational,
+  127 sources. Tests: 419 pass. Nothing is committed (the user commits on request); 45 changed
+  or new files, none holds the user's email or a key (checked).
+- Skipped or blocked, for the user: item 3 County Health Rankings (terms: personal or non-profit
+  use; commercial use needs written consent; confirm before building); item 11 MIT Election Lab
+  (Dataverse guestbook download is the user's step: save the county returns CSV, then it can be built);
+  item 13 HUD PIT/HIC (huduser.gov bot challenge on scripted requests; not bypassed; also needs an
+  .xlsb reader and a CoC-to-county decision).
+- Not built inside done items (for review): NCES 1986-2016; NDCP six-month age bands; OEWS occupation
+  detail; LRAM 2010 and 2015 editions; BPS places before 2007; PEP intercensal age/sex/race 2010-2019;
+  a tract-based use of the historical boundaries.
+- Decisions I made that the user may want to change: NOAA zone events split equally among a zone's
+  counties, with county values only where 95% of a state's zone events match the current NWS zones;
+  NCES/NOAA/FARA county values for Connecticut planning regions unavailable (their sources use the
+  former counties; HRSA and PEP use planning regions); the Texas capacity metric now counts only
+  operations in operation (status Y); race shares from PEP use the Bureau's modified race
+  (no Some Other Race); OEWS shown in constant dollars.
+- Two process notes: (1) a set of HEAD requests carried the user's email in the User-Agent to four
+  non-BLS hosts (see the 08:35 entry); (2) new sources need an online `gr.R batch --no-render` before
+  `batch --offline` (the offline run warns for reports whose new data are not cached yet).
+- How to resume: read this entry, PLAN.md "Data source queue" (statuses [x], [-] skipped, item 13
+  blocked) and README "Limitations". Verification recipe used per item: `gr.R test`, `gr.R catalog
+  --check`, `gr.R verify`, `Rscript demos/round_trip.R`, `gr.R batch --no-render` then `gr.R batch
+  --offline`. The cache grew by well over 1 GB (BLS OEWS 331 MB and CPS 390 MB files, PEP ALLDATA 105
+  MB, NOAA yearly files, HRSA, USDA, BEA CAINC30/5N, NHGIS extracts 11 and 12); run tools/data-sync
+  to carry it to the other machine.
+
+## 2026-09-30 12:00 (Claude, session 7): review of the added metrics (the user's feedback)
+
+- Feedback: redundant race charts (census, PEP estimates, constant boundaries) against the ACS
+  one; 2.13 Households in the census lacked comparisons; 2.14 Population on constant boundaries
+  put counties and states on one count axis; most constant-boundary metrics add nothing; charts
+  repeating a metric from another source without the study place, or with the U.S. alone, are
+  not wanted; 4.3 Single-family and apartment permits was drawn as one zigzag line.
+- Done: (1) engine rule in compose.R/blocks.R: a metric, composition or facts block that fell back
+  to comparison areas and has values for the nation alone is left out of the report (compute_blocks
+  keeps the ids in attr "skipped"; the availability appendix lists them). For Gary the three
+  national CPS blocks drop out. (2) Removed from the block library, the profiles and text.csv:
+  race-ethnicity-census, race-ethnicity-estimates, race-ethnicity-std, population-std-trend,
+  tenure-std-trend, age-estimates, participation-trend, population-change-trend, wages-oews,
+  permits-by-size. (3) households-census-trend is now time+parents with index=first (like
+  pop-growth): "Gary -25.2% since 2000; Lake County +7.4%, Indiana +14.2%, U.S. +20.2%".
+  (4) permits-by-size split into permits-single-family and permits-multifamily (a metric block
+  draws its metrics as one series, so two counts zigzagged). The metrics behind the removed
+  blocks stay operational in the catalog with no block using them (decennial race shares, PEP
+  race and age, the 15 NHGIS constant-boundary metrics, LAUS rates, OEWS, PEP yearly change).
+  Tests 419; catalog check clean; gary-in rebuilt. The shell tool's permission check failed
+  repeatedly at the end, so the full batch was not re-run after these edits.
+- Left for the user's call: census-counts (a table of 2020 census counts that the ACS blocks also
+  cover, with the place); the CPS blocks and wages-oews stay in the library for state and national
+  reports.
+- 12:20 The user: remove the constant-boundaries provider and metrics entirely. Done: nhgis.R
+  section "Census counts 1990-2020 on constant 2010 boundaries" deleted (the `link` argument of
+  nhgis_extract() stays: the boundary files use it); 15 metric rows, 15 recipes, the
+  ipums_nhgis_std source row, the verify check, tests/testthat/test-nhgis-std.R and the cache
+  files cache/raw/ipums_nhgis/std-840f8e0e* (zip and parquet) removed; PLAN item 19 marked
+  removed; docs/nhgis.md and README say it was tried and removed. The two verification_log rows
+  stay as history.

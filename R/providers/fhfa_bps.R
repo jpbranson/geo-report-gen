@@ -56,17 +56,20 @@ bps_read <- function(url, file) {
   utils::read.csv(text = body, header = FALSE, colClasses = "character", strip.white = TRUE)
 }
 
-# Units authorized (estimates with imputation) = 1-unit + 2-unit + 3-4 unit + 5+ unit units.
+# Units authorized (estimates with imputation) = 1-unit + 2-unit + 3-4 unit + 5+ unit units. County
+# files (columns 8, 11, 14, 17 hold the units by structure size) have the same layout from 1990; place
+# files (19, 22, 25, 28) carry a FIPS place code only from 2007.
 bps_long <- function() {
   memoize("bps_long", function() cached(derived_path("census_bps", "bps_long", "fhfa_bps.R"), source = "census_bps", compute = function() {
     out <- list()
-    for (yr in 2000:2025) {
+    units_of <- function(d, cols) rowSums(sapply(cols, function(j) suppressWarnings(as.numeric(d[[j]]))))
+    for (yr in 1990:2025) {
       d <- tryCatch(bps_read(sprintf("https://www2.census.gov/econ/bps/County/co%da.txt", yr), sprintf("co%da.txt", yr)),
                     error = function(e) NULL)
       if (is.null(d)) next
-      units <- rowSums(sapply(c(8, 11, 14, 17), function(j) suppressWarnings(as.numeric(d[[j]]))))
       out[[length(out) + 1]] <- data.frame(key = paste0("county:", pad(d$V2, 2), pad(d$V3, 3)), year = yr,
-                                           units = units, months = 12, stringsAsFactors = FALSE)
+                                           units = units_of(d, c(8, 11, 14, 17)), units_1 = units_of(d, 8), units_5plus = units_of(d, 17),
+                                           months = 12, stringsAsFactors = FALSE)
     }
     for (yr in 2007:2025) {
       for (reg in names(bps_region_files)) {
@@ -76,15 +79,15 @@ bps_long <- function() {
         fips_place <- trimws(d$V6)
         ok <- grepl("^[0-9]{5}$", fips_place) & fips_place != "99990"
         d <- d[ok, , drop = FALSE]
-        units <- rowSums(sapply(c(19, 22, 25, 28), function(j) suppressWarnings(as.numeric(d[[j]]))))
-        out[[length(out) + 1]] <- data.frame(key = paste0("place:", pad(d$V2, 2), trimws(d$V6)), year = yr, units = units,
+        out[[length(out) + 1]] <- data.frame(key = paste0("place:", pad(d$V2, 2), trimws(d$V6)), year = yr, units = units_of(d, c(19, 22, 25, 28)),
+                                             units_1 = units_of(d, 19), units_5plus = units_of(d, 28),
                                              months = suppressWarnings(as.numeric(d$V16)), stringsAsFactors = FALSE)
       }
     }
     d <- do.call(rbind, out)
     # A place can appear on several rows (parts in several counties): sum the units; the year
     # counts as fully reported only if every part reported all 12 months.
-    units <- stats::aggregate(units ~ key + year, data = d, FUN = sum)
+    units <- stats::aggregate(cbind(units, units_1, units_5plus) ~ key + year, data = d, FUN = sum)
     months <- stats::aggregate(months ~ key + year, data = d, FUN = min)
     merge(units, months, by = c("key", "year"))
   }))
@@ -99,12 +102,23 @@ register_provider("census_bps", list(
     if (!nrow(d)) return(empty_values())
     # Months reported below 12 mean the Census Bureau imputed part (or all) of the year.
     status <- ifelse(d$months < 12, "imputed", "ok")
-    data.frame(geo = d$key, name = "", variable = "units", estimate = d$units, moe = NA_real_, status = status,
-               bound = NA_character_, note = ifelse(d$months < 12, paste0(d$months, " months reported"), ""),
-               period = as.character(d$year), period_start = d$year, period_end = d$year,
-               source_id = "census_bps", series = "Building permits (units authorized)", stringsAsFactors = FALSE)
+    out <- lapply(intersect(variables, c("units", "units_1", "units_5plus")), function(v) {
+      data.frame(geo = d$key, name = "", variable = v, estimate = d[[v]], moe = NA_real_, status = status,
+                 bound = NA_character_, note = ifelse(d$months < 12, paste0(d$months, " months reported"), ""),
+                 period = as.character(d$year), period_start = d$year, period_end = d$year,
+                 source_id = "census_bps", series = "Building permits (units authorized)", stringsAsFactors = FALSE)
+    })
+    # Residents for the rate per 1,000: the Population Estimates Program's July 1 estimate (2000 on).
+    if ("POPULATION" %in% variables) {
+      p <- pep_long()
+      p <- p[p$key %in% pieces$key & p$year %in% d$year, , drop = FALSE]
+      out[[length(out) + 1]] <- data.frame(geo = p$key, name = "", variable = "POPULATION", estimate = p$population, moe = NA_real_,
+        status = ifelse(is.na(p$population), "unavailable", "ok"), bound = NA_character_, note = "", period = as.character(p$year),
+        period_start = p$year, period_end = p$year, source_id = "census_bps", series = "Building permits (units authorized)", stringsAsFactors = FALSE)
+    }
+    do.call(rbind, out)
   },
-  periods = function(settings, recipe) seq(max(2000L, as.integer(settings$history_start %||% 2000)), 2025L),
+  periods = function(settings, recipe) seq(max(1990L, as.integer(settings$history_start %||% 1990)), 2025L),
   period_label = function(period) as.character(period),
   period_kind = "annual",
-  availability_note = "Permits are published for permit-issuing places (FIPS codes from 2007) and counties; unincorporated remainders are not places."))
+  availability_note = "Permits are published for permit-issuing places (FIPS codes from 2007) and counties (from 1990); unincorporated remainders are not places."))

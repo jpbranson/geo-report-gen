@@ -310,3 +310,580 @@
 2026-09-29 22:31,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
 2026-09-29 22:31,census_p60_price_index,ok,reachable (HTTP 200): annual-index-value_annual-percent-change.xls
 2026-09-29 22:32,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none
+2026-09-30 00:13,census_acs5,ok,"2020-2024 ACS U.S. population: 334,922,499"
+2026-09-30 00:13,census_dec,ok,"2020 Census U.S. population: 331,449,281"
+2026-09-30 00:13,nces_ccd,ok,2024-25 school administrative layer: 101110 records
+2026-09-30 00:13,nhtsa_fars,ok,reachable (HTTP 200): FARS2023NationalAuxiliaryCSV.zip
+2026-09-30 00:13,census_nes,ok,reachable (HTTP 200): nonemp23co.zip
+2026-09-30 00:13,census_cbp,ok,"2023 U.S. establishments with employees: 8,361,342"
+2026-09-30 00:13,census_saipe,ok,2024 SAIPE U.S. poverty rate: 12.1
+2026-09-30 00:13,census_sahie,ok,2024 SAHIE U.S. uninsured rate under 65: 9.8
+2026-09-30 00:13,cdc_places,ok,PLACES 2023 U.S. adults with diagnosed diabetes: 12.0%
+2026-09-30 00:13,tx_hhsc,ok,Texas HHSC operations records: 14978
+2026-09-30 00:13,census_pep,ok,reachable (HTTP 200): NST-EST2025-ALLDATA.csv
+2026-09-30 00:13,bea_cainc,ok,reachable (HTTP 200): CAINC1.zip
+2026-09-30 00:13,bea_cagdp,ok,reachable (HTTP 200): CAGDP2.zip
+2026-09-30 00:13,fhfa_hpi,ok,reachable (HTTP 200): hpi_at_county.xlsx
+2026-09-30 00:13,census_bps,ok,reachable (HTTP 200): co2025a.txt
+2026-09-30 00:13,fema_nri,ok,reachable (HTTP 200): NRI_Table_Counties.zip
+2026-09-30 00:13,usda_ers_fea,ok,reachable (HTTP 200): food-environment-atlas-csv-files.zip
+2026-09-30 00:13,eac_eavs,ok,reachable (HTTP 200): 2024_EAVS_for_Public_Release_nolabel_V2_csv.zip
+2026-09-30 00:13,census_govfin,ok,reachable (HTTP 200): 2022_Individual_Unit_File.zip
+2026-09-30 00:13,fbi_cde,ok,"FBI U.S. violent offenses reported in December 2025: 87,881"
+2026-09-30 00:13,ipums_nhgis,ok,"NHGIS table B79 (Median Household Income in Previous Year) census years: 1980, 1990, 2000"
+2026-09-30 00:13,ipums_nhgis_cbp,ok,"NHGIS dataset 1988_1997_CBPa (Business Data [Counties]): 10 years, table NT001 Total Mid-March Employees"
+2026-09-30 00:13,census_lehd_lodes,ok,LODES Delaware: Data Vintage: 20251202_1657; Release Format Version 8.4
+2026-09-30 00:13,dol_ndcp,ok,reachable (HTTP 200): NDCP2022.xlsx
+2026-09-30 00:13,census_geo,ok,reachable (HTTP 200): cb_2024_us_county_500k.zip
+2026-09-30 00:13,bls_laus,ok,reachable (HTTP 200): la.area
+2026-09-30 00:13,bls_qcew,ok,reachable (HTTP 200): 2025_annual_singlefile.zip
+2026-09-30 00:13,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
+2026-09-30 00:13,census_p60_price_index,ok,reachable (HTTP 200): annual-index-value_annual-percent-change.xls
+2026-09-30 00:13,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none
+2026-09-30 00:20,census_acs5,ok,"2020-2024 ACS U.S. population: 334,922,499"
+2026-09-30 00:20,census_dec,ok,"2020 Census U.S. population: 331,449,281"
+2026-09-30 00:20,nces_ccd,ok,2024-25 school administrative layer: 101110 records
+2026-09-30 00:20,nhtsa_fars,ok,reachable (HTTP 200): FARS2023NationalAuxiliaryCSV.zip
+2026-09-30 00:20,census_nes,ok,reachable (HTTP 200): nonemp23co.zip
+2026-09-30 00:20,census_cbp,ok,"2023 U.S. establishments with employees: 8,361,342"
+2026-09-30 00:20,census_saipe,ok,2024 SAIPE U.S. poverty rate: 12.1
+2026-09-30 00:20,census_sahie,ok,2024 SAHIE U.S. uninsured rate under 65: 9.8
+2026-09-30 00:20,cdc_places,ok,PLACES 2023 U.S. adults with diagnosed diabetes: 12.0%
+2026-09-30 00:20,tx_hhsc,ok,Texas HHSC operations records: 14978
+2026-09-30 00:20,census_pep,ok,reachable (HTTP 200): NST-EST2025-ALLDATA.csv
+2026-09-30 00:20,bea_cainc,ok,reachable (HTTP 200): CAINC1.zip
+2026-09-30 00:20,bea_cagdp,ok,reachable (HTTP 200): CAGDP2.zip
+2026-09-30 00:20,fhfa_hpi,ok,reachable (HTTP 200): hpi_at_county.xlsx
+2026-09-30 00:20,census_bps,ok,reachable (HTTP 200): co2025a.txt
+2026-09-30 00:20,fema_nri,ok,reachable (HTTP 200): NRI_Table_Counties.zip
+2026-09-30 00:20,usda_ers_fea,ok,reachable (HTTP 200): food-environment-atlas-csv-files.zip
+2026-09-30 00:20,eac_eavs,ok,reachable (HTTP 200): 2024_EAVS_for_Public_Release_nolabel_V2_csv.zip
+2026-09-30 00:20,census_govfin,ok,reachable (HTTP 200): 2022_Individual_Unit_File.zip
+2026-09-30 00:20,fbi_cde,ok,"FBI U.S. violent offenses reported in December 2025: 87,881"
+2026-09-30 00:20,ipums_nhgis,ok,"NHGIS table B79 (Median Household Income in Previous Year) census years: 1980, 1990, 2000"
+2026-09-30 00:20,ipums_nhgis_cbp,ok,"NHGIS dataset 1988_1997_CBPa (Business Data [Counties]): 10 years, table NT001 Total Mid-March Employees"
+2026-09-30 00:20,census_lehd_lodes,ok,LODES Delaware: Data Vintage: 20251202_1657; Release Format Version 8.4
+2026-09-30 00:20,dol_ndcp,ok,reachable (HTTP 200): NDCP2022.xlsx
+2026-09-30 00:20,census_geo,ok,reachable (HTTP 200): cb_2024_us_county_500k.zip
+2026-09-30 00:20,bls_laus,ok,reachable (HTTP 200): la.area
+2026-09-30 00:20,bls_qcew,ok,reachable (HTTP 200): 2025_annual_singlefile.zip
+2026-09-30 00:20,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
+2026-09-30 00:20,census_p60_price_index,ok,reachable (HTTP 200): annual-index-value_annual-percent-change.xls
+2026-09-30 00:20,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none
+2026-09-30 00:45,census_acs5,ok,"2020-2024 ACS U.S. population: 334,922,499"
+2026-09-30 00:45,census_dec,ok,"2020 Census U.S. population: 331,449,281"
+2026-09-30 00:45,nces_ccd,ok,2024-25 school administrative layer: 101110 records
+2026-09-30 00:45,noaa_storm_events,ok,Storm Events details files for 1950-2026 (newest StormEvents_details-ftp_v1.0_d2026_c20260918.csv.gz); zone file bp16ap26.dbx
+2026-09-30 00:45,nhtsa_fars,ok,reachable (HTTP 200): FARS2023NationalAuxiliaryCSV.zip
+2026-09-30 00:45,census_nes,ok,reachable (HTTP 200): nonemp23co.zip
+2026-09-30 00:45,census_cbp,ok,"2023 U.S. establishments with employees: 8,361,342"
+2026-09-30 00:45,census_saipe,ok,2024 SAIPE U.S. poverty rate: 12.1
+2026-09-30 00:45,census_sahie,ok,2024 SAHIE U.S. uninsured rate under 65: 9.8
+2026-09-30 00:45,cdc_places,ok,PLACES 2023 U.S. adults with diagnosed diabetes: 12.0%
+2026-09-30 00:45,tx_hhsc,ok,Texas HHSC operations records: 14978
+2026-09-30 00:45,census_pep,ok,reachable (HTTP 200): NST-EST2025-ALLDATA.csv
+2026-09-30 00:45,bea_cainc,ok,reachable (HTTP 200): CAINC1.zip
+2026-09-30 00:45,bea_cagdp,ok,reachable (HTTP 200): CAGDP2.zip
+2026-09-30 00:45,fhfa_hpi,ok,reachable (HTTP 200): hpi_at_county.xlsx
+2026-09-30 00:45,census_bps,ok,reachable (HTTP 200): co2025a.txt
+2026-09-30 00:45,fema_nri,ok,reachable (HTTP 200): NRI_Table_Counties.zip
+2026-09-30 00:45,usda_ers_fea,ok,reachable (HTTP 200): food-environment-atlas-csv-files.zip
+2026-09-30 00:45,eac_eavs,ok,reachable (HTTP 200): 2024_EAVS_for_Public_Release_nolabel_V2_csv.zip
+2026-09-30 00:45,census_govfin,ok,reachable (HTTP 200): 2022_Individual_Unit_File.zip
+2026-09-30 00:45,fbi_cde,ok,"FBI U.S. violent offenses reported in December 2025: 87,881"
+2026-09-30 00:45,ipums_nhgis,ok,"NHGIS table B79 (Median Household Income in Previous Year) census years: 1980, 1990, 2000"
+2026-09-30 00:45,ipums_nhgis_cbp,ok,"NHGIS dataset 1988_1997_CBPa (Business Data [Counties]): 10 years, table NT001 Total Mid-March Employees"
+2026-09-30 00:45,census_lehd_lodes,ok,LODES Delaware: Data Vintage: 20251202_1657; Release Format Version 8.4
+2026-09-30 00:45,dol_ndcp,ok,reachable (HTTP 200): NDCP2022.xlsx
+2026-09-30 00:45,census_geo,ok,reachable (HTTP 200): cb_2024_us_county_500k.zip
+2026-09-30 00:45,bls_laus,ok,reachable (HTTP 200): la.area
+2026-09-30 00:45,bls_qcew,ok,reachable (HTTP 200): 2025_annual_singlefile.zip
+2026-09-30 00:45,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
+2026-09-30 00:45,census_p60_price_index,ok,reachable (HTTP 200): annual-index-value_annual-percent-change.xls
+2026-09-30 00:45,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none
+2026-09-30 00:53,census_acs5,ok,"2020-2024 ACS U.S. population: 334,922,499"
+2026-09-30 00:53,census_dec,ok,"2020 Census U.S. population: 331,449,281"
+2026-09-30 00:53,nces_ccd,ok,2024-25 school administrative layer: 101110 records
+2026-09-30 00:53,noaa_storm_events,ok,Storm Events details files for 1950-2026 (newest StormEvents_details-ftp_v1.0_d2026_c20260918.csv.gz); zone file bp16ap26.dbx
+2026-09-30 00:53,nhtsa_fars,ok,reachable (HTTP 200): FARS2023NationalAuxiliaryCSV.zip
+2026-09-30 00:53,census_nes,ok,reachable (HTTP 200): nonemp23co.zip
+2026-09-30 00:53,census_cbp,ok,"2023 U.S. establishments with employees: 8,361,342"
+2026-09-30 00:53,census_saipe,ok,2024 SAIPE U.S. poverty rate: 12.1
+2026-09-30 00:53,census_sahie,ok,2024 SAHIE U.S. uninsured rate under 65: 9.8
+2026-09-30 00:53,cdc_places,ok,PLACES 2023 U.S. adults with diagnosed diabetes: 12.0%
+2026-09-30 00:53,tx_hhsc,ok,Texas HHSC operations records: 14978
+2026-09-30 00:53,census_pep,ok,reachable (HTTP 200): NST-EST2025-ALLDATA.csv
+2026-09-30 00:53,bea_cainc,ok,reachable (HTTP 200): CAINC1.zip
+2026-09-30 00:53,bea_cagdp,ok,reachable (HTTP 200): CAGDP2.zip
+2026-09-30 00:53,fhfa_hpi,ok,reachable (HTTP 200): hpi_at_county.xlsx
+2026-09-30 00:53,census_bps,ok,reachable (HTTP 200): co2025a.txt
+2026-09-30 00:53,fema_nri,ok,reachable (HTTP 200): NRI_Table_Counties.zip
+2026-09-30 00:53,usda_ers_fea,ok,reachable (HTTP 200): food-environment-atlas-csv-files.zip
+2026-09-30 00:53,eac_eavs,ok,reachable (HTTP 200): 2024_EAVS_for_Public_Release_nolabel_V2_csv.zip
+2026-09-30 00:53,census_govfin,ok,reachable (HTTP 200): 2022_Individual_Unit_File.zip
+2026-09-30 00:53,fbi_cde,ok,"FBI U.S. violent offenses reported in December 2025: 87,881"
+2026-09-30 00:53,ipums_nhgis,ok,"NHGIS table B79 (Median Household Income in Previous Year) census years: 1980, 1990, 2000"
+2026-09-30 00:53,ipums_nhgis_cbp,ok,"NHGIS dataset 1988_1997_CBPa (Business Data [Counties]): 10 years, table NT001 Total Mid-March Employees"
+2026-09-30 00:53,census_lehd_lodes,ok,LODES Delaware: Data Vintage: 20251202_1657; Release Format Version 8.4
+2026-09-30 00:53,dol_ndcp,ok,reachable (HTTP 200): NDCP2022.xlsx
+2026-09-30 00:53,census_geo,ok,reachable (HTTP 200): cb_2024_us_county_500k.zip
+2026-09-30 00:53,bls_laus,ok,reachable (HTTP 200): la.area
+2026-09-30 00:53,bls_qcew,ok,reachable (HTTP 200): 2025_annual_singlefile.zip
+2026-09-30 00:53,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
+2026-09-30 00:53,census_p60_price_index,ok,reachable (HTTP 200): annual-index-value_annual-percent-change.xls
+2026-09-30 00:53,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none
+2026-09-30 01:07,census_acs5,ok,"2020-2024 ACS U.S. population: 334,922,499"
+2026-09-30 01:07,census_dec,ok,"2020 Census U.S. population: 331,449,281"
+2026-09-30 01:07,nces_ccd,ok,2024-25 school administrative layer: 101110 records
+2026-09-30 01:07,noaa_storm_events,ok,Storm Events details files for 1950-2026 (newest StormEvents_details-ftp_v1.0_d2026_c20260918.csv.gz); zone file bp16ap26.dbx
+2026-09-30 01:07,nhtsa_fars,ok,reachable (HTTP 200): FARS2023NationalAuxiliaryCSV.zip
+2026-09-30 01:07,census_nes,ok,reachable (HTTP 200): nonemp23co.zip
+2026-09-30 01:07,census_cbp,ok,"2023 U.S. establishments with employees: 8,361,342"
+2026-09-30 01:07,census_saipe,ok,2024 SAIPE U.S. poverty rate: 12.1
+2026-09-30 01:07,census_sahie,ok,2024 SAHIE U.S. uninsured rate under 65: 9.8
+2026-09-30 01:07,cdc_places,ok,PLACES 2023 U.S. adults with diagnosed diabetes: 12.0%
+2026-09-30 01:07,tx_hhsc,ok,Texas HHSC operations records: 14978
+2026-09-30 01:07,census_pep,ok,reachable (HTTP 200): NST-EST2025-ALLDATA.csv
+2026-09-30 01:07,bea_cainc,ok,reachable (HTTP 200): CAINC1.zip
+2026-09-30 01:07,bea_cagdp,ok,reachable (HTTP 200): CAGDP2.zip
+2026-09-30 01:07,fhfa_hpi,ok,reachable (HTTP 200): hpi_at_county.xlsx
+2026-09-30 01:07,census_bps,ok,reachable (HTTP 200): co2025a.txt
+2026-09-30 01:07,fema_nri,ok,reachable (HTTP 200): NRI_Table_Counties.zip
+2026-09-30 01:07,usda_ers_fea,ok,reachable (HTTP 200): food-environment-atlas-csv-files.zip
+2026-09-30 01:07,eac_eavs,ok,reachable (HTTP 200): 2024_EAVS_for_Public_Release_nolabel_V2_csv.zip
+2026-09-30 01:07,census_govfin,ok,reachable (HTTP 200): 2022_Individual_Unit_File.zip
+2026-09-30 01:07,fbi_cde,ok,"FBI U.S. violent offenses reported in December 2025: 87,881"
+2026-09-30 01:07,ipums_nhgis,ok,"NHGIS table B79 (Median Household Income in Previous Year) census years: 1980, 1990, 2000"
+2026-09-30 01:08,ipums_nhgis_cbp,ok,"NHGIS dataset 1988_1997_CBPa (Business Data [Counties]): 10 years, table NT001 Total Mid-March Employees"
+2026-09-30 01:08,census_lehd_lodes,ok,LODES Delaware: Data Vintage: 20251202_1657; Release Format Version 8.4
+2026-09-30 01:08,dol_ndcp,ok,reachable (HTTP 200): NDCP2022.xlsx
+2026-09-30 01:08,census_geo,ok,reachable (HTTP 200): cb_2024_us_county_500k.zip
+2026-09-30 01:08,bls_laus,ok,reachable (HTTP 200): la.area
+2026-09-30 01:08,bls_qcew,ok,reachable (HTTP 200): 2025_annual_singlefile.zip
+2026-09-30 01:08,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
+2026-09-30 01:08,census_p60_price_index,ok,reachable (HTTP 200): annual-index-value_annual-percent-change.xls
+2026-09-30 01:08,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none
+2026-09-30 01:30,census_acs5,ok,"2020-2024 ACS U.S. population: 334,922,499"
+2026-09-30 01:30,census_dec,ok,"2020 Census U.S. population: 331,449,281"
+2026-09-30 01:30,nces_ccd,ok,2024-25 school administrative layer: 101110 records
+2026-09-30 01:30,noaa_storm_events,ok,Storm Events details files for 1950-2026 (newest StormEvents_details-ftp_v1.0_d2026_c20260918.csv.gz); zone file bp16ap26.dbx
+2026-09-30 01:30,nhtsa_fars,ok,reachable (HTTP 200): FARS2023NationalAuxiliaryCSV.zip
+2026-09-30 01:30,census_nes,ok,reachable (HTTP 200): nonemp23co.zip
+2026-09-30 01:30,census_cbp,ok,"2023 U.S. establishments with employees: 8,361,342"
+2026-09-30 01:30,census_saipe,ok,2024 SAIPE U.S. poverty rate: 12.1
+2026-09-30 01:30,census_sahie,ok,2024 SAHIE U.S. uninsured rate under 65: 9.8
+2026-09-30 01:30,cdc_places,ok,PLACES 2023 U.S. adults with diagnosed diabetes: 12.0%
+2026-09-30 01:30,tx_hhsc,ok,Texas HHSC operations records: 14978
+2026-09-30 01:30,census_pep,ok,reachable (HTTP 200): NST-EST2025-ALLDATA.csv
+2026-09-30 01:30,census_pep_components,ok,reachable (HTTP 200): co-est2025-alldata.csv
+2026-09-30 01:30,bea_cainc,ok,reachable (HTTP 200): CAINC1.zip
+2026-09-30 01:30,bea_cagdp,ok,reachable (HTTP 200): CAGDP2.zip
+2026-09-30 01:30,fhfa_hpi,ok,reachable (HTTP 200): hpi_at_county.xlsx
+2026-09-30 01:30,census_bps,ok,reachable (HTTP 200): co2025a.txt
+2026-09-30 01:30,fema_nri,ok,reachable (HTTP 200): NRI_Table_Counties.zip
+2026-09-30 01:30,usda_ers_fea,ok,reachable (HTTP 200): food-environment-atlas-csv-files.zip
+2026-09-30 01:30,eac_eavs,ok,reachable (HTTP 200): 2024_EAVS_for_Public_Release_nolabel_V2_csv.zip
+2026-09-30 01:30,census_govfin,ok,reachable (HTTP 200): 2022_Individual_Unit_File.zip
+2026-09-30 01:30,fbi_cde,ok,"FBI U.S. violent offenses reported in December 2025: 87,881"
+2026-09-30 01:30,ipums_nhgis,ok,"NHGIS table B79 (Median Household Income in Previous Year) census years: 1980, 1990, 2000"
+2026-09-30 01:30,ipums_nhgis_cbp,ok,"NHGIS dataset 1988_1997_CBPa (Business Data [Counties]): 10 years, table NT001 Total Mid-March Employees"
+2026-09-30 01:30,census_lehd_lodes,ok,LODES Delaware: Data Vintage: 20251202_1657; Release Format Version 8.4
+2026-09-30 01:30,dol_ndcp,ok,reachable (HTTP 200): NDCP2022.xlsx
+2026-09-30 01:30,census_geo,ok,reachable (HTTP 200): cb_2024_us_county_500k.zip
+2026-09-30 01:30,bls_laus,ok,reachable (HTTP 200): la.area
+2026-09-30 01:30,bls_qcew,ok,reachable (HTTP 200): 2025_annual_singlefile.zip
+2026-09-30 01:30,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
+2026-09-30 01:30,census_p60_price_index,ok,reachable (HTTP 200): annual-index-value_annual-percent-change.xls
+2026-09-30 01:30,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none
+2026-09-30 01:48,census_acs5,ok,"2020-2024 ACS U.S. population: 334,922,499"
+2026-09-30 01:48,census_dec,ok,"2020 Census U.S. population: 331,449,281"
+2026-09-30 01:48,nces_ccd,ok,2024-25 school administrative layer: 101110 records
+2026-09-30 01:48,noaa_storm_events,ok,Storm Events details files for 1950-2026 (newest StormEvents_details-ftp_v1.0_d2026_c20260918.csv.gz); zone file bp16ap26.dbx
+2026-09-30 01:48,nhtsa_fars,ok,reachable (HTTP 200): FARS2023NationalAuxiliaryCSV.zip
+2026-09-30 01:48,census_nes,ok,reachable (HTTP 200): nonemp23co.zip
+2026-09-30 01:48,census_cbp,ok,"2023 U.S. establishments with employees: 8,361,342"
+2026-09-30 01:48,census_saipe,ok,2024 SAIPE U.S. poverty rate: 12.1
+2026-09-30 01:48,census_sahie,ok,2024 SAHIE U.S. uninsured rate under 65: 9.8
+2026-09-30 01:48,cdc_places,ok,PLACES 2023 U.S. adults with diagnosed diabetes: 12.0%
+2026-09-30 01:49,tx_hhsc,ok,Texas HHSC operations records: 14978
+2026-09-30 01:49,census_pep,ok,reachable (HTTP 200): NST-EST2025-ALLDATA.csv
+2026-09-30 01:49,census_pep_components,ok,reachable (HTTP 200): co-est2025-alldata.csv
+2026-09-30 01:49,bea_cainc,ok,reachable (HTTP 200): CAINC1.zip
+2026-09-30 01:49,bea_cagdp,ok,reachable (HTTP 200): CAGDP2.zip
+2026-09-30 01:49,fhfa_hpi,ok,reachable (HTTP 200): hpi_at_county.xlsx
+2026-09-30 01:49,census_bps,ok,reachable (HTTP 200): co2025a.txt
+2026-09-30 01:49,fema_nri,ok,reachable (HTTP 200): NRI_Table_Counties.zip
+2026-09-30 01:49,usda_ers_fea,ok,reachable (HTTP 200): food-environment-atlas-csv-files.zip
+2026-09-30 01:49,eac_eavs,ok,reachable (HTTP 200): 2024_EAVS_for_Public_Release_nolabel_V2_csv.zip
+2026-09-30 01:49,census_govfin,ok,reachable (HTTP 200): 2022_Individual_Unit_File.zip
+2026-09-30 01:49,fbi_cde,ok,"FBI U.S. violent offenses reported in December 2025: 87,881"
+2026-09-30 01:49,ipums_nhgis,ok,"NHGIS table B79 (Median Household Income in Previous Year) census years: 1980, 1990, 2000"
+2026-09-30 01:49,ipums_nhgis_cbp,ok,"NHGIS dataset 1988_1997_CBPa (Business Data [Counties]): 10 years, table NT001 Total Mid-March Employees"
+2026-09-30 01:49,census_lehd_lodes,ok,LODES Delaware: Data Vintage: 20251202_1657; Release Format Version 8.4
+2026-09-30 01:49,dol_ndcp,ok,reachable (HTTP 200): NDCP2022.xlsx
+2026-09-30 01:49,census_geo,ok,reachable (HTTP 200): cb_2024_us_county_500k.zip
+2026-09-30 01:49,bls_laus,ok,reachable (HTTP 200): la.area
+2026-09-30 01:49,bls_qcew,ok,reachable (HTTP 200): 2025_annual_singlefile.zip
+2026-09-30 01:49,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
+2026-09-30 01:49,census_p60_price_index,ok,reachable (HTTP 200): annual-index-value_annual-percent-change.xls
+2026-09-30 01:49,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none
+2026-09-30 02:13,census_acs5,ok,"2020-2024 ACS U.S. population: 334,922,499"
+2026-09-30 02:13,census_dec,ok,"2020 Census U.S. population: 331,449,281"
+2026-09-30 02:13,nces_ccd,ok,2024-25 school administrative layer: 101110 records
+2026-09-30 02:13,noaa_storm_events,ok,Storm Events details files for 1950-2026 (newest StormEvents_details-ftp_v1.0_d2026_c20260918.csv.gz); zone file bp16ap26.dbx
+2026-09-30 02:13,nhtsa_fars,ok,reachable (HTTP 200): FARS2023NationalAuxiliaryCSV.zip
+2026-09-30 02:13,census_nes,ok,reachable (HTTP 200): nonemp23co.zip
+2026-09-30 02:13,census_cbp,ok,"2023 U.S. establishments with employees: 8,361,342"
+2026-09-30 02:13,census_saipe,ok,2024 SAIPE U.S. poverty rate: 12.1
+2026-09-30 02:13,census_sahie,ok,2024 SAHIE U.S. uninsured rate under 65: 9.8
+2026-09-30 02:13,cdc_places,ok,PLACES 2023 U.S. adults with diagnosed diabetes: 12.0%
+2026-09-30 02:13,tx_hhsc,ok,Texas HHSC operations records: 14978
+2026-09-30 02:13,census_pep,ok,reachable (HTTP 200): NST-EST2025-ALLDATA.csv
+2026-09-30 02:13,census_pep_components,ok,reachable (HTTP 200): co-est2025-alldata.csv
+2026-09-30 02:13,bea_cainc,ok,reachable (HTTP 200): CAINC1.zip
+2026-09-30 02:13,bea_cagdp,ok,reachable (HTTP 200): CAGDP2.zip
+2026-09-30 02:13,fhfa_hpi,ok,reachable (HTTP 200): hpi_at_county.xlsx
+2026-09-30 02:13,census_bps,ok,reachable (HTTP 200): co2025a.txt
+2026-09-30 02:13,fema_nri,ok,reachable (HTTP 200): NRI_Table_Counties.zip
+2026-09-30 02:13,usda_ers_fea,ok,reachable (HTTP 200): food-environment-atlas-csv-files.zip
+2026-09-30 02:13,eac_eavs,ok,reachable (HTTP 200): 2024_EAVS_for_Public_Release_nolabel_V2_csv.zip
+2026-09-30 02:13,census_govfin,ok,reachable (HTTP 200): 2022_Individual_Unit_File.zip
+2026-09-30 02:13,fbi_cde,ok,"FBI U.S. violent offenses reported in December 2025: 87,881"
+2026-09-30 02:13,ipums_nhgis,ok,"NHGIS table B79 (Median Household Income in Previous Year) census years: 1980, 1990, 2000"
+2026-09-30 02:13,ipums_nhgis_cbp,ok,"NHGIS dataset 1988_1997_CBPa (Business Data [Counties]): 10 years, table NT001 Total Mid-March Employees"
+2026-09-30 02:13,census_lehd_lodes,ok,LODES Delaware: Data Vintage: 20251202_1657; Release Format Version 8.4
+2026-09-30 02:13,dol_ndcp,ok,reachable (HTTP 200): NDCP2022.xlsx
+2026-09-30 02:13,census_geo,ok,reachable (HTTP 200): cb_2024_us_county_500k.zip
+2026-09-30 02:13,bls_laus,ok,reachable (HTTP 200): la.area
+2026-09-30 02:13,bls_laus_rates,ok,reachable (HTTP 200): la.data.2.AllStatesU
+2026-09-30 02:13,bls_qcew,ok,reachable (HTTP 200): 2025_annual_singlefile.zip
+2026-09-30 02:13,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
+2026-09-30 02:13,census_p60_price_index,ok,reachable (HTTP 200): annual-index-value_annual-percent-change.xls
+2026-09-30 02:13,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none
+2026-09-30 02:37,census_acs5,ok,"2020-2024 ACS U.S. population: 334,922,499"
+2026-09-30 02:37,census_dec,ok,"2020 Census U.S. population: 331,449,281"
+2026-09-30 02:37,nces_ccd,ok,2024-25 school administrative layer: 101110 records
+2026-09-30 02:37,noaa_storm_events,ok,Storm Events details files for 1950-2026 (newest StormEvents_details-ftp_v1.0_d2026_c20260918.csv.gz); zone file bp16ap26.dbx
+2026-09-30 02:37,nhtsa_fars,ok,reachable (HTTP 200): FARS2023NationalAuxiliaryCSV.zip
+2026-09-30 02:37,census_nes,ok,reachable (HTTP 200): nonemp23co.zip
+2026-09-30 02:37,census_cbp,ok,"2023 U.S. establishments with employees: 8,361,342"
+2026-09-30 02:37,census_saipe,ok,2024 SAIPE U.S. poverty rate: 12.1
+2026-09-30 02:37,census_sahie,ok,2024 SAHIE U.S. uninsured rate under 65: 9.8
+2026-09-30 02:37,cdc_places,ok,PLACES 2023 U.S. adults with diagnosed diabetes: 12.0%
+2026-09-30 02:37,tx_hhsc,ok,Texas HHSC operations records: 14978
+2026-09-30 02:37,census_pep,ok,reachable (HTTP 200): NST-EST2025-ALLDATA.csv
+2026-09-30 02:37,census_pep_components,ok,reachable (HTTP 200): co-est2025-alldata.csv
+2026-09-30 02:37,bea_cainc,ok,reachable (HTTP 200): CAINC1.zip
+2026-09-30 02:37,bea_cagdp,ok,reachable (HTTP 200): CAGDP2.zip
+2026-09-30 02:37,fhfa_hpi,ok,reachable (HTTP 200): hpi_at_county.xlsx
+2026-09-30 02:37,census_bps,ok,reachable (HTTP 200): co2025a.txt
+2026-09-30 02:37,fema_nri,ok,reachable (HTTP 200): NRI_Table_Counties.zip
+2026-09-30 02:37,usda_ers_fea,ok,reachable (HTTP 200): food-environment-atlas-csv-files.zip
+2026-09-30 02:37,eac_eavs,ok,reachable (HTTP 200): 2024_EAVS_for_Public_Release_nolabel_V2_csv.zip
+2026-09-30 02:37,census_govfin,ok,reachable (HTTP 200): 2022_Individual_Unit_File.zip
+2026-09-30 02:37,fbi_cde,ok,"FBI U.S. violent offenses reported in December 2025: 87,881"
+2026-09-30 02:37,ipums_nhgis,ok,"NHGIS table B79 (Median Household Income in Previous Year) census years: 1980, 1990, 2000"
+2026-09-30 02:37,ipums_nhgis_cbp,ok,"NHGIS dataset 1988_1997_CBPa (Business Data [Counties]): 10 years, table NT001 Total Mid-March Employees"
+2026-09-30 02:37,census_lehd_lodes,ok,LODES Delaware: Data Vintage: 20251202_1657; Release Format Version 8.4
+2026-09-30 02:37,dol_ndcp,ok,reachable (HTTP 200): NDCP2022.xlsx
+2026-09-30 02:37,census_geo,ok,reachable (HTTP 200): cb_2024_us_county_500k.zip
+2026-09-30 02:37,bls_laus,ok,reachable (HTTP 200): la.area
+2026-09-30 02:37,bls_laus_rates,ok,reachable (HTTP 200): la.data.2.AllStatesU
+2026-09-30 02:37,bls_qcew,ok,reachable (HTTP 200): 2025_annual_singlefile.zip
+2026-09-30 02:37,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
+2026-09-30 02:37,census_p60_price_index,ok,reachable (HTTP 200): annual-index-value_annual-percent-change.xls
+2026-09-30 02:37,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none
+2026-09-30 02:59,census_acs5,ok,"2020-2024 ACS U.S. population: 334,922,499"
+2026-09-30 02:59,census_dec,ok,"2020 Census U.S. population: 331,449,281"
+2026-09-30 02:59,nces_ccd,ok,2024-25 school administrative layer: 101110 records
+2026-09-30 02:59,noaa_storm_events,ok,Storm Events details files for 1950-2026 (newest StormEvents_details-ftp_v1.0_d2026_c20260918.csv.gz); zone file bp16ap26.dbx
+2026-09-30 02:59,nhtsa_fars,ok,reachable (HTTP 200): FARS2023NationalAuxiliaryCSV.zip
+2026-09-30 02:59,census_nes,ok,reachable (HTTP 200): nonemp23co.zip
+2026-09-30 02:59,census_cbp,ok,"2023 U.S. establishments with employees: 8,361,342"
+2026-09-30 02:59,census_saipe,ok,2024 SAIPE U.S. poverty rate: 12.1
+2026-09-30 02:59,census_sahie,ok,2024 SAHIE U.S. uninsured rate under 65: 9.8
+2026-09-30 02:59,cdc_places,ok,PLACES 2023 U.S. adults with diagnosed diabetes: 12.0%
+2026-09-30 02:59,tx_hhsc,ok,Texas HHSC operations records: 14978
+2026-09-30 02:59,census_pep,ok,reachable (HTTP 200): NST-EST2025-ALLDATA.csv
+2026-09-30 02:59,census_pep_components,ok,reachable (HTTP 200): co-est2025-alldata.csv
+2026-09-30 02:59,bea_cainc,ok,reachable (HTTP 200): CAINC1.zip
+2026-09-30 02:59,bea_cagdp,ok,reachable (HTTP 200): CAGDP2.zip
+2026-09-30 02:59,fhfa_hpi,ok,reachable (HTTP 200): hpi_at_county.xlsx
+2026-09-30 02:59,census_bps,ok,reachable (HTTP 200): co2025a.txt
+2026-09-30 02:59,fema_nri,ok,reachable (HTTP 200): NRI_Table_Counties.zip
+2026-09-30 02:59,usda_ers_fea,ok,reachable (HTTP 200): food-environment-atlas-csv-files.zip
+2026-09-30 02:59,eac_eavs,ok,reachable (HTTP 200): 2024_EAVS_for_Public_Release_nolabel_V2_csv.zip
+2026-09-30 02:59,census_govfin,ok,reachable (HTTP 200): 2022_Individual_Unit_File.zip
+2026-09-30 02:59,fbi_cde,ok,"FBI U.S. violent offenses reported in December 2025: 87,881"
+2026-09-30 02:59,ipums_nhgis,ok,"NHGIS table B79 (Median Household Income in Previous Year) census years: 1980, 1990, 2000"
+2026-09-30 02:59,ipums_nhgis_cbp,ok,"NHGIS dataset 1988_1997_CBPa (Business Data [Counties]): 10 years, table NT001 Total Mid-March Employees"
+2026-09-30 02:59,census_lehd_lodes,ok,LODES Delaware: Data Vintage: 20251202_1657; Release Format Version 8.4
+2026-09-30 02:59,dol_ndcp,ok,reachable (HTTP 200): NDCP2022.xlsx
+2026-09-30 02:59,census_geo,ok,reachable (HTTP 200): cb_2024_us_county_500k.zip
+2026-09-30 02:59,bls_laus,ok,reachable (HTTP 200): la.area
+2026-09-30 02:59,bls_laus_rates,ok,reachable (HTTP 200): la.data.2.AllStatesU
+2026-09-30 02:59,bls_qcew,ok,reachable (HTTP 200): 2025_annual_singlefile.zip
+2026-09-30 02:59,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
+2026-09-30 02:59,census_p60_price_index,ok,reachable (HTTP 200): annual-index-value_annual-percent-change.xls
+2026-09-30 03:00,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none
+2026-09-30 03:23,census_acs5,ok,"2020-2024 ACS U.S. population: 334,922,499"
+2026-09-30 03:23,census_dec,ok,"2020 Census U.S. population: 331,449,281"
+2026-09-30 03:23,nces_ccd,ok,2024-25 school administrative layer: 101110 records
+2026-09-30 03:23,noaa_storm_events,ok,Storm Events details files for 1950-2026 (newest StormEvents_details-ftp_v1.0_d2026_c20260918.csv.gz); zone file bp16ap26.dbx
+2026-09-30 03:23,nhtsa_fars,ok,reachable (HTTP 200): FARS2023NationalAuxiliaryCSV.zip
+2026-09-30 03:23,census_nes,ok,reachable (HTTP 200): nonemp23co.zip
+2026-09-30 03:23,census_cbp,ok,"2023 U.S. establishments with employees: 8,361,342"
+2026-09-30 03:23,census_saipe,ok,2024 SAIPE U.S. poverty rate: 12.1
+2026-09-30 03:23,census_sahie,ok,2024 SAHIE U.S. uninsured rate under 65: 9.8
+2026-09-30 03:23,cdc_places,ok,PLACES 2023 U.S. adults with diagnosed diabetes: 12.0%
+2026-09-30 03:23,in_fssa_provider_listings,ok,"Indiana provider listings: 770 centers, 1813 homes, 732 ministries"
+2026-09-30 03:23,tx_hhsc,ok,Texas HHSC operations records: 14978
+2026-09-30 03:23,census_pep,ok,reachable (HTTP 200): NST-EST2025-ALLDATA.csv
+2026-09-30 03:23,census_pep_components,ok,reachable (HTTP 200): co-est2025-alldata.csv
+2026-09-30 03:23,bea_cainc,ok,reachable (HTTP 200): CAINC1.zip
+2026-09-30 03:23,bea_cagdp,ok,reachable (HTTP 200): CAGDP2.zip
+2026-09-30 03:23,fhfa_hpi,ok,reachable (HTTP 200): hpi_at_county.xlsx
+2026-09-30 03:23,census_bps,ok,reachable (HTTP 200): co2025a.txt
+2026-09-30 03:23,fema_nri,ok,reachable (HTTP 200): NRI_Table_Counties.zip
+2026-09-30 03:23,usda_ers_fea,ok,reachable (HTTP 200): food-environment-atlas-csv-files.zip
+2026-09-30 03:23,eac_eavs,ok,reachable (HTTP 200): 2024_EAVS_for_Public_Release_nolabel_V2_csv.zip
+2026-09-30 03:23,census_govfin,ok,reachable (HTTP 200): 2022_Individual_Unit_File.zip
+2026-09-30 03:23,fbi_cde,ok,"FBI U.S. violent offenses reported in December 2025: 87,881"
+2026-09-30 03:23,ipums_nhgis,ok,"NHGIS table B79 (Median Household Income in Previous Year) census years: 1980, 1990, 2000"
+2026-09-30 03:23,ipums_nhgis_cbp,ok,"NHGIS dataset 1988_1997_CBPa (Business Data [Counties]): 10 years, table NT001 Total Mid-March Employees"
+2026-09-30 03:23,census_lehd_lodes,ok,LODES Delaware: Data Vintage: 20251202_1657; Release Format Version 8.4
+2026-09-30 03:23,dol_ndcp,ok,reachable (HTTP 200): NDCP2022.xlsx
+2026-09-30 03:23,census_geo,ok,reachable (HTTP 200): cb_2024_us_county_500k.zip
+2026-09-30 03:23,bls_laus,ok,reachable (HTTP 200): la.area
+2026-09-30 03:23,bls_laus_rates,ok,reachable (HTTP 200): la.data.2.AllStatesU
+2026-09-30 03:23,bls_qcew,ok,reachable (HTTP 200): 2025_annual_singlefile.zip
+2026-09-30 03:23,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
+2026-09-30 03:23,census_p60_price_index,ok,reachable (HTTP 200): annual-index-value_annual-percent-change.xls
+2026-09-30 03:23,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none
+2026-09-30 03:40,census_acs5,ok,"2020-2024 ACS U.S. population: 334,922,499"
+2026-09-30 03:40,census_dec,ok,"2020 Census U.S. population: 331,449,281"
+2026-09-30 03:40,nces_ccd,ok,2024-25 school administrative layer: 101110 records
+2026-09-30 03:40,noaa_storm_events,ok,Storm Events details files for 1950-2026 (newest StormEvents_details-ftp_v1.0_d2026_c20260918.csv.gz); zone file bp16ap26.dbx
+2026-09-30 03:40,nhtsa_fars,ok,reachable (HTTP 200): FARS2023NationalAuxiliaryCSV.zip
+2026-09-30 03:40,census_nes,ok,reachable (HTTP 200): nonemp23co.zip
+2026-09-30 03:40,census_cbp,ok,"2023 U.S. establishments with employees: 8,361,342"
+2026-09-30 03:40,census_saipe,ok,2024 SAIPE U.S. poverty rate: 12.1
+2026-09-30 03:40,census_sahie,ok,2024 SAHIE U.S. uninsured rate under 65: 9.8
+2026-09-30 03:40,cdc_places,ok,PLACES 2023 U.S. adults with diagnosed diabetes: 12.0%
+2026-09-30 03:40,in_fssa_provider_listings,ok,"Indiana provider listings: 770 centers, 1813 homes, 732 ministries"
+2026-09-30 03:40,tx_hhsc,ok,Texas HHSC operations records: 14978
+2026-09-30 03:40,census_pep,ok,reachable (HTTP 200): NST-EST2025-ALLDATA.csv
+2026-09-30 03:40,census_pep_components,ok,reachable (HTTP 200): co-est2025-alldata.csv
+2026-09-30 03:40,bea_cainc,ok,reachable (HTTP 200): CAINC1.zip
+2026-09-30 03:40,bea_cagdp,ok,reachable (HTTP 200): CAGDP2.zip
+2026-09-30 03:40,fhfa_hpi,ok,reachable (HTTP 200): hpi_at_county.xlsx
+2026-09-30 03:40,census_bps,ok,reachable (HTTP 200): co2025a.txt
+2026-09-30 03:40,fema_nri,ok,reachable (HTTP 200): NRI_Table_Counties.zip
+2026-09-30 03:40,usda_ers_fea,ok,reachable (HTTP 200): food-environment-atlas-csv-files.zip
+2026-09-30 03:40,usda_ers_fara,ok,reachable (HTTP 200): 2025-snap-authorized-retailer-access-map-sram-data.zip
+2026-09-30 03:40,eac_eavs,ok,reachable (HTTP 200): 2024_EAVS_for_Public_Release_nolabel_V2_csv.zip
+2026-09-30 03:40,census_govfin,ok,reachable (HTTP 200): 2022_Individual_Unit_File.zip
+2026-09-30 03:40,fbi_cde,ok,"FBI U.S. violent offenses reported in December 2025: 87,881"
+2026-09-30 03:40,ipums_nhgis,ok,"NHGIS table B79 (Median Household Income in Previous Year) census years: 1980, 1990, 2000"
+2026-09-30 03:40,ipums_nhgis_cbp,ok,"NHGIS dataset 1988_1997_CBPa (Business Data [Counties]): 10 years, table NT001 Total Mid-March Employees"
+2026-09-30 03:40,census_lehd_lodes,ok,LODES Delaware: Data Vintage: 20251202_1657; Release Format Version 8.4
+2026-09-30 03:40,dol_ndcp,ok,reachable (HTTP 200): NDCP2022.xlsx
+2026-09-30 03:40,census_geo,ok,reachable (HTTP 200): cb_2024_us_county_500k.zip
+2026-09-30 03:40,bls_laus,ok,reachable (HTTP 200): la.area
+2026-09-30 03:40,bls_laus_rates,ok,reachable (HTTP 200): la.data.2.AllStatesU
+2026-09-30 03:40,bls_qcew,ok,reachable (HTTP 200): 2025_annual_singlefile.zip
+2026-09-30 03:40,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
+2026-09-30 03:40,census_p60_price_index,ok,reachable (HTTP 200): annual-index-value_annual-percent-change.xls
+2026-09-30 03:40,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none
+2026-09-30 04:03,census_acs5,ok,"2020-2024 ACS U.S. population: 334,922,499"
+2026-09-30 04:03,census_dec,ok,"2020 Census U.S. population: 331,449,281"
+2026-09-30 04:03,nces_ccd,ok,2024-25 school administrative layer: 101110 records
+2026-09-30 04:03,noaa_storm_events,ok,Storm Events details files for 1950-2026 (newest StormEvents_details-ftp_v1.0_d2026_c20260918.csv.gz); zone file bp16ap26.dbx
+2026-09-30 04:03,nhtsa_fars,ok,reachable (HTTP 200): FARS2023NationalAuxiliaryCSV.zip
+2026-09-30 04:03,census_nes,ok,reachable (HTTP 200): nonemp23co.zip
+2026-09-30 04:03,census_cbp,ok,"2023 U.S. establishments with employees: 8,361,342"
+2026-09-30 04:03,census_saipe,ok,2024 SAIPE U.S. poverty rate: 12.1
+2026-09-30 04:03,census_sahie,ok,2024 SAHIE U.S. uninsured rate under 65: 9.8
+2026-09-30 04:03,cdc_places,ok,PLACES 2023 U.S. adults with diagnosed diabetes: 12.0%
+2026-09-30 04:03,in_fssa_provider_listings,ok,"Indiana provider listings: 770 centers, 1813 homes, 732 ministries"
+2026-09-30 04:03,tx_hhsc,ok,Texas HHSC operations records: 14978
+2026-09-30 04:03,census_pep,ok,reachable (HTTP 200): NST-EST2025-ALLDATA.csv
+2026-09-30 04:03,census_pep_components,ok,reachable (HTTP 200): co-est2025-alldata.csv
+2026-09-30 04:03,census_pep_county_characteristics,ok,reachable (HTTP 200): cc-est2025-agesex-all.csv
+2026-09-30 04:03,bea_cainc,ok,reachable (HTTP 200): CAINC1.zip
+2026-09-30 04:03,bea_cagdp,ok,reachable (HTTP 200): CAGDP2.zip
+2026-09-30 04:03,fhfa_hpi,ok,reachable (HTTP 200): hpi_at_county.xlsx
+2026-09-30 04:03,census_bps,ok,reachable (HTTP 200): co2025a.txt
+2026-09-30 04:03,fema_nri,ok,reachable (HTTP 200): NRI_Table_Counties.zip
+2026-09-30 04:03,usda_ers_fea,ok,reachable (HTTP 200): food-environment-atlas-csv-files.zip
+2026-09-30 04:03,usda_ers_fara,ok,reachable (HTTP 200): 2025-snap-authorized-retailer-access-map-sram-data.zip
+2026-09-30 04:03,eac_eavs,ok,reachable (HTTP 200): 2024_EAVS_for_Public_Release_nolabel_V2_csv.zip
+2026-09-30 04:03,census_govfin,ok,reachable (HTTP 200): 2022_Individual_Unit_File.zip
+2026-09-30 04:03,fbi_cde,ok,"FBI U.S. violent offenses reported in December 2025: 87,881"
+2026-09-30 04:03,ipums_nhgis,ok,"NHGIS table B79 (Median Household Income in Previous Year) census years: 1980, 1990, 2000"
+2026-09-30 04:03,ipums_nhgis_cbp,ok,"NHGIS dataset 1988_1997_CBPa (Business Data [Counties]): 10 years, table NT001 Total Mid-March Employees"
+2026-09-30 04:03,census_lehd_lodes,ok,LODES Delaware: Data Vintage: 20251202_1657; Release Format Version 8.4
+2026-09-30 04:03,dol_ndcp,ok,reachable (HTTP 200): NDCP2022.xlsx
+2026-09-30 04:03,census_geo,ok,reachable (HTTP 200): cb_2024_us_county_500k.zip
+2026-09-30 04:03,bls_laus,ok,reachable (HTTP 200): la.area
+2026-09-30 04:03,bls_laus_rates,ok,reachable (HTTP 200): la.data.2.AllStatesU
+2026-09-30 04:03,bls_qcew,ok,reachable (HTTP 200): 2025_annual_singlefile.zip
+2026-09-30 04:03,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
+2026-09-30 04:03,census_p60_price_index,ok,reachable (HTTP 200): annual-index-value_annual-percent-change.xls
+2026-09-30 04:03,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none
+2026-09-30 04:26,census_acs5,ok,"2020-2024 ACS U.S. population: 334,922,499"
+2026-09-30 04:26,census_dec,ok,"2020 Census U.S. population: 331,449,281"
+2026-09-30 04:26,nces_ccd,ok,2024-25 school administrative layer: 101110 records
+2026-09-30 04:26,noaa_storm_events,ok,Storm Events details files for 1950-2026 (newest StormEvents_details-ftp_v1.0_d2026_c20260918.csv.gz); zone file bp16ap26.dbx
+2026-09-30 04:26,hrsa_hpsa,ok,reachable (HTTP 200): BCD_HPSA_FCT_DET_PC.csv
+2026-09-30 04:26,nhtsa_fars,ok,reachable (HTTP 200): FARS2023NationalAuxiliaryCSV.zip
+2026-09-30 04:26,census_nes,ok,reachable (HTTP 200): nonemp23co.zip
+2026-09-30 04:26,census_cbp,ok,"2023 U.S. establishments with employees: 8,361,342"
+2026-09-30 04:26,census_saipe,ok,2024 SAIPE U.S. poverty rate: 12.1
+2026-09-30 04:26,census_sahie,ok,2024 SAHIE U.S. uninsured rate under 65: 9.8
+2026-09-30 04:26,cdc_places,ok,PLACES 2023 U.S. adults with diagnosed diabetes: 12.0%
+2026-09-30 04:26,in_fssa_provider_listings,ok,"Indiana provider listings: 770 centers, 1813 homes, 732 ministries"
+2026-09-30 04:26,tx_hhsc,ok,Texas HHSC operations records: 14986
+2026-09-30 04:26,census_pep,ok,reachable (HTTP 200): NST-EST2025-ALLDATA.csv
+2026-09-30 04:26,census_pep_components,ok,reachable (HTTP 200): co-est2025-alldata.csv
+2026-09-30 04:26,census_pep_county_characteristics,ok,reachable (HTTP 200): cc-est2025-agesex-all.csv
+2026-09-30 04:26,bea_cainc,ok,reachable (HTTP 200): CAINC1.zip
+2026-09-30 04:26,bea_cagdp,ok,reachable (HTTP 200): CAGDP2.zip
+2026-09-30 04:26,fhfa_hpi,ok,reachable (HTTP 200): hpi_at_county.xlsx
+2026-09-30 04:26,census_bps,ok,reachable (HTTP 200): co2025a.txt
+2026-09-30 04:26,fema_nri,ok,reachable (HTTP 200): NRI_Table_Counties.zip
+2026-09-30 04:26,usda_ers_fea,ok,reachable (HTTP 200): food-environment-atlas-csv-files.zip
+2026-09-30 04:26,usda_ers_fara,ok,reachable (HTTP 200): 2025-snap-authorized-retailer-access-map-sram-data.zip
+2026-09-30 04:26,eac_eavs,ok,reachable (HTTP 200): 2024_EAVS_for_Public_Release_nolabel_V2_csv.zip
+2026-09-30 04:26,census_govfin,ok,reachable (HTTP 200): 2022_Individual_Unit_File.zip
+2026-09-30 04:26,fbi_cde,ok,"FBI U.S. violent offenses reported in December 2025: 87,881"
+2026-09-30 04:26,ipums_nhgis,ok,"NHGIS table B79 (Median Household Income in Previous Year) census years: 1980, 1990, 2000"
+2026-09-30 04:26,ipums_nhgis_cbp,ok,"NHGIS dataset 1988_1997_CBPa (Business Data [Counties]): 10 years, table NT001 Total Mid-March Employees"
+2026-09-30 04:26,census_lehd_lodes,ok,LODES Delaware: Data Vintage: 20251202_1657; Release Format Version 8.4
+2026-09-30 04:26,dol_ndcp,ok,reachable (HTTP 200): NDCP2022.xlsx
+2026-09-30 04:26,census_geo,ok,reachable (HTTP 200): cb_2024_us_county_500k.zip
+2026-09-30 04:26,bls_laus,ok,reachable (HTTP 200): la.area
+2026-09-30 04:26,bls_laus_rates,ok,reachable (HTTP 200): la.data.2.AllStatesU
+2026-09-30 04:26,bls_qcew,ok,reachable (HTTP 200): 2025_annual_singlefile.zip
+2026-09-30 04:26,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
+2026-09-30 04:26,census_p60_price_index,ok,reachable (HTTP 200): annual-index-value_annual-percent-change.xls
+2026-09-30 04:26,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none
+2026-09-30 04:52,census_acs5,ok,"2020-2024 ACS U.S. population: 334,922,499"
+2026-09-30 04:52,census_dec,ok,"2020 Census U.S. population: 331,449,281"
+2026-09-30 04:52,nces_ccd,ok,2024-25 school administrative layer: 101110 records
+2026-09-30 04:52,noaa_storm_events,ok,Storm Events details files for 1950-2026 (newest StormEvents_details-ftp_v1.0_d2026_c20260918.csv.gz); zone file bp16ap26.dbx
+2026-09-30 04:52,hrsa_hpsa,ok,reachable (HTTP 200): BCD_HPSA_FCT_DET_PC.csv
+2026-09-30 04:52,nhtsa_fars,ok,reachable (HTTP 200): FARS2023NationalAuxiliaryCSV.zip
+2026-09-30 04:52,census_nes,ok,reachable (HTTP 200): nonemp23co.zip
+2026-09-30 04:52,census_cbp,ok,"2023 U.S. establishments with employees: 8,361,342"
+2026-09-30 04:52,census_saipe,ok,2024 SAIPE U.S. poverty rate: 12.1
+2026-09-30 04:52,census_sahie,ok,2024 SAHIE U.S. uninsured rate under 65: 9.8
+2026-09-30 04:52,cdc_places,ok,PLACES 2023 U.S. adults with diagnosed diabetes: 12.0%
+2026-09-30 04:52,in_fssa_provider_listings,ok,"Indiana provider listings: 770 centers, 1813 homes, 732 ministries"
+2026-09-30 04:52,tx_hhsc,ok,Texas HHSC operations records: 14986
+2026-09-30 04:52,census_pep,ok,reachable (HTTP 200): NST-EST2025-ALLDATA.csv
+2026-09-30 04:52,census_pep_components,ok,reachable (HTTP 200): co-est2025-alldata.csv
+2026-09-30 04:52,census_pep_county_characteristics,ok,reachable (HTTP 200): cc-est2025-agesex-all.csv
+2026-09-30 04:52,bea_cainc,ok,reachable (HTTP 200): CAINC1.zip
+2026-09-30 04:52,bea_cagdp,ok,reachable (HTTP 200): CAGDP2.zip
+2026-09-30 04:52,fhfa_hpi,ok,reachable (HTTP 200): hpi_at_county.xlsx
+2026-09-30 04:52,census_bps,ok,reachable (HTTP 200): co2025a.txt
+2026-09-30 04:52,fema_nri,ok,reachable (HTTP 200): NRI_Table_Counties.zip
+2026-09-30 04:52,usda_ers_fea,ok,reachable (HTTP 200): food-environment-atlas-csv-files.zip
+2026-09-30 04:52,usda_ers_fara,ok,reachable (HTTP 200): 2025-snap-authorized-retailer-access-map-sram-data.zip
+2026-09-30 04:52,eac_eavs,ok,reachable (HTTP 200): 2024_EAVS_for_Public_Release_nolabel_V2_csv.zip
+2026-09-30 04:52,census_govfin,ok,reachable (HTTP 200): 2022_Individual_Unit_File.zip
+2026-09-30 04:52,fbi_cde,ok,"FBI U.S. violent offenses reported in December 2025: 87,881"
+2026-09-30 04:52,ipums_nhgis,ok,"NHGIS table B79 (Median Household Income in Previous Year) census years: 1980, 1990, 2000"
+2026-09-30 04:52,ipums_nhgis_cbp,ok,"NHGIS dataset 1988_1997_CBPa (Business Data [Counties]): 10 years, table NT001 Total Mid-March Employees"
+2026-09-30 04:52,census_lehd_lodes,ok,LODES Delaware: Data Vintage: 20251202_1657; Release Format Version 8.4
+2026-09-30 04:52,dol_ndcp,ok,reachable (HTTP 200): NDCP2022.xlsx
+2026-09-30 04:52,census_geo,ok,reachable (HTTP 200): cb_2024_us_county_500k.zip
+2026-09-30 04:52,bls_laus,ok,reachable (HTTP 200): la.area
+2026-09-30 04:52,bls_oews,ok,reachable (HTTP 200): oe.data.0.Current
+2026-09-30 04:52,bls_cps_ln,ok,reachable (HTTP 200): ln.data.1.AllData
+2026-09-30 04:52,bls_laus_rates,ok,reachable (HTTP 200): la.data.2.AllStatesU
+2026-09-30 04:52,bls_qcew,ok,reachable (HTTP 200): 2025_annual_singlefile.zip
+2026-09-30 04:52,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
+2026-09-30 04:52,census_p60_price_index,ok,reachable (HTTP 200): annual-index-value_annual-percent-change.xls
+2026-09-30 04:52,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none
+2026-09-30 05:23,census_acs5,ok,"2020-2024 ACS U.S. population: 334,922,499"
+2026-09-30 05:23,census_dec,ok,"2020 Census U.S. population: 331,449,281"
+2026-09-30 05:23,nces_ccd,ok,2024-25 school administrative layer: 101110 records
+2026-09-30 05:23,noaa_storm_events,ok,Storm Events details files for 1950-2026 (newest StormEvents_details-ftp_v1.0_d2026_c20260918.csv.gz); zone file bp16ap26.dbx
+2026-09-30 05:23,hrsa_hpsa,ok,reachable (HTTP 200): BCD_HPSA_FCT_DET_PC.csv
+2026-09-30 05:23,nhtsa_fars,ok,reachable (HTTP 200): FARS2023NationalAuxiliaryCSV.zip
+2026-09-30 05:23,census_nes,ok,reachable (HTTP 200): nonemp23co.zip
+2026-09-30 05:23,census_cbp,ok,"2023 U.S. establishments with employees: 8,361,342"
+2026-09-30 05:23,census_saipe,ok,2024 SAIPE U.S. poverty rate: 12.1
+2026-09-30 05:23,census_sahie,ok,2024 SAHIE U.S. uninsured rate under 65: 9.8
+2026-09-30 05:23,cdc_places,ok,PLACES 2023 U.S. adults with diagnosed diabetes: 12.0%
+2026-09-30 05:23,in_fssa_provider_listings,ok,"Indiana provider listings: 770 centers, 1813 homes, 732 ministries"
+2026-09-30 05:23,tx_hhsc,ok,Texas HHSC operations records: 14986
+2026-09-30 05:23,census_pep,ok,reachable (HTTP 200): NST-EST2025-ALLDATA.csv
+2026-09-30 05:23,census_pep_components,ok,reachable (HTTP 200): co-est2025-alldata.csv
+2026-09-30 05:23,census_pep_county_characteristics,ok,reachable (HTTP 200): cc-est2025-agesex-all.csv
+2026-09-30 05:23,bea_cainc,ok,reachable (HTTP 200): CAINC1.zip
+2026-09-30 05:23,bea_cagdp,ok,reachable (HTTP 200): CAGDP2.zip
+2026-09-30 05:23,fhfa_hpi,ok,reachable (HTTP 200): hpi_at_county.xlsx
+2026-09-30 05:23,census_bps,ok,reachable (HTTP 200): co2025a.txt
+2026-09-30 05:23,fema_nri,ok,reachable (HTTP 200): NRI_Table_Counties.zip
+2026-09-30 05:23,usda_ers_fea,ok,reachable (HTTP 200): food-environment-atlas-csv-files.zip
+2026-09-30 05:23,usda_ers_fara,ok,reachable (HTTP 200): 2025-snap-authorized-retailer-access-map-sram-data.zip
+2026-09-30 05:23,eac_eavs,ok,reachable (HTTP 200): 2024_EAVS_for_Public_Release_nolabel_V2_csv.zip
+2026-09-30 05:23,census_govfin,ok,reachable (HTTP 200): 2022_Individual_Unit_File.zip
+2026-09-30 05:23,fbi_cde,ok,"FBI U.S. violent offenses reported in December 2025: 87,881"
+2026-09-30 05:23,ipums_nhgis,ok,"NHGIS table B79 (Median Household Income in Previous Year) census years: 1980, 1990, 2000"
+2026-09-30 05:23,ipums_nhgis_std,ok,"NHGIS standardized table CL8 (Total Population) census years: 1990, 2000, 2010, 2020"
+2026-09-30 05:23,ipums_nhgis_cbp,ok,"NHGIS dataset 1988_1997_CBPa (Business Data [Counties]): 10 years, table NT001 Total Mid-March Employees"
+2026-09-30 05:23,census_lehd_lodes,ok,LODES Delaware: Data Vintage: 20251202_1657; Release Format Version 8.4
+2026-09-30 05:23,dol_ndcp,ok,reachable (HTTP 200): NDCP2022.xlsx
+2026-09-30 05:23,census_geo,ok,reachable (HTTP 200): cb_2024_us_county_500k.zip
+2026-09-30 05:23,bls_laus,ok,reachable (HTTP 200): la.area
+2026-09-30 05:23,bls_oews,ok,reachable (HTTP 200): oe.data.0.Current
+2026-09-30 05:23,bls_cps_ln,ok,reachable (HTTP 200): ln.data.1.AllData
+2026-09-30 05:23,bls_laus_rates,ok,reachable (HTTP 200): la.data.2.AllStatesU
+2026-09-30 05:23,bls_qcew,ok,reachable (HTTP 200): 2025_annual_singlefile.zip
+2026-09-30 05:23,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
+2026-09-30 05:23,census_p60_price_index,ok,reachable (HTTP 200): annual-index-value_annual-percent-change.xls
+2026-09-30 05:23,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none
+2026-09-30 05:59,census_acs5,ok,"2020-2024 ACS U.S. population: 334,922,499"
+2026-09-30 05:59,census_dec,ok,"2020 Census U.S. population: 331,449,281"
+2026-09-30 05:59,nces_ccd,ok,2024-25 school administrative layer: 101110 records
+2026-09-30 05:59,noaa_storm_events,ok,Storm Events details files for 1950-2026 (newest StormEvents_details-ftp_v1.0_d2026_c20260918.csv.gz); zone file bp16ap26.dbx
+2026-09-30 05:59,hrsa_hpsa,ok,reachable (HTTP 200): BCD_HPSA_FCT_DET_PC.csv
+2026-09-30 05:59,nhtsa_fars,ok,reachable (HTTP 200): FARS2023NationalAuxiliaryCSV.zip
+2026-09-30 05:59,census_nes,ok,reachable (HTTP 200): nonemp23co.zip
+2026-09-30 05:59,census_cbp,ok,"2023 U.S. establishments with employees: 8,361,342"
+2026-09-30 05:59,census_saipe,ok,2024 SAIPE U.S. poverty rate: 12.1
+2026-09-30 05:59,census_sahie,ok,2024 SAHIE U.S. uninsured rate under 65: 9.8
+2026-09-30 05:59,cdc_places,ok,PLACES 2023 U.S. adults with diagnosed diabetes: 12.0%
+2026-09-30 05:59,in_fssa_provider_listings,ok,"Indiana provider listings: 770 centers, 1813 homes, 732 ministries"
+2026-09-30 05:59,tx_hhsc,ok,Texas HHSC operations records: 14986
+2026-09-30 05:59,census_pep,ok,reachable (HTTP 200): NST-EST2025-ALLDATA.csv
+2026-09-30 05:59,census_pep_components,ok,reachable (HTTP 200): co-est2025-alldata.csv
+2026-09-30 05:59,census_pep_county_characteristics,ok,reachable (HTTP 200): cc-est2025-agesex-all.csv
+2026-09-30 05:59,bea_cainc,ok,reachable (HTTP 200): CAINC1.zip
+2026-09-30 05:59,bea_cagdp,ok,reachable (HTTP 200): CAGDP2.zip
+2026-09-30 05:59,fhfa_hpi,ok,reachable (HTTP 200): hpi_at_county.xlsx
+2026-09-30 05:59,census_bps,ok,reachable (HTTP 200): co2025a.txt
+2026-09-30 05:59,fema_nri,ok,reachable (HTTP 200): NRI_Table_Counties.zip
+2026-09-30 05:59,usda_ers_fea,ok,reachable (HTTP 200): food-environment-atlas-csv-files.zip
+2026-09-30 05:59,usda_ers_fara,ok,reachable (HTTP 200): 2025-snap-authorized-retailer-access-map-sram-data.zip
+2026-09-30 05:59,eac_eavs,ok,reachable (HTTP 200): 2024_EAVS_for_Public_Release_nolabel_V2_csv.zip
+2026-09-30 05:59,census_govfin,ok,reachable (HTTP 200): 2022_Individual_Unit_File.zip
+2026-09-30 05:59,fbi_cde,ok,"FBI U.S. violent offenses reported in December 2025: 87,881"
+2026-09-30 05:59,ipums_nhgis,ok,"NHGIS table B79 (Median Household Income in Previous Year) census years: 1980, 1990, 2000"
+2026-09-30 05:59,ipums_nhgis_std,ok,"NHGIS standardized table CL8 (Total Population) census years: 1990, 2000, 2010, 2020"
+2026-09-30 05:59,ipums_nhgis_cbp,ok,"NHGIS dataset 1988_1997_CBPa (Business Data [Counties]): 10 years, table NT001 Total Mid-March Employees"
+2026-09-30 05:59,census_lehd_lodes,ok,LODES Delaware: Data Vintage: 20251202_1657; Release Format Version 8.4
+2026-09-30 05:59,dol_ndcp,ok,reachable (HTTP 200): NDCP2022.xlsx
+2026-09-30 05:59,census_geo,ok,reachable (HTTP 200): cb_2024_us_county_500k.zip
+2026-09-30 05:59,bls_laus,ok,reachable (HTTP 200): la.area
+2026-09-30 05:59,bls_oews,ok,reachable (HTTP 200): oe.data.0.Current
+2026-09-30 05:59,bls_cps_ln,ok,reachable (HTTP 200): ln.data.1.AllData
+2026-09-30 05:59,bls_laus_rates,ok,reachable (HTTP 200): la.data.2.AllStatesU
+2026-09-30 05:59,bls_qcew,ok,reachable (HTTP 200): 2025_annual_singlefile.zip
+2026-09-30 05:59,bls_r_cpi_u_rs,ok,reachable (HTTP 200): r-cpi-u-rs-allitems.xlsx
+2026-09-30 05:59,census_p60_price_index,ok,reachable (HTTP 200): annual-index-value_annual-percent-change.xls
+2026-09-30 05:59,census_acs5_recipes,checked,424 recipe x release checks; releases lacking a recipe's variables: none

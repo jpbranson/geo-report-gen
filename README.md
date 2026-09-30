@@ -345,12 +345,33 @@ about 5 minutes per extract.
 
 ## Limitations
 
-- 335 of the 537 cataloged metrics are operational (ACS detailed tables, decennial census,
+- 446 of the 576 cataloged metrics are operational (ACS detailed tables, decennial census,
   population estimates, SAIPE, SAHIE, CDC PLACES, County Business Patterns, Nonemployer
   Statistics, LEHD LODES, BLS QCEW, BEA county income and GDP, NHTSA FARS, FEMA National Risk
   Index, USDA Food Environment Atlas, EAC Election Administration and Voting Survey, Census of
   Governments finance, FBI Crime Data Explorer, IPUMS NHGIS, BLS unemployment, FHFA, building
-  permits, child care prices, Texas licensing); the rest are documented only.
+  permits, child care prices, Texas licensing, NCES public schools, NOAA Storm Events); the rest
+  are documented only.
+- Other sources added on 2026-09-30 (each documented in its catalog rows): child care prices (NDCP)
+  by age of child and the labor force rate of mothers of young children; census counts of
+  households, household types, vacancy, homeownership, median age and race (2000-2020);
+  Population Estimates components of change (2021-2025) and county age, sex and race estimates
+  (Vintage 2025); BEA transfers, income maintenance, earnings and earnings by industry; LAUS
+  employed and unemployed persons and, for states and larger areas, participation and
+  employment-population rates; Texas and Indiana child care providers (current snapshots) with
+  capacity per 100 children under 5; building permits by structure size, from 1990 for counties;
+  USDA Food Access Research Atlas (SRAM 2025, LRAM 2019; tracts summed to counties and above);
+  HRSA shortage areas (a daily snapshot); BLS OEWS wages and employment of all occupations (May
+  2025; states and metro areas) and national CPS annual averages since 1948; and a county map of
+  1900 from NHGIS boundary files. Not built:
+  County Health Rankings (terms need the user's decision), MIT Election Lab returns (a guestbook
+  download), HUD homelessness counts (a bot challenge blocks scripted downloads), OEWS occupation
+  detail, NDCP age bands and NCES before 2017.
+- NCES public schools cover school years 2017-18 through 2024-25: schools, enrollment, public
+  pre-K, teacher full-time equivalents and students per teacher (not class size). Students are
+  counted at their school, not their residence. Fully virtual schools count only in state and
+  larger totals. A measure needs reporting by at least 95% of schools in each state part;
+  eligible totals omit nonreporting schools. Earlier CCD history remains to be implemented.
 - LODES (jobs by workplace and employed residents, 2002-2023) counts primary jobs, each worker's
   highest-paying job, summed from census blocks: cities, tracts and unions get exact values, on
   2024 boundaries in every year. It has no national or regional totals, and states that supplied
@@ -376,6 +397,18 @@ about 5 minutes per extract.
   2001, located in full-resolution 2024 TIGER/Line boundaries (a state-year needs 95% of crashes
   with coordinates). Rates per 100,000 residents use 5-year totals and the ACS 5-year population.
   Connecticut's planning regions are not coded (FARS keeps the former counties).
+- Severe weather (NOAA Storm Events, 1950-2025: events, deaths and property damage by year) counts
+  what National Weather Service offices recorded, so counts follow reporting practice. Coverage
+  widens in 1955 and 1996 (tornadoes only 1950-1954; tornadoes, thunderstorm wind and hail
+  1955-1995; all event types from 1996), and the three periods are separate series. Winter, heat
+  and flood events are recorded for forecast zones: such an event counts in each county of its zone
+  and shares its deaths and damage equally among them, using NWS's current county-zone file. Zones
+  were redrawn over the years, so a state has county values in a year only when 95% of its zone
+  events match a current zone (about half the states before 2013, about a fifth in 2022-2025). States and
+  larger areas need no zones. Damage is a rough estimate in dollars of the event year, shown in
+  constant dollars. In an area made of several counties an event of a zone that covers several of them
+  counts in each; deaths and damage are shared, so they add up. There are no cities or tracts;
+  Connecticut's planning regions have no values.
 - Census years before the ACS (IPUMS NHGIS) cover income and poverty (1970 or 1980 to 2000),
   education, work, commuting (commuting modes 1990 and 2000) and homeownership (1970 to 2000).
   Most come from the census long form, a sample; NHGIS publishes no margins of error for them,
@@ -385,7 +418,7 @@ about 5 minutes per extract.
   regions get census counts and shares summed from their towns (which kept their codes); their
   medians, and combined areas' medians, have no census values. The NHGIS terms forbid
   redistributing the data: extracts stay in the cache, and the test fixtures are made up. Other
-  NHGIS holdings (constant-boundary counts, Connecticut crosswalks) are described in
+  NHGIS holdings (constant-boundary counts, tried and removed; Connecticut crosswalks) are described in
   `docs/nhgis.md`.
 - Population census counts reach back to 1790 for counties, states and the nation, and to 1970
   for places and county subdivisions (IPUMS NHGIS until 1990). A county's early counts cover
