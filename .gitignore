@@ -7,6 +7,9 @@ ipums_key.txt
 # Shared data cache and generated reports (rebuild with: Rscript gr.R batch)
 /cache/
 /reports/
+# tools/data-sync state: rclone bisync listings and its hash of the filter rules
+/.data-sync/
+/tools/data-sync-filters.txt.md5
 
 # R / renv
 .Rhistory
@@ -19,6 +22,7 @@ renv/staging/
 # Tools
 .quarto/
 .claude/
+.wrangler/
 catalog/catalog.html
 # Lock file left by saving content/text.csv (filelock)
 content/text.csv.lock

@@ -1,0 +1,13 @@
+# What tools/data-sync keeps in step between the project folder and the bucket (rclone filter
+# rules; the first matching rule wins). cache/metrics is left out: builds recompute it.
+# After a change here, the next data-sync stops and asks for a resync (see README).
+- *.lock
+- *.tmp-*
+- *.download-*
+- .DS_Store
+- ._*
+- Thumbs.db
++ /cache/raw/**
++ /cache/geo/**
++ /reports/**
+- **

@@ -19,8 +19,9 @@ Read this file, `PLAN.md` (checklist) and `docs/REQUIREMENTS.md` (the full brief
    session scratchpad; recreate if missing). Figures can be extracted from report.html (base64 PNGs).
 7. Docker (any machine with Docker Desktop): `docker compose run --rm gr <command>` from the project
    root; see README "Docker". Used on the user's Apple Silicon Mac and planned for the Windows PC.
-   To move cache/ and reports/ between machines: tools/bundle-data.sh (Mac) or
-   .\tools\bundle-data.cmd (Windows) writes a tar to Downloads; README "Moving the data".
+   To move cache/ and reports/ between machines: tools/data-sync.sh (Mac) or
+   .\tools\data-sync.cmd (Windows) syncs both ways with a Cloudflare R2 bucket (rclone bisync);
+   tools/bundle-data.* writes a tar to Downloads instead; README "Moving the data".
 
 ## Standing facts (verified 2026-09-28)
 
@@ -756,3 +757,49 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   unavailable; 29 census-year values now summed from towns). Nothing else changed.
 - Not done: item 21 (block-result cache; the user decides). Nothing committed (the user commits
   on request). Temporary baseline worktree removed.
+- 22:55 committed and pushed at the user's request (0530fe3 on main; scanned first: no .env
+  values or email in the changes, no NHGIS data beyond table metadata).
+
+## 2026-09-29 23:00 (session 6): data-sync with Cloudflare R2
+
+- The user wants cloud sync of the data instead of tar bundles, and plans cache pruning later
+  (so deletions must propagate). Chosen: rclone bisync against an R2 bucket (free tier: 10 GB,
+  no egress fees); syncs cache/raw, cache/geo, reports; not cache/metrics (recomputable, 66k of
+  the 72k files), lock files or partial downloads.
+- Plan: tools/data-sync-filters.txt (shared filter rules), tools/data-sync.sh (Mac/Linux),
+  tools/data-sync.ps1 + .cmd (Windows). State in .data-sync/ (git-ignored): no listings there
+  means first run, so it resyncs with the newer copy winning; deleting .data-sync resets it.
+  Files deleted or overwritten in the bucket go to trash/<time>/ in the bucket (R2 lifecycle
+  rule empties it after 30 days). Conflicts: newer wins, loser kept as *.conflict1.
+- rclone is not installed on the PC; testing needs it (local folder standing in for R2).
+- 23:05 done: tools/data-sync-filters.txt, tools/data-sync.sh, tools/data-sync.ps1 + .cmd;
+  .gitignore (.data-sync/, the filters .md5 that bisync writes next to the rules file); README
+  "Moving the data" now leads with data-sync and the one-time R2 setup (bucket, trash/ lifecycle
+  rule, bucket-scoped token, rclone config create gr-r2 ...), tar bundle kept as the alternative.
+- rclone 1.75.1 installed on the PC with winget (user approved). Tested with a local
+  `rclone serve s3` standing in for R2 (two scratch "machines", ps1 and sh): first-run merge;
+  new/deleted files both ways; deleted and overwritten bucket files land in trash/<time>/;
+  conflict keeps the newer copy plus <name>.conflict1 on both sides; >50% deletes stop (exit 1)
+  until --force; a changed filters file stops with exit 7 and the hint, --resync-mode newer
+  recovers; restore = rclone copy from trash then sync; renv, .git, cache/metrics, tools and
+  .data-sync are skipped without being walked. Bisync names its state files after both paths, so
+  a very long project path (the scratchpad) overflows the 255-character name limit; the real
+  C:\Developer\geo-report-gen path is fine. Reading bucket modtimes takes one HEAD per file,
+  run in parallel by --checkers (32 set). Not tested against real R2 (no account here).
+- Next: the user creates the R2 bucket and token, runs rclone config create on both machines,
+  then data-sync on the PC first (uploads about 4 GB), then on the Mac.
+- 23:08 R2 set up with the user's wrangler login (account <account id>; R2 was already on, with
+  an unrelated bucket): bucket geo-report-data created (Standard class); lifecycle rule
+  trash-30-days (prefix trash/, expire after 30 days) beside the default multipart-abort rule.
+  rclone remote gr-r2 created on the PC without keys (endpoint
+  https://<account id>.r2.cloudflarestorage.com). Waiting for the user to
+  create the bucket-scoped token in the dashboard and run rclone config update with the keys
+  (Claude does not handle the secret); then verify access, dry run, first data-sync from the PC.
+- 23:12 The gr-r2 remote Claude created did not reach the user's real profile: Claude's shell is
+  sandboxed, so writes outside the project folder (here %APPDATA%\rclone\rclone.conf) stay in the
+  sandbox. The user creates the remote with keys from their own terminal (rclone config create,
+  as on the Mac). Anything Claude runs that needs the real rclone.conf must run unsandboxed.
+- 23:25 The user created the token and the gr-r2 remote and ran the first data-sync from the PC
+  (finished 23:23). Checked: .data-sync listings for path1 and path2 each hold 4,468 files, the
+  same as the local files the rules select (cache/raw, cache/geo, reports: 3.98 GB). The Mac gets
+  its own token (user's choice); it needs the new scripts committed and pushed first.
