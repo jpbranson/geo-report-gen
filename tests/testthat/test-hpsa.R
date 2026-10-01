@@ -2,7 +2,7 @@ test_that("HPSA counts designations once per area and reports the highest score"
   real <- hpsa_components
   on.exit(assign("hpsa_components", real, envir = globalenv()))
   assign("hpsa_components", function(discipline) data.frame(id = c("A", "A", "B", "C"), county = c("10001", "10003", "10001", "24001"),
-    score = c(12, 12, 20, 5), retrieved = "2026-09-30"), envir = globalenv())
+    score = c(12, 12, 20, 5)), envir = globalenv())
   st <- resolve_settings()
   area <- function(keys) entity("x", "study", "x", data.frame(key = keys, type = sub(":.*$", "", keys), geoid = sub("^[^:]*:", "", keys), name = "x", pop = NA_real_))
   value <- function(metric, keys) compute_metric(metric, list(area(keys)), st)$value
@@ -11,4 +11,21 @@ test_that("HPSA counts designations once per area and reports the highest score"
   expect_equal(value("primary_care_hpsa_count_hrsa", "division:5"), 3)
   expect_equal(value("dental_hpsa_score_hrsa", "county:10001"), 20)
   expect_equal(value("dental_hpsa_score_hrsa", "county:24001"), 5)
+})
+
+test_that("a snapshot source keeps its values in the years after it was cached", {
+  real <- hpsa_components
+  on.exit(assign("hpsa_components", real, envir = globalenv()))
+  assign("hpsa_components", function(discipline) data.frame(id = "A", county = "10001", score = 12), envir = globalenv())
+  path <- hpsa_raw_path("PC")
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  writeLines("cached download", path)
+  write_json_file(list(retrieved = "2024-09-30T12:00:00-0500"), paste0(path, ".meta.json"))
+  on.exit(unlink(c(path, paste0(path, ".meta.json"))), add = TRUE)
+  expect_equal(snapshot_year(path), 2024L)
+  expect_equal(snapshot_year(paste0(path, ".missing")), as.integer(format(Sys.Date(), "%Y")))
+  area <- entity("x", "study", "x", data.frame(key = "county:10001", type = "county", geoid = "10001", name = "x", pop = NA_real_))
+  res <- compute_metric("primary_care_hpsa_count_hrsa", list(area), resolve_settings())
+  expect_equal(res$value, 1)
+  expect_equal(res$period, "2024")
 })

@@ -1,6 +1,6 @@
 <#
 Sync the downloaded data and rendered reports with a Cloudflare R2 bucket, both ways
-(see README "Moving the data to another machine").
+(see docs/data-sync.md).
 
   .\tools\data-sync.cmd [rclone bisync options, e.g. --dry-run]
 

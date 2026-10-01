@@ -12,7 +12,6 @@ test_that("the Indiana provider listing tables are parsed by column name", {
   real <- fssa_listings
   on.exit(assign("fssa_listings", real, envir = globalenv()))
   d$key <- c("county:18089", "county:18141", "county:18089", "county:18089")
-  d$retrieved <- "2026-09-30"
   assign("fssa_listings", function() d, envir = globalenv())
   a <- fssa_areas()
   lake <- a[a$key == "county:18089", ]

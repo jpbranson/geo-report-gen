@@ -3,14 +3,13 @@
 # that do not name a contact in the User-Agent, so downloads need GR_HTTP_CONTACT (see
 # user_agent_string() in fetch.R); cached files work offline.
 
-bls_download <- function(url, file) {
-  path <- cache_path("raw", "bls", file)
-  needs_download <- !file.exists(path) || wants_refresh(path, "bls")
+bls_download <- function(url, file, path = cache_path("raw", "bls", file), source = "bls") {
+  needs_download <- !file.exists(path) || wants_refresh(path, source)
   if (needs_download && !nzchar(Sys.getenv("GR_HTTP_CONTACT"))) {
     stop("BLS rejects automated requests without a contact email. Add GR_HTTP_CONTACT=<email> ",
          "to .env, or run offline from the cache.", call. = FALSE)
   }
-  cached_download(url, path, "bls")
+  cached_download(url, path, source)
 }
 
 # Annual average price index, as a table (year, index).
@@ -107,9 +106,10 @@ laus_file_for_state <- function(state_fips) {
     files <- unique(unlist(regmatches(html, gregexpr("la[.]data[.][0-9]+[.][A-Za-z]+", html))))
     data.frame(file = files, key = tolower(sub("^la[.]data[.][0-9]+[.]", "", files)), stringsAsFactors = FALSE)
   })
-  name <- tolower(gsub("[^A-Za-z]", "", state_table()$name[state_table()$state == state_fips]))
-  hit <- index$file[index$key == name]
-  if (!length(hit)) stop("No LAUS file for state ", state_fips)
+  st <- state_table()[state_table()$state == state_fips, , drop = FALSE]
+  # Files are named after the state (la.data.21.Indiana), except la.data.15.DC.
+  hit <- index$file[index$key %in% c(tolower(gsub("[^A-Za-z]", "", st$name)), tolower(st$usps))]
+  if (!length(hit)) stop("BLS lists no LAUS data file for ", st$name %||% state_fips, " (", laus_url(""), ")", call. = FALSE)
   hit[1]
 }
 

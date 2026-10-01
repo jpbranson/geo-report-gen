@@ -1,6 +1,7 @@
-# Tests run offline. A temporary copy of tests/fixtures/cache (real Census API responses,
-# public domain) stands in for the shared cache, so geography tests are deterministic and
-# nothing is written to the project's own cache.
+# Tests run offline. A temporary copy of tests/fixtures/cache (trimmed real responses of public
+# domain sources; made-up IPUMS NHGIS extracts, whose data may not be shared) stands in for the
+# shared cache, so geography tests are deterministic and nothing is written to the project's own
+# cache.
 root <- normalizePath(file.path("..", ".."), winslash = "/")
 cache <- file.path(tempdir(), "gr-test-cache")
 unlink(cache, recursive = TRUE)

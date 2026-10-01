@@ -76,8 +76,15 @@ fara_fetch <- function(variables, pieces, periods, options = list()) {
         nation = x$state %in% member_states("nation"),
         stop("Food Access Research Atlas: unsupported geography type '", type, "'.", call. = FALSE))
       rows <- x[sel, , drop = FALSE]
+      # The atlas codes Connecticut tracts by the former counties, not the planning regions
+      # (county codes above 100), so areas made of planning regions cannot be summed.
+      counties <- switch(type, county = geoid, cbsa = cbsa_counties(geoid, vintage), tract = substr(geoid, 1, 5), character())
+      ct_region <- any(startsWith(counties, "09") & suppressWarnings(as.integer(substr(counties, 3, 5))) > 100)
+      if (ct_region) rows <- x[0, , drop = FALSE]
       value <- function(v) if (!nrow(rows)) NA_real_ else if (v %in% c("TRACTS", "LRAM_TRACTS")) nrow(rows) else sum(rows[[v]], na.rm = TRUE)
-      why <- if (nrow(rows)) "" else if (type == "tract") "the 2019 map uses 2010 tracts" else "the Food Access Research Atlas has no tracts for this area"
+      why <- if (nrow(rows)) "" else
+        if (ct_region) "the Food Access Research Atlas codes Connecticut tracts by the state's former counties, not its planning regions" else
+        if (type == "tract") "the 2019 map uses 2010 tracts" else "the Food Access Research Atlas has no tracts for this area"
       for (v in intersect(variables, fara_variables[[as.character(yr)]])) {
         out[[length(out) + 1]] <- data.frame(geo = pieces$key[i], name = "", variable = v, estimate = value(v), moe = NA_real_,
           status = if (nrow(rows)) "ok" else "unavailable", bound = NA_character_, note = why, period = as.character(yr),

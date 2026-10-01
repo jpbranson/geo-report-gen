@@ -275,7 +275,11 @@ text_import <- function(path) {
   for (i in seq_len(nrow(x))) {
     r <- x[i, ]
     cfg <- report_config(r$report_id)
-    if (is.null(snaps[[r$report_id]])) snaps[[r$report_id]] <- readRDS(file.path(snapshot_dir(r$report_id), "report.rds"))
+    if (is.null(snaps[[r$report_id]])) {
+      snap_path <- file.path(snapshot_dir(r$report_id), "report.rds")
+      if (!file.exists(snap_path)) stop("Build the report first: Rscript gr.R build ", r$report_id, call. = FALSE)
+      snaps[[r$report_id]] <- readRDS(snap_path)
+    }
     snap <- snaps[[r$report_id]]
     current <- current_field_text(records, r$field_id, r$report_id, cfg$profile, snap, events)
     if (hash_text(current) != r$base_hash) {
@@ -288,10 +292,11 @@ text_import <- function(path) {
   }
   if (length(conflicts)) {
     cf <- do.call(rbind, conflicts)
-    out <- sub("\\.csv$", "-conflicts.csv", path)
+    out <- paste0(tools::file_path_sans_ext(path), "-conflicts.csv")   # never the imported file itself
     write_table(cf, out)
     stop(nrow(cf), " row(s) changed in content since export (", paste(cf$field_id, collapse = ", "),
-         "). Nothing was imported. Details: ", out, ". Re-export, re-apply your edits, and import again.", call. = FALSE)
+         "). Nothing was imported. Details: ", out, ". Rebuild the report(s), export again, re-apply your edits, ",
+         "and import that file.", call. = FALSE)
   }
   save_text_records(records)
   for (i in seq_len(nrow(x))) warn_hidden(records, x$field_id[i], x$edit_scope[i], reports_in_file)

@@ -40,8 +40,10 @@ render_warnings <- function(lines) {
   unique(sub("^.*gr-placeholders: ", "", grep("gr-placeholders: unknown placeholder", lines, value = TRUE)))
 }
 
-# Files whose changes should trigger a re-render (code that draws the report).
-render_code_files <- function() c("R/charts.R", "R/maps.R", "R/theme.R", "R/runtime.R", "quarto/gr-placeholders.lua",
+# Files whose changes should trigger a re-render: the code that runs while Quarto renders
+# (drawing, placeholder filling in content.R, custom modules through blocks.R).
+render_code_files <- function() c("R/charts.R", "R/maps.R", "R/theme.R", "R/runtime.R", "R/content.R", "R/blocks.R",
+                                   "quarto/gr-placeholders.lua",
                                    file.path("modules", list.files(root_path("modules"), pattern = "[.]R$")))
 
 render_inputs_hash <- function(report_id) {
@@ -81,8 +83,10 @@ build_report <- function(report_id, render = TRUE, offline = FALSE, refresh = ch
     prev <- previous_build(report_id)
     if (!force && !length(refresh) && reusable_compose(report_id, prev, compose_key(report_id, inputs_key))) {
       reused <- prev
-    } else
+    } else {
+      note(report_id, ": composing (data not yet in cache/ are downloaded first)")
       composed <- timed("compose", compose_report(report_id))
+    }
     key <- render_inputs_hash(report_id)
     up_to_date <- !force && !is.null(prev) && identical(prev$render_inputs_hash, key) && all(file.exists(report_outputs(report_id, formats)))
     rendered_hash <- if (up_to_date) key else prev$render_inputs_hash

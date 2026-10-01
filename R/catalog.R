@@ -145,7 +145,8 @@ source_status <- function() {
   src
 }
 
-# gr.R catalog --check validates the tables; --html writes catalog/catalog.html.
+# gr.R catalog validates the tables and prints any problems; --check also exits with status 1
+# when there are problems, and --html writes catalog/catalog.html.
 catalog_command <- function(flags) {
   problems <- validate_catalog()
   st <- metric_status()
@@ -277,13 +278,15 @@ verify_sources <- function() {
   })
   # Every ACS variable a recipe uses exists in each release the recipe uses (from the variable
   # lists the API publishes per release); any gap is a recipe to fix.
-  acs <- verify_acs_recipes(resolve_settings())
-  gaps <- acs[nzchar(acs$variables_missing), , drop = FALSE]
+  acs <- tryCatch(verify_acs_recipes(resolve_settings()), error = function(e) conditionMessage(e))
+  evidence <- if (is.character(acs)) substr(acs, 1, 200) else {
+    gaps <- acs[nzchar(acs$variables_missing), , drop = FALSE]
+    paste0(nrow(acs), " recipe x release checks; releases lacking a recipe's variables: ",
+           if (nrow(gaps)) paste(unique(paste(gaps$metric_id, gaps$release)), collapse = ", ") else "none")
+  }
   rows[[length(rows) + 1]] <- data.frame(
-    date = format(Sys.time(), "%Y-%m-%d %H:%M"), source_id = "census_acs5_recipes", result = "checked",
-    evidence = paste0(nrow(acs), " recipe x release checks; releases lacking a recipe's variables: ",
-                      if (nrow(gaps)) paste(unique(paste(gaps$metric_id, gaps$release)), collapse = ", ") else "none"),
-    stringsAsFactors = FALSE)
+    date = format(Sys.time(), "%Y-%m-%d %H:%M"), source_id = "census_acs5_recipes",
+    result = if (is.character(acs)) "failed" else "checked", evidence = evidence, stringsAsFactors = FALSE)
   log <- do.call(rbind, rows)
   path <- root_path("catalog", "verification_log.csv")
   if (file.exists(path)) log <- rbind(read_table(path), log)

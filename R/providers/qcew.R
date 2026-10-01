@@ -30,8 +30,8 @@ qcew_withheld <- "withheld by BLS to avoid disclosing data of individual employe
 qcew_year <- function(year) {
   memoize(paste0("qcew_", year), function() cached(derived_path("bls_qcew", paste0(year, "_annual"), "qcew.R"), source = "bls_qcew", compute = function() {
     file <- paste0(year, "_annual_singlefile.zip")
-    zip <- cached_download(paste0("https://data.bls.gov/cew/data/files/", year, "/csv/", file),
-                           cache_path("raw", "bls_qcew", file), "bls_qcew")
+    zip <- bls_download(paste0("https://data.bls.gov/cew/data/files/", year, "/csv/", file), file,
+                        path = cache_path("raw", "bls_qcew", file), source = "bls_qcew")
     chr <- readr::col_character()
     num <- readr::col_double()
     d <- readr::read_csv(zip, progress = FALSE, col_types = readr::cols_only(

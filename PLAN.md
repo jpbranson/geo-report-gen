@@ -24,6 +24,10 @@ sessions that built it, and the two reviews of 2026-09-29 are in docs/history/.
     them (the FBI at 8 a second, its key allows 10); `gr.R cache prune`.
   - D. Docs: README limits across sources; per-source detail in docs/sources.md; this file.
   - E. Release check, fresh benchmark, User-Agent 1.0. Open: E15, the tag.
+- Public release review (2026-10-01): LICENSE (GPL-3.0); README quick start from a clean clone
+  (cold madison-ms in Docker: 612 s, 1 GB) and keys table; data-sync moved to docs/data-sync.md;
+  stricter CLI options; fixes to snapshot periods, census comparisons, compare mode, FARS, LAUS
+  (DC), QCEW, the Food Access Atlas in Connecticut. FLIGHT_LOG.md has the details.
 
 ## After 1.0 (not started before the tag)
 
@@ -42,6 +46,28 @@ sessions that built it, and the two reviews of 2026-09-29 are in docs/history/.
     (travis-austin) shows its census counts as context areas.
   - An indexed chart leaves out an area with no value in the base period (the U.S. and the
     Midwest in kc-core's public school enrollment, whose CCD series start later).
+- Open findings of the release review (not fixed for 1.0; file references as of the review):
+  - Statistics: the part-whole adjustment weights by population share, not the share of the
+    metric's denominator its comment describes (geography.R benchmark_entity, stats.R
+    diff_test); distribution error bars take the total's MOE from the bins rather than the
+    published total, and the block has no unavailable rows or zero-total guard (blocks.R
+    distribution); moe_sum counts every zero estimate's MOE (Census guidance keeps only the
+    largest).
+  - Checks: the `benchmarks` setting is not validated and its benchmarks get no part-whole
+    adjustment (geography.R); metric completeness counts rows, not (piece, variable) pairs, and
+    calls a missing variable a boundary change (metrics.R); ZCTA-county parts include water-only
+    intersections (geography.R zcta_county_parts); EAVS national totals omit states without a
+    note; Texas HHSC drops unmatched county names silently.
+  - Behavior: raw fetch errors (HTTP bodies) can reach a report's "What is not shown" table;
+    `batch` and `verify` exit 0 when reports or checks fail; an NHGIS extract that outlasts the
+    30-minute wait is requested again next build; map legend labels are fixed English.
+  - Memory: rebuilding the NDCP table (any edit to R/providers/childcare.R) peaks near 7.3 GB,
+    since readxl parses the whole 92 MB workbook (skipping columns does not help); in Docker's
+    8 GB it fits only alone. Moving NDCP into its own provider file would stop unrelated child
+    care edits from forcing it.
+  - Low: Docker on Linux writes root-owned files; `tar -xf` of a bundle overwrites newer cache
+    files; NHGIS unzips whole archives and sends its key to the download URL the API names;
+    `new --label` is ignored for mode separate; geom_errorbarh is deprecated in ggplot2 4.
 - Speed: austin-core and kc-core take ~40 s each to compose warm, in providers other than the
   ACS; the block-result cache (review item 21) is undecided now that a prose edit of gary-in
   takes 36 s, of which 15 s is rendering.

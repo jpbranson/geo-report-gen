@@ -18,7 +18,8 @@ theme_num <- function(th, key) as.numeric(th[[key]])
 theme_colors <- function(th, key) trimws(strsplit(th[[key]], ",", fixed = TRUE)[[1]])
 
 # Font used for charts. If the configured font is not installed, fall back to the default
-# sans font and warn (the build manifest records the warning).
+# sans font with a warning. This runs while Quarto renders, so the warning reaches neither the
+# console nor build.json; Noto Sans in Docker stands in for the default Segoe UI this way.
 chart_font <- function(th, key = "font_family") {
   family <- th[[key]]
   known <- tryCatch(any(tolower(systemfonts::system_fonts()$family) == tolower(family)), error = function(e) FALSE)
@@ -180,7 +181,9 @@ fmt_change <- function(new, old, units, th) {
     return(list(text = paste0(sign, formatC(abs(d), format = "f", digits = theme_num(th, "digits_percent")),
                               " percentage points"), kind = "points"))
   }
-  if (kind == "year") return(list(text = paste0(sign, round(abs(d)), " years"), kind = "difference"))
+  if (kind == "year") {
+    return(list(text = paste0(sign, round(abs(d)), if (round(abs(d)) == 1) " year" else " years"), kind = "difference"))
+  }
   if (kind == "coefficient") return(list(text = paste0(sign, formatC(abs(d), format = "f", digits = 3)), kind = "difference"))
   if (old == 0) return(list(text = "–", kind = NA))
   pct <- 100 * (new / old - 1)

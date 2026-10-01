@@ -220,7 +220,7 @@ composition_bars <- function(d, txt, th, by_entity) {
 render_block_distribution <- function(b, txt, th) {
   d <- b$data$results
   ents <- unique(d[, c("label", "entity_id")])
-  cols <- entity_colors(th, ents$label, ifelse(ents$entity_id == "study", "study", "benchmark"))
+  cols <- entity_colors(th, ents$label, ifelse(grepl("^bm", ents$entity_id), "benchmark", "study"))
   ggplot(d, aes(x = bin, y = share, fill = label)) +
     geom_col(position = position_dodge(width = 0.8), width = 0.75) +
     geom_errorbar(aes(ymin = pmax(0, share - moe), ymax = share + moe), position = position_dodge(width = 0.8),

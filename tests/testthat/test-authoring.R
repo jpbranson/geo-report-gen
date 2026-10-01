@@ -110,6 +110,12 @@ test_that("bulk export and import update the same records and reject stale expor
   write_table(x, path)
   expect_error(text_import(path), "changed in content since export")
   expect_equal(report_record("key-facts.caption"), edited)
+  # The list of conflicts goes beside the imported file and never replaces it, whatever its name.
+  odd <- sub("[.]csv$", ".CSV", path)
+  write_table(x, odd)
+  expect_error(text_import(odd), "changed in content since export")
+  expect_true("Another edit" %in% read_table(odd)$text)
+  expect_true(file.exists(paste0(tools::file_path_sans_ext(odd), "-conflicts.csv")))
   # After a rebuild, text imported to the default scope stays hidden in gary-in by its report record.
   fake_report("gary-in")
   x <- text_export("gary-in", path)

@@ -87,6 +87,13 @@ retrieved_at <- function(path) {
   file.mtime(path)
 }
 
+# The single period of a current-snapshot source: the year its cached copy was retrieved, or
+# this year when it is not cached yet (it is about to be downloaded). Using the retrieval year
+# rather than the calendar year keeps a cache made in one year usable in the next.
+snapshot_year <- function(path) {
+  as.integer(format(if (file.exists(path)) retrieved_at(path) else Sys.Date(), "%Y"))
+}
+
 # Derived tables built from raw downloads carry the version of the provider code that built
 # them, so changing a parser rebuilds the table from the cached download (no refetch).
 derived_path <- function(source, name, code_file) {
@@ -205,6 +212,7 @@ cached_download <- function(url, path, source) {
   }
   dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
   lock <- filelock::lock(paste0(path, ".lock"), timeout = 30 * 60 * 1000)
+  if (is.null(lock)) stop("Timed out waiting for the cache lock on ", path, " (another gr.R process holds it)")
   on.exit(filelock::unlock(lock), add = TRUE)
   if (file.exists(path) && !wants_refresh(path, source)) return(path)
   run$cache["miss"] <- run$cache["miss"] + 1L
@@ -246,7 +254,16 @@ census_request <- function(dataset_path, query) {
 census_parse <- function(resp, what) {
   check_status(resp, what)
   if (httr2::resp_status(resp) == 204 || !length(resp$body)) return(data.frame())
-  m <- jsonlite::fromJSON(httr2::resp_body_string(resp), simplifyVector = TRUE)
+  body <- httr2::resp_body_string(resp)
+  # An invalid or not yet activated key is redirected to an HTML page (HTTP 200), not an error.
+  if (!startsWith(trimws(body), "[")) {
+    if (grepl("Invalid Key", body, fixed = TRUE)) {
+      stop("The Census Data API rejected CENSUS_API_KEY in .env as invalid. Check the key, or activate it ",
+           "with the link in the email the sign-up sent (https://api.census.gov/data/key_signup.html).", call. = FALSE)
+    }
+    stop("The Census Data API returned no data for ", what, ": ", substr(body, 1, 200), call. = FALSE)
+  }
+  m <- jsonlite::fromJSON(body, simplifyVector = TRUE)
   df <- as.data.frame(m[-1, , drop = FALSE], stringsAsFactors = FALSE)
   names(df) <- m[1, ]
   df

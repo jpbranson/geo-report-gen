@@ -4,6 +4,7 @@
 #   census_cbp child day care establishments with paid employees (NAICS 624410), 1998-2023
 #              (County Business Patterns, all industries, in cbp.R)
 #   tx_hhsc    licensed capacity of Texas child care operations (current snapshot only)
+#   in_fssa    Indiana child care provider listings and capacity (current snapshot only)
 # Preschool enrollment (ACS) and estimated need (ACS B23008) are separate ACS metrics.
 
 # ---- DOL Women's Bureau, National Database of Childcare Prices ----------------------------
@@ -65,8 +66,10 @@ register_provider("dol_ndcp", list(
 # (operation_status Y). Listed family homes (capacity is a placeholder of 3) and residential
 # operations are excluded. Records carry county names (no FIPS) and few coordinates, so values are
 # county totals; a facility's "city" is its mailing city, not a census place.
+tx_capacity_path <- function() cache_path("raw", "tx_hhsc", "capacity_by_county_type.parquet")
+
 tx_capacity <- function() {
-  memoize("tx_capacity", function() cached(cache_path("raw", "tx_hhsc", "capacity_by_county_type.parquet"), source = "tx_hhsc", compute = function() {
+  memoize("tx_capacity", function() cached(tx_capacity_path(), source = "tx_hhsc", compute = function() {
     types <- c("Licensed Center", "Licensed Child-Care Home", "Registered Child-Care Home")
     where <- paste0("operation_status='Y' AND operation_type in(", paste0("'", types, "'", collapse = ","), ")")
     req <- http_request("https://data.texas.gov/resource/bc5r-88dy.json", "tx_hhsc",
@@ -81,8 +84,7 @@ tx_capacity <- function() {
     x$key <- counties$key[match(toupper(trimws(x$county)), base)]
     x$capacity <- as.numeric(x$capacity)
     x$operations <- as.numeric(x$operations)
-    x$retrieved <- format(Sys.Date())
-    as.data.frame(x[, c("key", "county", "operation_type", "accepts_child_care_subsidies", "capacity", "operations", "retrieved")])
+    as.data.frame(x[, c("key", "county", "operation_type", "accepts_child_care_subsidies", "capacity", "operations")])
   }))
 }
 
@@ -102,7 +104,7 @@ tx_fetch <- function(variables, pieces, periods, options = list()) {
   d <- tx_areas()
   d <- d[d$key %in% pieces$key, , drop = FALSE]
   if (!nrow(d)) return(empty_values())
-  yr <- as.integer(substr(tx_capacity()$retrieved[1], 1, 4))
+  yr <- snapshot_year(tx_capacity_path())
   counts <- c("capacity", "operations", "centers", "centers_subsidy", "licensed_homes", "registered_homes")
   out <- lapply(intersect(variables, counts), function(v) {
     data.frame(geo = d$key, name = "", variable = v, estimate = d[[v]], moe = NA_real_, status = "ok",
@@ -126,7 +128,7 @@ register_provider("tx_hhsc", list(
   name = "Texas Health and Human Services Commission, Child Care Regulation operations data (data.texas.gov)",
   geo_types = c("county", "state"),
   fetch = tx_fetch,
-  periods = function(settings, recipe) as.integer(format(Sys.Date(), "%Y")),
+  periods = function(settings, recipe) snapshot_year(tx_capacity_path()),
   period_label = function(period) paste0(period, " (current records)"),
   period_kind = "snapshot",
   availability_note = "Texas licensing data are a current snapshot (no history) and cover Texas only."))
@@ -138,6 +140,7 @@ register_provider("tx_hhsc", list(
 # the page layout stops the build with a message rather than returning wrong numbers. Addresses of
 # homes are left out by law, so values are county totals; the state total is the sum of the counties.
 fssa_url <- "https://www.in.gov/fssa/carefinder/family-resources/forms/child-care-provider-listings"
+fssa_raw_path <- function() cache_path("raw", "in_fssa", "provider-listings.html")
 fssa_types <- c("Licensed Center", "Licensed Home", "Registered Ministry")
 
 fssa_cells <- function(row) {
@@ -166,14 +169,13 @@ fssa_parse <- function(html) {
 
 fssa_listings <- function() {
   memoize("fssa_listings", function() cached(derived_path("in_fssa", "listings", "childcare.R"), source = "in_fssa_provider_listings", compute = function() {
-    page <- cached_download(fssa_url, cache_path("raw", "in_fssa", "provider-listings.html"), "in_fssa_provider_listings")
+    page <- cached_download(fssa_url, fssa_raw_path(), "in_fssa_provider_listings")
     d <- fssa_parse(paste(readLines(page, warn = FALSE, encoding = "UTF-8"), collapse = "\n"))
     counties <- geo_catalog("county", 2024)
     counties <- counties[startsWith(counties$geoid, "18"), ]
     simple <- function(x) gsub("[^A-Z]", "", toupper(x))
     d$key <- counties$key[match(simple(d$county), simple(sub(" County, Indiana$", "", counties$name)))]
     if (anyNA(d$key)) stop("Indiana FSSA counties not recognized: ", paste(unique(d$county[is.na(d$key)]), collapse = ", "), call. = FALSE)
-    d$retrieved <- format(Sys.Date())
     d
   }))
 }
@@ -191,7 +193,7 @@ fssa_fetch <- function(variables, pieces, periods, options = list()) {
   d <- fssa_areas()
   d <- d[d$key %in% pieces$key, , drop = FALSE]
   if (!nrow(d)) return(empty_values())
-  yr <- as.integer(substr(fssa_listings()$retrieved[1], 1, 4))
+  yr <- snapshot_year(fssa_raw_path())
   row <- function(v, estimate, status = "ok", note = "") data.frame(geo = d$key, name = "", variable = v, estimate = estimate, moe = NA_real_,
     status = status, bound = NA_character_, note = note, period = as.character(yr), period_start = yr, period_end = yr,
     source_id = "in_fssa_provider_listings", series = "Current provider listings", stringsAsFactors = FALSE)
@@ -210,7 +212,7 @@ register_provider("in_fssa_provider_listings", list(
   name = "Indiana Family and Social Services Administration, Child Care Provider Listings",
   geo_types = c("county", "state"),
   fetch = fssa_fetch,
-  periods = function(settings, recipe) as.integer(format(Sys.Date(), "%Y")),
+  periods = function(settings, recipe) snapshot_year(fssa_raw_path()),
   period_label = function(period) paste0(period, " (current listings)"),
   period_kind = "snapshot",
   availability_note = "Indiana's provider listings are a current snapshot (no history) and cover Indiana only; registered ministries report no capacity."))

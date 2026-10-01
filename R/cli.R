@@ -19,8 +19,8 @@ Editing
 
 Geography and catalog
   find \"<name>\"               look up geography IDs by name (ambiguous names list all matches)
-  catalog [--check] [--html]  validate the catalog / write catalog/catalog.html
-  verify                      live checks of operational sources (writes catalog/verification_log.csv)
+  catalog [--check] [--html]  validate the catalog (--check: exit 1 on problems; --html: write catalog/catalog.html)
+  verify                      live checks of operational sources (appends to catalog/verification_log.csv)
   test                        run the automated tests (offline, with fixtures in tests/fixtures)
 
 Cache
@@ -36,6 +36,11 @@ Options
   --formats html,typst        output formats (typst = PDF, experimental)
 "
 
+# Options that are switches, and options that take a value (`--key value` or `--key=value`).
+# Anything else is an error, so a mistyped option never runs a build with the defaults.
+cli_switches <- c("offline", "force", "no-render", "check", "html", "yes", "help")
+cli_valued <- c("refresh", "workers", "formats", "geo", "mode", "profile", "subjects", "metrics", "label")
+
 parse_cli <- function(args) {
   flags <- list()
   pos <- character()
@@ -44,11 +49,23 @@ parse_cli <- function(args) {
     a <- args[i]
     if (startsWith(a, "--")) {
       key <- sub("^--", "", a)
-      if (key %in% c("offline", "force", "no-render", "check", "html", "yes")) {
+      value <- NULL
+      if (grepl("=", key, fixed = TRUE)) {
+        value <- sub("^[^=]*=", "", key)
+        key <- sub("=.*$", "", key)
+      }
+      if (key %in% cli_switches) {
+        if (!is.null(value)) stop("--", key, " takes no value", call. = FALSE)
         flags[[key]] <- TRUE
+      } else if (key %in% cli_valued) {
+        if (is.null(value)) {
+          value <- args[i + 1]
+          if (is.na(value) || startsWith(value, "--")) stop("--", key, " needs a value (see Rscript gr.R help)", call. = FALSE)
+          i <- i + 1
+        }
+        flags[[key]] <- value
       } else {
-        flags[[key]] <- args[i + 1]
-        i <- i + 1
+        stop("Unknown option --", key, " (see Rscript gr.R help)", call. = FALSE)
       }
     } else pos <- c(pos, a)
     i <- i + 1
@@ -61,10 +78,19 @@ gr_main <- function(args) {
   f <- p$flags
   refresh <- split_list(f$refresh, ",")
   formats <- split_list(f$formats %||% "html", ",")
-  cmd <- p$cmd %||% "help"
+  if (!length(formats) || !all(formats %in% c("html", "typst"))) {
+    stop("--formats takes html, typst or html,typst", call. = FALSE)
+  }
+  workers <- suppressWarnings(as.integer(f$workers %||% 4))
+  if (is.na(workers) || workers < 1) stop("--workers needs a whole number of 1 or more", call. = FALSE)
+  cmd <- if (isTRUE(f$help)) "help" else p$cmd %||% "help"
+  need_args <- function(n, usage) {
+    if (length(p$args) < n) stop("Usage: Rscript gr.R ", usage, call. = FALSE)
+  }
   switch(cmd,
     build = {
-      if (!length(p$args)) stop("build: give one or more report ids (see config/reports.csv)")
+      need_args(1, "build <report_id>... (ids are in config/reports.csv)")
+      for (id in p$args) report_config(id)   # stop on an unknown id before building anything
       ok <- vapply(p$args, function(id) {
         m <- build_report(id, render = !isTRUE(f[["no-render"]]), offline = isTRUE(f$offline),
                           refresh = refresh, force = isTRUE(f$force), formats = formats)
@@ -72,15 +98,28 @@ gr_main <- function(args) {
       }, logical(1))
       if (!all(ok)) quit(status = 1)
     },
-    batch = batch_build(if (length(p$args)) p$args else NULL, workers = as.integer(f$workers %||% 4),
+    batch = batch_build(if (length(p$args)) p$args else NULL, workers = workers,
                         offline = isTRUE(f$offline), refresh = refresh, force = isTRUE(f$force), formats = formats,
                         render = !isTRUE(f[["no-render"]])),
-    preview = preview_report(p$args[1]),
+    preview = {
+      need_args(1, "preview <report_id>")
+      preview_report(report_config(p$args[1])$report_id)
+    },
     new = new_report(p$args[1], f),
-    harvest = print(harvest_report(p$args[1])$status),
-    `text-export` = text_export(p$args[1], p$args[2]),
-    `text-import` = text_import(p$args[1]),
+    harvest = {
+      need_args(1, "harvest <report_id>")
+      cat(harvest_report(report_config(p$args[1])$report_id)$status, "\n")
+    },
+    `text-export` = {
+      need_args(2, "text-export <report_id> <file.csv>")
+      text_export(p$args[1], p$args[2])
+    },
+    `text-import` = {
+      need_args(1, "text-import <file.csv>")
+      text_import(p$args[1])
+    },
     find = {
+      need_args(1, "find \"<name>\"")
       hits <- find_geographies(p$args[1], as.integer(resolve_settings()$boundary_vintage))
       if (!nrow(hits)) cat("No matches.\n") else print(hits[, c("key", "name", "pop")], row.names = FALSE)
     },

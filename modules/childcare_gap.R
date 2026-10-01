@@ -18,7 +18,8 @@ compute <- function(ctx, options) {
   d <- merge(capacity[, c("entity_id", "label", "value", "period_label")],
              children[, c("entity_id", "value", "moe", "period_label")], by = "entity_id", suffixes = c("_capacity", "_children"))
   d <- d[!is.na(d$value_capacity) & !is.na(d$value_children) & d$value_children > 0, , drop = FALSE]
-  if (!nrow(d)) stop("Licensed capacity is published for Texas counties only.")
+  # This example uses Texas licensing records only (Indiana's capacity has its own library blocks).
+  if (!nrow(d)) stop("This comparison uses Texas licensing records, so it covers Texas counties only.")
   # A ratio of a count without sampling error to an ACS estimate: MOE from the ratio formula
   # with the capacity treated as exact.
   d$per_100 <- 100 * d$value_capacity / d$value_children

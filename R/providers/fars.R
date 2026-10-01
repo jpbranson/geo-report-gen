@@ -27,7 +27,7 @@ fars_years <- 1982:2023
 fars_coordinates_from <- 2001L
 fars_no_aux <- 1996L
 fars_min_located <- 0.95
-fars_county_successor <- c(`12025` = "12086", `46113` = "46102", `51515` = "51019")
+fars_county_successor <- c(`12025` = "12086", `46113` = "46102", `51515` = "51019", `02270` = "02158")
 
 # One member of a FARS ZIP, as character columns with upper-case names.
 fars_member <- function(zip, pattern) {
@@ -123,7 +123,10 @@ fars_year_values <- function(year, pieces, vintage) {
         }
       },
       stop("FARS: unsupported geography type '", type, "'.", call. = FALSE))
-    if (type == "county" && !any(d$county == geoid) && startsWith(geoid, "09") && as.integer(substr(geoid, 3, 5)) > 100) {
+    # Connecticut's planning regions (county codes above 100), alone or in a metro area.
+    counties <- switch(type, county = geoid, cbsa = cbsa_counties(geoid, vintage), character())
+    ct_regions <- counties[startsWith(counties, "09") & suppressWarnings(as.integer(substr(counties, 3, 5))) > 100]
+    if (length(ct_regions) && !any(d$county %in% ct_regions)) {
       note <- "FARS codes Connecticut crashes by the state's former counties, not its planning regions"
       sel <- NULL
     }

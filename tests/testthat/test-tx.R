@@ -4,7 +4,7 @@ test_that("Texas licensing counts operations by type, subsidy acceptance and cap
   assign("tx_capacity", function() data.frame(key = c("county:48453", "county:48453", "county:48453", "county:48491"),
     county = c("TRAVIS", "TRAVIS", "TRAVIS", "WILLIAMSON"), accepts_child_care_subsidies = c("Y", "N", "N", "Y"),
     operation_type = c("Licensed Center", "Licensed Center", "Licensed Child-Care Home", "Licensed Center"),
-    capacity = c(100, 50, 12, 80), operations = c(2, 1, 1, 1), retrieved = "2026-09-30"), envir = globalenv())
+    capacity = c(100, 50, 12, 80), operations = c(2, 1, 1, 1)), envir = globalenv())
   assign("acs_fetch", function(variables, pieces, releases) data.frame(geo = "county:48453", variable = c("B01001_003", "B01001_027"),
     estimate = c(20, 30)), envir = globalenv())
   st <- resolve_settings()

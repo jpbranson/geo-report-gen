@@ -28,7 +28,7 @@ census with the study area's present outline; no block uses tract boundaries yet
 
 ## What it would add
 
-| Topic | The project starts | NHGIS starts | NHGIS time series tables | Levels |
+| Topic | The project started (before NHGIS) | NHGIS starts | NHGIS time series tables | Levels |
 |---|---|---|---|---|
 | Population | 1900 counties; 2000 places, tracts | 1790 counties; 1970 all levels | A00; AV0 | A00: nation, state, county. AV0: all 8 |
 | Age and sex, race, Hispanic origin, households | 2000; ACS 2005-2009 | 1970 | B58, B18, A35, AR5 | all 8 |

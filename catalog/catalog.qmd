@@ -72,8 +72,8 @@ Known gaps and cautions:
 - **Not yet cataloged or verified.** CPS ASEC and the Supplemental Poverty Measure, SNAP
   administrative data, WIC and school meals, Medicaid enrollment, HRSA UDS patient counts, a
   crosswalk from homelessness Continuums of Care to counties, and 1990s county intercensal
-  estimates. The Census Data API has no 1990 census tables, so city population histories
-  start in 2000 unless a report adds cited historical figures as context.
+  estimates. The Census Data API has no 1990 census tables; city population histories from
+  1970 to 2000 come from IPUMS NHGIS (which needs `IPUMS_API_KEY`).
 
 ## Subjects
 

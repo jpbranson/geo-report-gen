@@ -12,4 +12,4 @@ local({
              setdiff(list.files(r_dir, pattern = "\\.R$", full.names = TRUE), c(first, file.path(r_dir, "load.R"))))
   for (f in files) sys.source(f, envir = globalenv())
 })
-invisible(loaded_inputs_hash())  # the code and catalog as loaded (see compose_key())
+invisible(loaded_inputs_hash())  # the code and catalog as loaded (see loaded_inputs_hash() in R/build.R)

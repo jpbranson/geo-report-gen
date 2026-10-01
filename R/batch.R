@@ -30,7 +30,7 @@ batch_build <- function(ids = NULL, workers = 4, offline = FALSE, refresh = char
       m <- previous_build(id)
       built <- as.POSIXct(m$built_at %||% NA_character_, format = "%Y-%m-%dT%H:%M:%S%z")
       composed[[id]] <- if (!is.na(built) && built >= trunc(started, "secs")) m else
-        list(status = "failed", error = "its compose process stopped before building it")
+        list(status = "failed", error = "its compose process stopped before building it (see the batch output)")
     }
   }
   compose_secs <- as.numeric(difftime(Sys.time(), started, units = "secs"))
@@ -38,7 +38,7 @@ batch_build <- function(ids = NULL, workers = 4, offline = FALSE, refresh = char
     m <- composed[[id]]
     identical(m$status, "ok") && (force || isTRUE(m$needs_render) || !all(file.exists(report_outputs(id, formats))))
   }, logical(1))]
-  note("Rendering ", length(todo), " of ", length(ids), " reports with up to ", workers, " parallel Quarto processes (phase 2)")
+  if (render) note("Rendering ", length(todo), " of ", length(ids), " reports with up to ", workers, " parallel Quarto processes (phase 2)")
   t_render <- Sys.time()
   render_results <- render_pool(todo, workers, formats)
   render_secs <- as.numeric(difftime(Sys.time(), t_render, units = "secs"))
@@ -96,6 +96,13 @@ compose_pool <- function(ids, procs, offline = FALSE, force = FALSE, formats = "
     for (i in seq_along(running)) {
       lines <- if (alive[i]) running[[i]]$read_output_lines() else running[[i]]$read_all_output_lines()
       if (length(lines)) cat(lines, sep = "\n")
+      # A negative status is the signal that ended the process; the system kills a process that
+      # runs out of memory, which several processes building large tables at once can do.
+      status <- if (alive[i]) 0L else running[[i]]$get_exit_status()
+      if (!is.na(status) && status < 0) {
+        note("A compose process was killed (signal ", -status, "), most often for lack of memory; ",
+             "its remaining reports are marked failed. Run the batch again with fewer --workers.")
+      }
     }
     running <- running[alive]
   }

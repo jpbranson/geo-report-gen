@@ -10,8 +10,8 @@ services:
     volumes:
       - .:/app
     ports:
-      - "4848:4848"
+      - "127.0.0.1:4848:4848"   # preview, reachable from this machine only
     environment:
-      # Local time, as on the host: cache times and "retrieved on" dates in reports use it.
-      # Set TZ in the shell to override.
+      # Time zone of cache times and "retrieved on" dates in reports: Central time unless TZ is
+      # set in the shell (e.g. TZ=America/New_York docker compose run ...).
       TZ: ${TZ:-America/Chicago}

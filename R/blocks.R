@@ -6,7 +6,8 @@
 #   sources   provenance rows (source_id, detail) for the sources appendix
 #   unavailable  rows explaining values that could not be shown (and why)
 # and a renderer render_block_<k>(block, text, theme) in charts.R / maps.R. Adding a kind means
-# writing those two functions; nothing else dispatches on kind names.
+# writing those two functions. (compose.R also treats a few kinds specially: the sources and
+# availability appendices, history, and maps.)
 
 # Settings keys may be overridden per block via the manifest `options` column; any other
 # option (e.g. index=first) is a block option.
@@ -492,7 +493,8 @@ benchmark_sentence <- function(ctx, res, metric_id, bms, focus, last, units, sur
     if (!nrow(b) || is.na(b$value)) next
     share <- if (identical(focus$id, "study")) dependence_share(metric_id, bm, settings) else 0
     t <- diff_test(last$value, last$moe, b$value, b$moe, part_share = share)
-    testable <- !is.na(last$moe) && !is.na(b$moe)
+    # Census counts carry an MOE of 0: they are compared at face value, not tested.
+    testable <- survey && !is.na(last$moe) && !is.na(b$moe)
     key <- if (testable && !t$significant) "ns" else
       if (!testable && survey) "untested" else
         if (!testable && fmt_value(last$value, units, th) == fmt_value(b$value, units, th)) {
@@ -621,8 +623,11 @@ figure_notes <- function(res, metrics, primary, ctx, settings) {
   # A city's values over time follow its boundaries at each date, so annexations are part of change,
   # unless the source assigns every year to the same boundaries (LODES census blocks).
   prov <- get_provider(recipe_for(primary)$source_id)
-  legal_area <- any(ctx$study$pieces$type %in% c("place", "place_part", "cousub")) &&
-    length(unique(res$period[res$entity_id == "study"])) > 1
+  studies <- ctx$studies %||% list(ctx$study)
+  study_ids <- vapply(studies, function(s) s$id, "")   # "study", or "a1", "a2"... in compare mode
+  study_types <- unlist(lapply(studies, function(s) s$pieces$type))
+  legal_area <- any(study_types %in% c("place", "place_part", "cousub")) &&
+    length(unique(res$period[res$entity_id %in% study_ids])) > 1
   if (legal_area && !is.null(prov$fixed_boundaries)) {
     legend <- c(legend, phrase(ctx, "note_fixed_area", list(boundary_year = prov$fixed_boundaries)))
   } else if (legal_area) legend <- c(legend, phrase(ctx, "note_legal_area", list()))
@@ -788,7 +793,9 @@ composition_change <- function(ctx, study, now, drawn, latest_p, latest_period) 
   cols <- c("category", "value", "moe", "period_label", "period_start", "period_end")
   moves <- merge(firsts[, cols], now[, cols], by = "category", suffixes = c("_1", "_2"))
   moves$diff <- moves$value_2 - moves$value_1
-  moves$sig <- diff_test(moves$value_2, moves$moe_2, moves$value_1, moves$moe_1)$significant
+  tests <- diff_test(moves$value_2, moves$moe_2, moves$value_1, moves$moe_1)
+  if (!any(tests$testable)) return("")   # without margins of error no change can be called significant
+  moves$sig <- tests$significant
   big <- moves[moves$sig, , drop = FALSE]
   big <- big[order(-abs(big$diff)), , drop = FALSE]
   if (!nrow(big)) {

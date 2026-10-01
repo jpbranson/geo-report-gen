@@ -141,7 +141,8 @@ source's own documentation, coverage, suppression rules and checks are in the ca
   no value. It still uses Connecticut's former counties, so Connecticut planning regions have no
   Atlas values.
 - The USDA Food Access Research Atlas (SRAM 2025, LRAM 2019) is published for tracts; counties
-  and larger areas are sums of their tracts.
+  and larger areas are sums of their tracts. Its Connecticut tracts carry the former counties'
+  codes, so planning regions, their tracts and metro areas that include them have no values.
 
 ## Civic life and government
 

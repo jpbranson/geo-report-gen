@@ -133,9 +133,11 @@ write_table <- function(df, path) {
   replace_file(tmp, path)
 }
 
-# Atomic replacement: write elsewhere, then rename over the target.
+# Atomic replacement: write elsewhere, then rename over the target (atomic on POSIX, so a reader
+# never finds the file missing). Where a rename cannot replace the target, delete it first.
 replace_file <- function(tmp, path) {
-  if (file.exists(path)) unlink(path)
+  if (suppressWarnings(file.rename(tmp, path))) return(invisible(path))
+  unlink(path)
   if (!file.rename(tmp, path)) {
     ok <- file.copy(tmp, path, overwrite = TRUE)
     unlink(tmp)
@@ -166,8 +168,9 @@ write_json_file <- function(x, path) {
 
 # Data providers register themselves here (see R/providers/). A provider is a list with:
 #   name       source name for notes and the sources appendix
-#   fetch(variables, pieces, periods, options) -> long data: geo, period, period_start,
-#       period_end, variable, estimate, moe, status, bound, source_id
+#   fetch(variables, pieces, periods, options) -> long data: geo, name, period, period_start,
+#       period_end, variable, estimate, moe, status, bound, note, source_id (see empty_values());
+#       optionally series
 #   geo_types  geography types the source publishes
 #   periods(settings, recipe) -> the periods available/selected for a metric
 #   period_label(period) -> display label (e.g. "2020-2024" for an ACS release)

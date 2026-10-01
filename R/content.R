@@ -98,6 +98,13 @@ new_report <- function(report_id, flags) {
   reports <- report_table()
   if (report_id %in% reports$report_id) stop("Report '", report_id, "' already exists in config/reports.csv.", call. = FALSE)
   if (is_blank(flags$geo)) stop("new: give the geography, e.g. --geo place:1827000", call. = FALSE)
+  if (!(flags$mode %||% "single") %in% c("single", "union", "compare", "separate")) {
+    stop("new: --mode must be single, union, compare or separate.", call. = FALSE)
+  }
+  profile <- flags$profile %||% "general"
+  if (!file.exists(root_path("profiles", paste0(profile, ".csv")))) {
+    stop("new: unknown profile '", profile, "' (the profiles are the files in profiles/).", call. = FALSE)
+  }
   row <- data.frame(report_id = report_id, geography = flags$geo, mode = flags$mode %||% "single",
                     label = flags$label %||% "", profile = flags$profile %||% "general", manifest = "",
                     vintage = "", enabled = "TRUE", note = "", stringsAsFactors = FALSE)

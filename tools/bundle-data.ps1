@@ -1,6 +1,6 @@
 <#
 Bundle the data cache and rendered reports into one tar file, to move them to another machine
-(Windows, Mac or Linux; see README "Moving the data to another machine").
+(Windows, Mac or Linux; see docs/data-sync.md).
 
   .\tools\bundle-data.cmd [-NoReports] [-OutDir <folder>]
 

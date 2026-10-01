@@ -1,8 +1,9 @@
 # Editing round trip on a real report: inline edits to prose, a caption and an axis label in
 # report.qmd; a bulk edit through CSV; sections reordered by moving manifest rows; then a data
 # refresh and rebuild, after which every edit must still be there. Finally a conflicting edit
-# is attempted. Runs in a temporary copy of the project (the shared cache supplies the data)
-# and prints each check.
+# is attempted. Runs in a temporary copy of the project and prints each check. The data come
+# from the project's own cache/, and the refresh step downloads census_govfin into it again, so
+# it needs the network and the keys in .env.
 #   Rscript demos/round_trip.R
 root <- normalizePath(".", winslash = "/")
 work <- file.path(tempdir(), "gr-round-trip")

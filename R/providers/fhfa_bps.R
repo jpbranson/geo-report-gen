@@ -2,7 +2,7 @@
 #  - FHFA annual House Price Indexes (all-transactions, "developmental", nominal), counties,
 #    states and the nation, 1975 onward. Indexes are not additive: combined areas get no value.
 #  - Census Bureau Building Permits Survey, annual new housing units authorized, counties
-#    (2000 onward) and permit-issuing places (2007 onward, when FIPS place codes appear).
+#    (1990 onward) and permit-issuing places (2007 onward, when FIPS place codes appear).
 
 fhfa_read <- function(level) {
   file <- paste0("hpi_at_", level, ".xlsx")

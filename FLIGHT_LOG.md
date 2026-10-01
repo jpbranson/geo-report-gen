@@ -21,7 +21,7 @@ The log of the sessions up to 1.0 is docs/history/FLIGHT_LOG.md.
    already be in cache/raw/fema_nri/. After `renv.lock` changes: `docker compose build`.
 4. Moving cache/ and reports/ between the machines: `sh tools/data-sync.sh` (Mac) or
    `.\tools\data-sync.cmd` (Windows) syncs both ways with the Cloudflare R2 bucket, when no build
-   is running; README "Moving the data". Delete scratch folders under reports/ first (it syncs).
+   is running; docs/data-sync.md. Delete scratch folders under reports/ first (it syncs).
 5. Proving a refactoring changes nothing: `tools/fingerprint.R <before.rds>`, change, then
    `<after.rds>` and `--compare` (0 differences). Visual review: the charts are base64 images in
    reports/<id>/report.html and can be extracted into contact sheets.
@@ -41,3 +41,38 @@ The log of the sessions up to 1.0 is docs/history/FLIGHT_LOG.md.
   catalog.html renders; tests 416. docs/REQUIREMENTS.md (the brief) and docs/history/ are records,
   left as they are.
 - Resume point: E15 (tag v1.0.0, push) on the user's go-ahead.
+
+## 2026-10-01 (Claude, Mac): public release review (before E15)
+
+- The user asked for a release-readiness pass for the public 1.0 on GitHub: newcomer walkthrough
+  from a clean clone, clarity of docs/code/CLI text, release blockers. No push, tag or publish.
+- Resume point: audit in progress (README, CLI, docs, code, tests, secrets, license).
+- 14:55 Baseline: tests 416 pass. Clean clone + Docker: no .env gives a clear Census-key error
+  (README wrongly called every key optional); with keys, a cold build of madison-ms (IPUMS and
+  FEMA files seeded) took 612 s, 771 requests, 1.05 GB, 0 warnings, and its report.qmd equals the
+  warm one but for retrieval dates. Done: LICENSE (GPL-3.0, the user's choice); README quick
+  start, keys table, License section; data-sync moved to docs/data-sync.md; build prints a
+  "composing" line; snapshot sources (HRSA, Texas HHSC, Indiana FSSA) take their period from the
+  retrieval year (they went blank every 1 January), with a test.
+- Resume point: CLI argument checks, Census invalid-key message, provider and text fixes from
+  the four reviews (list in the final report), then full test, catalog --check, batch.
+- 15:20 Done since: CLI rejects unknown options and missing values, checks --workers/--formats
+  and missing arguments (tests in test-cli.R); clear invalid-Census-key error; text-import keeps
+  the import file whatever its name and checks for a build; verify survives a failing ACS recipe
+  check; census counts compared at face value (MOE 0 made every difference "higher"); compare-mode
+  distribution colors and legal-boundary note; FARS Connecticut metros and Kusilvak; LAUS for DC;
+  QCEW contact check; Food Access Atlas Connecticut guard; render key includes content.R and
+  blocks.R; wording in text.csv and the child care module; stale comments; compose.yaml binds
+  preview to 127.0.0.1. Fresh image build from Dockerfile: 120 s, ok.
+- Resume point: full test run, catalog --check, a batch rebuild of the samples to compare
+  reports before/after, then the final report.
+- 15:20 Verification: tests 438 pass (on an image built from scratch too); catalog --check clean.
+  All 13 sample builds rebuilt offline in a scratch clone (copy of cache/ and reports/): the only
+  differences are the intended wording fixes, the annexation note in tx-cities and the Connecticut
+  reason in ct-capitol's food access block. The first batch with 4 workers had 3 compose
+  processes killed for lack of memory (Docker's 8 GB), rebuilding derived tables after the
+  provider edits; batch now reports such kills and README says to use --workers 2. The NDCP table
+  (ndcp_long-ff43c37e, identical values) was built alone and copied into cache/ so the next build
+  here does not hit that limit. Two misdirected runs (a backgrounded `cd`) built in this checkout
+  instead of the clone; both were killed mid-compose and only added derived cache entries.
+- Resume point: E15 (tag v1.0.0) on the user's go-ahead; open findings are in PLAN.md "After 1.0".

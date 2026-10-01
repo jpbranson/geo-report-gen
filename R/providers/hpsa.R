@@ -15,18 +15,19 @@
 
 hpsa_base <- "https://data.hrsa.gov/DataDownload/DD_Files/"
 hpsa_disciplines <- c(PC = "BCD_HPSA_FCT_DET_PC.csv", DH = "BCD_HPSA_FCT_DET_DH.csv", MH = "BCD_HPSA_FCT_DET_MH.csv")
+hpsa_raw_path <- function(discipline) cache_path("raw", "hrsa_hpsa", hpsa_disciplines[[discipline]])
 
 # The designated components of one discipline: HPSA ID, county FIPS code, score.
 hpsa_components <- function(discipline) {
   memoize(paste0("hpsa_", discipline), function() cached(derived_path("hrsa_hpsa", paste0("designated_", discipline), "hpsa.R"), source = "hrsa_hpsa", compute = function() {
     file <- hpsa_disciplines[[discipline]]
-    path <- cached_download(paste0(hpsa_base, file), cache_path("raw", "hrsa_hpsa", file), "hrsa_hpsa")
+    path <- cached_download(paste0(hpsa_base, file), hpsa_raw_path(discipline), "hrsa_hpsa")
     d <- suppressMessages(suppressWarnings(readr::read_csv(path, col_types = readr::cols(.default = readr::col_character()), progress = FALSE)))   # the files end each row with a comma
     d <- d[d$`HPSA Status` %in% "Designated", , drop = FALSE]
     county <- ifelse(nzchar(d$`State and County Federal Information Processing Standard Code`) & !is.na(d$`State and County Federal Information Processing Standard Code`),
                      d$`State and County Federal Information Processing Standard Code`, d$`Common State County FIPS Code`)
     data.frame(id = d$`HPSA ID`, county = county, score = suppressWarnings(as.numeric(d$`HPSA Score`)),
-               retrieved = format(Sys.Date()), stringsAsFactors = FALSE)
+               stringsAsFactors = FALSE)
   }))
 }
 
@@ -36,7 +37,7 @@ hpsa_fetch <- function(variables, pieces, periods, options = list()) {
   for (v in variables) {
     d <- hpsa_components(substr(v, 1, 2))
     d <- d[!is.na(d$county) & nchar(d$county) == 5, , drop = FALSE]
-    yr <- as.integer(substr(d$retrieved[1], 1, 4))
+    yr <- snapshot_year(hpsa_raw_path(substr(v, 1, 2)))
     est <- vapply(seq_len(nrow(pieces)), function(i) {
       type <- pieces$type[i]
       geoid <- pieces$geoid[i]
@@ -58,7 +59,7 @@ register_provider("hrsa_hpsa", list(
   name = "Health Resources and Services Administration, Health Professional Shortage Areas (current designations)",
   geo_types = c("nation", "region", "division", "state", "county", "cbsa"),
   fetch = hpsa_fetch,
-  periods = function(settings, recipe) as.integer(format(Sys.Date(), "%Y")),
+  periods = function(settings, recipe) snapshot_year(hpsa_raw_path(substr(recipe$numerator, 1, 2))),
   period_label = function(period) paste0(period, " (current designations)"),
   period_kind = "snapshot",
   series = "HRSA shortage area designations",

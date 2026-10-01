@@ -1,5 +1,5 @@
 # Census Data API provider: ACS 5-year detailed tables (2009-2024 releases) and the
-# decennial census (2000 SF1, 2010 SF1, 2020 PL/DHC).
+# decennial census (2000 SF1, 2010 SF1, 2020 DHC).
 #
 # Requests are grouped into "scopes" that many reports share: all counties nationwide,
 # all places in one state, all tracts in one county, the county parts of one place, etc.

@@ -1,133 +1,95 @@
 # geo-report-gen
 
-Reproducible community reports for U.S. geographies, in the spirit of datausa.io. A report
-covers one area, a list of areas side by side, or a union of areas. For each subject it pairs
-current conditions with the longest comparable history the sources support, compares the area
-with its parent geographies where that is meaningful, and states uncertainty and gaps plainly.
-The output of every report is an editable Quarto document (`report.qmd`) and its HTML rendering.
+Reproducible community reports for U.S. places, counties, states and combinations of them, in
+the spirit of datausa.io. It is for analysts, planners and community organizations who need a
+sourced profile of an area that they can check, edit and rebuild when new data are released.
 
-## Setup
+A report covers one area, several areas side by side, or a union of areas. For each subject
+(demographics, income, housing, work, education, health, child care, public safety and more) it
+pairs current conditions with the longest comparable history the sources support, compares the
+area with the county, state, region and nation around it, and states margins of error and gaps
+plainly. Data come from 34 public sources (the Census Bureau, BLS, BEA, CDC, FBI and others),
+downloaded when first needed and cached. Each report is an editable Quarto document
+(`reports/<id>/report.qmd`) rendered to HTML, and optionally to PDF.
 
-1. R 4.6 and Quarto 1.4 or later. Quarto is found on the PATH, in the usual RStudio/Positron
-   install folders, or through `QUARTO_PATH`.
-2. Restore the package library: `Rscript -e "renv::restore()"`.
-3. Create `.env` in the project root (it is git-ignored; never commit it):
+## Quick start (Docker)
+
+You need git, [Docker Desktop](https://www.docker.com/products/docker-desktop/) and a free
+[Census API key](https://api.census.gov/data/key_signup.html).
+
+1. Clone the repository and put your key in `.env` at its root (git-ignored; never commit it):
 
    ```
-   CENSUS_API_KEY=<free key from https://api.census.gov/data/key_signup.html>
-   GR_HTTP_CONTACT=<your email address>
-   DATA_GOV_API_KEY=<free key from https://api.data.gov/signup/>
-   IPUMS_API_KEY=<free key from https://account.ipums.org/api_keys>
+   git clone https://github.com/jpbranson/geo-report-gen.git
+   cd geo-report-gen
+   echo "CENSUS_API_KEY=<your key>" > .env
    ```
 
-   The Census Data API needs the key for every request. BLS rejects automated downloads that
-   carry no contact, so the email is sent in the User-Agent of BLS requests, and only those. The
-   FBI Crime Data Explorer needs the api.data.gov key, sent only as a request header (never in
-   URLs or logs). Census years 1970-2000 come from IPUMS NHGIS, which needs the IPUMS key (sent
-   only as a request header) and an IPUMS account registered for NHGIS
-   (https://uma.pop.umn.edu/nhgis/registration/new). The first build requests the extracts, which
-   IPUMS takes about 5 minutes each to produce; adding an NHGIS table to the catalog requests a
-   new extract. Without a key, the sources that need it are listed in each report's "What is not
-   shown" appendix with the reason, and every other value is still shown.
-4. Run commands from the project root. On Windows, call the R 4.6 `Rscript.exe` explicitly if
-   another R version is first on the PATH.
+2. Build a sample report, then open `reports/madison-ms/report.html` in a browser:
 
-### Docker (instead of steps 1, 2 and 4)
+   ```
+   docker compose run --rm gr build madison-ms
+   ```
 
-With Docker Desktop, the only other setup is `.env` (step 3). From the project root:
+   The first run builds the Docker image (a few minutes) and downloads the data the report needs
+   into `cache/`: about 10 minutes and 1 GB, mostly national files that later reports reuse.
+   The build prints nothing while it downloads; that is expected.
 
-```
-docker compose run --rm gr build gary-in
-docker compose run --rm --service-ports gr preview gary-in    # then open http://localhost:4848
-```
+3. Make a report for your own area: look up its ID, add the report, build it (under 3 minutes
+   with the cache from step 2).
 
-`compose.yaml` runs `Rscript gr.R <command>` in the image built from `Dockerfile` (R 4.6.1,
-the packages in `renv.lock`, Quarto 1.9.38 and the system libraries), which the first run builds
-in a few minutes on Intel/AMD machines or Apple Silicon. The checkout is mounted at `/app`, so
-`.env`, the configuration, `cache/` and `reports/` are the host's own files; a cache made on
-Windows works unchanged. Values and `report.qmd` are identical to a Windows build. Differences:
+   ```
+   docker compose run --rm gr find "Boulder, Colorado"
+   #            key                     name    pop
+   #   county:08013 Boulder County, Colorado 328961
+   #  place:0807850   Boulder city, Colorado 106433
+   docker compose run --rm gr new boulder-co --geo place:0807850
+   docker compose run --rm gr build boulder-co
+   ```
 
-- Charts use Noto Sans, since the default theme's Segoe UI is a Windows font.
-- FEMA's server refuses downloads from Linux clients (HTTP 403), so the National Risk Index
-  file must already be in `cache/raw/fema_nri/` (copy it from a Windows build).
-- Times and dates (cache times, "retrieved on") use `TZ` from `compose.yaml`: Central time
-  unless `TZ` is set in the shell.
+   `new` takes `--profile` (`general`, `early-childhood`, `economic-development`, `exhaustive`)
+   and `--mode` for a list of areas; see [Geography](#geography) and [Commands](#commands).
+
+`docker compose run --rm gr <command>` runs `Rscript gr.R <command>` (see [Commands](#commands))
+in an image with R 4.6.1, the packages in `renv.lock` and Quarto 1.9.38. The project folder is
+mounted into the container, so `.env`, the configuration, `cache/` and `reports/` stay on your
+machine. To preview edits live: `docker compose run --rm --service-ports gr preview <id>`, then
+open http://localhost:4848. Differences from running R directly:
+
+- Charts use Noto Sans instead of the default theme's Segoe UI, a Windows font.
+- FEMA's server refuses downloads from Linux (HTTP 403), so National Risk Index values are shown
+  only if the file is already in `cache/raw/fema_nri/` (from a build outside Docker).
+- Dates and times (cache times, "retrieved on") use `TZ`: Central time unless you set `TZ` in the
+  shell.
 - After `renv.lock` changes, rebuild the image with `docker compose build`.
 
-### Moving the data to another machine
+## Setup without Docker
 
-The downloaded data (`cache/`, several GB) and rendered reports (`reports/`) are not in git. Keep
-them in step through a Cloudflare R2 bucket with `data-sync`, or carry them in a tar file.
+1. Install R 4.6 and Quarto 1.4 or later. Quarto is found on the PATH, in the usual
+   RStudio/Positron install folders, or through `QUARTO_PATH`. On Linux, the spatial packages
+   need the system libraries listed in `Dockerfile` (GDAL, GEOS, PROJ, udunits and others).
+2. In the project root, install the locked packages: `Rscript -e "renv::restore()"`.
+3. Create `.env` as in the quick start, then `Rscript gr.R build madison-ms`. Run every command
+   from the project root. On Windows, call R 4.6's `Rscript.exe` explicitly if another R version
+   is first on the PATH.
 
-#### Sync through Cloudflare R2
+## Keys
 
-Run this on a machine when you start working there and again when you stop, while no build is
-running:
+`.env` holds your keys. Each is sent only to its own service and never written to logs, the
+cache or reports.
 
-```
-sh tools/data-sync.sh                      # Mac or Linux
-.\tools\data-sync.cmd                      # Windows (Command Prompt or PowerShell)
-```
+| Key | Needed for |
+|---|---|
+| `CENSUS_API_KEY` | Required: geography lookup and every Census Bureau table. [Free key](https://api.census.gov/data/key_signup.html). |
+| `GR_HTTP_CONTACT` | Your email address. BLS (prices, employment, wages) refuses automated downloads without a contact, so it is sent in the User-Agent of BLS requests only. |
+| `DATA_GOV_API_KEY` | FBI crime data. [Free key](https://api.data.gov/signup/). |
+| `IPUMS_API_KEY` | Census years 1970-2000 (IPUMS NHGIS). [Free key](https://account.ipums.org/api_keys); the account must also be [registered for NHGIS](https://uma.pop.umn.edu/nhgis/registration/new). The first build requests data extracts, which IPUMS takes about 5 minutes each to produce. |
 
-It syncs `cache/raw/`, `cache/geo/` and `reports/` both ways with rclone's `bisync`: new, changed
-and deleted files on either machine reach the other. `cache/metrics/` stays local (builds
-recompute it), as do lock files and partial downloads; `tools/data-sync-filters.txt` holds the
-rules. Safeguards:
+Without an optional key, a report lists the sources that need it under "What is not shown and
+why" and shows everything else.
 
-- Files the sync deletes or overwrites in the bucket are moved to `trash/<date-time>/` in the
-  bucket, kept 30 days by the lifecycle rule below. To restore, copy them back into the project
-  folder and sync again: `rclone copy gr-r2:geo-report-data/trash/<date-time> .`
-- A file changed on both machines keeps the newer copy; the other becomes `<name>.conflict1`.
-- A run that would delete more than half the files stops; add `--force` if that is intended.
-- The first run on a machine merges both sides without deleting anything.
-
-Other `rclone bisync` options can be added, e.g. `--dry-run` to see what would change. If rclone
-stops and asks for a resync (after `data-sync-filters.txt` changes, or a damaged state), run it
-again with `--resync-mode newer`, which merges both sides like a first run. The sync state is
-kept in `.data-sync/` (git-ignored). `GR_SYNC_REMOTE` selects another bucket or rclone remote
-(default `gr-r2:geo-report-data`).
-
-One-time setup:
-
-1. In the Cloudflare dashboard, turn on R2 (the free tier covers 10 GB with no download fees, but
-   Cloudflare asks for a payment card) and create a bucket named `geo-report-data`. In the
-   bucket's settings, add an object lifecycle rule: prefix `trash/`, delete objects 30 days
-   after upload. With Cloudflare's `wrangler` CLI, the same is
-   `npx wrangler r2 bucket create geo-report-data` and
-   `npx wrangler r2 bucket lifecycle add geo-report-data trash-30-days trash/ --expire-days 30`.
-2. R2 > Manage API tokens > Create API token: "Object Read & Write", applied to the
-   `geo-report-data` bucket only. Note the access key ID, the secret access key and the S3
-   endpoint (`https://<account id>.r2.cloudflarestorage.com`). One token per machine lets you
-   revoke one without touching the other.
-3. On each machine, install rclone 1.66 or later (`brew install rclone` on a Mac;
-   `winget install Rclone.Rclone` on Windows, then open a new terminal) and add the remote:
-
-   ```
-   rclone config create gr-r2 s3 provider=Cloudflare region=auto no_check_bucket=true endpoint=https://<account id>.r2.cloudflarestorage.com access_key_id=<key id> secret_access_key=<secret>
-   ```
-
-   The keys are saved in rclone's own configuration in your user profile, never in the project.
-   (`rclone config` asks for the same settings one by one and keeps the keys out of your shell
-   history.)
-4. Run `data-sync` first on the machine with the most data: it uploads everything (about 6 GB).
-
-#### Tar bundle
-
-To carry the data on a drive instead, bundle it into one tar file in your Downloads folder, then
-extract it in the other machine's project folder after `git pull`:
-
-```
-sh tools/bundle-data.sh                    # Mac or Linux
-.\tools\bundle-data.cmd                    # Windows (Command Prompt or PowerShell)
-tar -xf <path to geo-report-data-...tar>   # on the receiving machine, from the project folder
-```
-
-The archive (`geo-report-data-<date>-<commit>.tar`, with a `.sha256` checksum next to it) never
-contains `.env`: copy your keys separately or create `.env` again. Options: `--no-reports` /
-`-NoReports` to leave out `reports/`, and an output folder (`-OutDir <folder>` on Windows). Cached
-files are keyed by the code's content and line endings are fixed to LF, so the receiving machine
-reuses them at the same or a later commit; the first `gr.R batch` there should make no requests
-for data already bundled. A bundle over 4 GB does not fit on a FAT32 USB drive (use exFAT or NTFS).
+The downloaded data (`cache/`, several GB once many reports are built) and the reports are not in
+git. To keep them in step between two machines, see [docs/data-sync.md](docs/data-sync.md).
 
 ## Commands
 
@@ -142,7 +104,7 @@ Everything runs through one entry point, `Rscript gr.R <command>`:
 | `harvest <id>` | save inline edits without rebuilding |
 | `text-export <id> <file.csv>` / `text-import <file.csv>` | bulk text editing in a spreadsheet |
 | `find "<name>"` | look up geography IDs by name |
-| `catalog [--check] [--html]` | validate the catalog, write `catalog/catalog.html` |
+| `catalog [--check] [--html]` | validate the catalog (`--check`: exit 1 on problems); `--html` writes `catalog/catalog.html` |
 | `verify` | live checks of every operational source (appends to `catalog/verification_log.csv`) |
 | `test` | automated tests (offline, with fixtures) |
 | `cache prune [--yes]` | list (with `--yes`, delete) derived files that newer versions replaced |
@@ -151,6 +113,12 @@ Options: `--offline` (cache only), `--refresh <source,...>` (re-download the raw
 `cache/raw/<source>` folders, e.g. `census_acs5`, `bls`, `bea`), `--force` (recompose and re-render),
 `--no-render`, `--workers <n>`, `--formats html,typst`. A build whose inputs, code and raw
 files are unchanged since its last compose reuses that compose (build.json says so).
+
+Memory: a compose process can use 3-4 GB while it builds large tables (on a cold cache, or
+after a provider's code changes). `batch` runs 4 at once by default (12-16 GB at worst); with
+less, such as Docker Desktop's 8 GB (Settings > Resources), use `--workers 2`. A process the
+system kills for lack of memory is reported in the batch output, and its reports are marked
+failed.
 
 The cache grows unless pruned. An edit to a provider's code gives its derived tables
 (`cache/raw/<source>/<name>-<version>.parquet`) a new version, built from the cached downloads, and
@@ -333,8 +301,8 @@ The catalog of subjects, sources and metrics, with verification status and known
 
 - `Rscript gr.R test`: automated tests of the statistics, aggregation rules, geography
   (unions, overlaps, benchmarks), settings and text precedence, CSV round trips, caching, and the
-  inline/bulk editing round trip with conflict detection. They run offline on real API responses
-  in `tests/fixtures/`.
+  inline/bulk editing round trip with conflict detection. They run offline on trimmed real
+  responses in `tests/fixtures/` (made-up values for IPUMS NHGIS, whose data may not be shared).
 - `Rscript gr.R verify`: live checks of every operational source; results with dates and
   evidence go to `catalog/verification_log.csv`.
 - `Rscript demos/round_trip.R`: the editing round trip on a real report through a data refresh.
@@ -356,12 +324,10 @@ rejection; 4 compose and 4 render processes; `--warm`, so no cold run and no dat
 A build reuses its last compose when its code, catalog, content, own configuration, raw files
 and report.qmd are unchanged; a text or theme edit therefore recomposes every report it may
 touch (10-40 s each), and rendering takes 15-30 s per report. For one report (gary-in), a prose
-edit takes about 36 s (compose 20 s, render 15 s). Composing in several processes helps most when
-a batch waits on downloads: Maryland's 24 counties, new to the cache, composed in 123 s for half of
-them with 4 processes and 233 s for the other half in one. The last cold run of the samples
-(2026-09-28, when 48 metrics were operational) took 690 s and 536 requests; the current catalog
-needs far more (the review of 2026-09-29 counted 2,488 requests and 978 MB), and IPUMS takes
-about 5 minutes per extract.
+edit takes about 36 s (compose 20 s, render 15 s). Several compose processes help most when a
+batch waits on downloads (24 new Maryland counties: 123 s for half of them with 4 processes,
+233 s for the other half with one). Building every sample from an empty cache takes about 2,500
+requests and 1 GB of downloads, plus about 5 minutes per IPUMS extract.
 
 ## Limitations
 
@@ -370,7 +336,7 @@ These apply across sources. How each source is used, and its own limits, is in
 (`catalog/catalog.html`).
 
 - 420 of the 561 cataloged metrics are operational, from 34 of its 126 sources; the rest are
-  documented only. Not built: County Health Rankings (terms need the user's decision), MIT
+  documented only. Not built: County Health Rankings (pending a review of its terms of use), MIT
   Election Lab returns and HUD homelessness counts (their downloads block scripts).
 - Many sources publish counties, not cities (SAIPE, SAHIE, BEA, QCEW, County Business Patterns,
   FEMA, the Food Environment Atlas): a city report then shows its county as context, labeled as
@@ -383,9 +349,16 @@ These apply across sources. How each source is used, and its own limits, is in
 - Combined areas have no margin of error for medians (the Census Bureau publishes no method) or
   for model-based estimates (the model errors of SAIPE and SAHIE areas cannot be combined).
 - Connecticut's planning regions (counties since 2022) are missing from sources that still use
-  the former counties (FARS, NOAA zones, the Food Environment Atlas, county-level GDP before 2024).
+  the former counties (FARS, NOAA zones, the Food Environment Atlas, the Food Access Research
+  Atlas, county-level GDP before 2024).
 - Some sources are current snapshots only (child care licensing in Texas and Indiana, HRSA
   shortage areas, the latest CDC PLACES release), so they have no history.
-- Licenses: IPUMS NHGIS forbids redistributing its data (extracts stay in the cache; test fixtures
-  are made up), and FEMA requires the statement printed under its tables and charts.
 - Custom polygons and area-weighted allocation are not supported.
+
+## License
+
+The code is licensed under the GNU General Public License v3.0 ([LICENSE](LICENSE)). Data you
+download keep their sources' terms: IPUMS NHGIS forbids redistributing its data (extracts stay in
+your `cache/`), and FEMA requires the statement printed under its tables and charts. Check a
+source's terms before publishing reports built from it: the `license` column of
+`catalog/sources.csv` records them, with links to each source's documentation.

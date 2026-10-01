@@ -1,6 +1,6 @@
 #!/bin/sh
 # Bundle the data cache and rendered reports into one tar file, to move them to another machine
-# (Mac, Linux or Windows; see README "Moving the data to another machine").
+# (Mac, Linux or Windows; see docs/data-sync.md).
 #
 #   sh tools/bundle-data.sh [--no-reports] [output-folder]
 #
