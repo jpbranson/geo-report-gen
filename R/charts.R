@@ -52,14 +52,21 @@ plot_trend <- function(b, txt, th) {
     }
     breaks <- ev[ev$draw == "break", , drop = FALSE]
     if (nrow(breaks)) {
-      # One label per year (events of the same year are joined), on alternating rows so that
-      # labels of neighbouring breaks do not overprint.
-      breaks <- stats::aggregate(label ~ year, data = breaks, FUN = function(x) paste(unique(x), collapse = "; "))
+      # One label per year (events of the same year are joined; a label that begins another,
+      # such as "CT planning regions" beside "CT planning regions in ACS", is left out), on
+      # alternating rows so that labels of neighbouring breaks do not overprint. A break in the
+      # right fifth of the chart has its label on its left, inside the panel.
+      breaks <- stats::aggregate(label ~ year, data = breaks, FUN = function(x) {
+        x <- unique(x[nzchar(x)])
+        paste(x[!vapply(x, function(l) any(x != l & startsWith(x, l)), TRUE)], collapse = "; ")
+      })
       breaks$vjust <- 1.2 + 1.4 * ((seq_len(nrow(breaks)) - 1) %% 2)
+      xr <- range(c(shown$x, breaks$year), na.rm = TRUE)
+      breaks$hjust <- ifelse(breaks$year > xr[1] + 0.8 * diff(xr), 1.03, -0.03)
       p <- p + geom_vline(data = breaks, aes(xintercept = year), inherit.aes = FALSE,
                           linetype = "22", color = th$color_muted, linewidth = 0.35) +
-        geom_text(data = breaks, aes(x = year, y = Inf, label = label, vjust = vjust),
-                  inherit.aes = FALSE, hjust = -0.03, size = 2.6, color = th$color_muted, family = fam)
+        geom_text(data = breaks, aes(x = year, y = Inf, label = label, vjust = vjust, hjust = hjust),
+                  inherit.aes = FALSE, size = 2.6, color = th$color_muted, family = fam)
     }
   }
   # The area being described is emphasized; benchmarks are thinner and carry no spans or
@@ -135,7 +142,7 @@ plot_compare <- function(b, txt, th) {
     scale_color_manual(values = cols, guide = "none") +
     scale_shape_manual(values = c(`FALSE` = 19, `TRUE` = 21), guide = "none") +
     scale_x_continuous(labels = axis_labeller(units), expand = expansion(mult = c(0, 0.18))) +
-    labs(x = txt$x_label, y = NULL) +
+    labs(x = txt$y_label, y = NULL) +   # the value axis is horizontal: it takes the units label
     gr_ggtheme(th) + theme(panel.grid.major.y = element_blank())
   if (unit_kind(units) %in% c("count", "percent", "dollars")) p <- p + expand_limits(x = 0)
   p

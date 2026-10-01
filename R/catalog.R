@@ -79,7 +79,20 @@ validate_catalog <- function() {
   if (length(bad_subj)) problems <- c(problems, paste("Unknown subject ids:", paste(bad_subj, collapse = ", ")))
   bad_sub <- setdiff(unique(paste(doc$subject_id, doc$subtopic_id)), paste(subj$subject_id, subj$subtopic_id))
   if (length(bad_sub)) problems <- c(problems, paste("Unknown subtopics:", paste(bad_sub, collapse = ", ")))
-  c(problems, exhaustive_gaps(rec))
+  c(problems, level_count_blocks(rec), exhaustive_gaps(rec))
+}
+
+# A count over time against benchmarks is drawn as growth (option index=first or index=relative):
+# levels would put the area on one axis with a state or the nation many times its size. Manifest
+# metric rows get index=first automatically (load_manifest).
+level_count_blocks <- function(rec) {
+  b <- block_library()
+  b <- b[b$kind == "metric" & grepl("time", b$compare) & grepl("parents", b$compare) &
+           !grepl("index=", b$options), , drop = FALSE]
+  counts <- vapply(b$metrics, function(m) any(rec$stat_type[rec$metric_id %in% split_list(m)] == "count"), TRUE)
+  if (!any(counts)) return(character())
+  paste("Count blocks compared with benchmarks over time need index=first:",
+        paste(b$block_id[counts], collapse = ", "))
 }
 
 # profiles/exhaustive.csv is the report that shows everything: every library block and every

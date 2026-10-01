@@ -739,9 +739,15 @@ D. Documentation (after A-C, so it describes the final state)
 
 E. Release check and tag
 12. [x] Small: .DS_Store in .gitignore; User-Agent version 1.0 (`geo-report-gen/0.1` in R/fetch.R)
-13. [ ] Full check: `gr.R test`, `gr.R catalog --check`, `gr.R verify`, demos/round_trip.R,
+13. [x] Full check: `gr.R test`, `gr.R catalog --check`, `gr.R verify`, demos/round_trip.R,
         `gr.R batch` (the samples were last batch-built at 09:00, before the 12:00 block
-        removals), then a visual review of every sample report
+        removals), then a visual review of every sample report. Done 2026-10-01: tests 416;
+        catalog clean; verify 35 ok, fema_nri 403 (Docker, known); round trip 10/10; batch all ok
+        (austin-78704 rejected); no unfilled placeholders, NA or render warnings in the HTML.
+        Charts reviewed on contact sheets of every sample; fixed: two count trends drawn as
+        levels against much larger benchmarks (now indexed; catalog --check flags such blocks),
+        dot charts' value axis labelled with the period, a duplicated CT break label cut off at
+        the right edge. Text was checked by scan, not read report by report
 14. [ ] Fresh benchmark with demos/benchmark.R (the README's cold run dates from 2026-09-28, when
         48 metrics were operational), with a cold run on an empty cache copy if time allows;
         README table and docs/benchmark.csv updated

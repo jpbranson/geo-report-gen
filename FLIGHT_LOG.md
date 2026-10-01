@@ -1388,3 +1388,20 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   child care capacity for Texas and Indiana; pre-1978 constant dollars moved to Statistics.
   `batch --no-render` fixed (render arg; summary says "composed"). Tests 416.
 - Resume point: E13 (full check).
+- 13:40 E13 started.
+- 13:55 E13 so far: tests 416, catalog clean, verify 35 ok + fema_nri 403 (known, Docker), round
+  trip 10/10, batch all ok (austin-78704 rejected as intended). Rendered HTML: no unfilled
+  placeholders, no NA/NaN/Inf, no render warnings. Visual review via chart contact sheets
+  (scratchpad/sheets) found 3 defects, fixed: (1) public-school-enrollment-trend and
+  public-prek-trend drew counts as levels against benchmarks (the area flat at 0 under Texas or
+  the U.S.): index=first, titles "Growth of ...", captions; catalog --check now flags such
+  blocks (level_count_blocks); (2) dot charts labelled the value axis with the period
+  (plot_compare used x_label; now y_label, the units); (3) ct-capitol: break label "CT planning
+  regions; CT planning regions in ACS" cut at the right edge: a label that begins another of the
+  same year is dropped, and labels of breaks in the right fifth go left of the line. Also seen,
+  by design: travis-austin's decennial blocks show context areas (no place_part pieces).
+- 13:52 Fixes verified on the re-rendered charts (scratchpad/sheets/fixes.png); batch 192 s
+  (compose 132, render 61), all ok. In the indexed enrollment charts, areas without a value in
+  the base school year drop out (South Region in pre-K; U.S. and Midwest in kc-core, whose CCD
+  series start later). E13 checked in PLAN.
+- Resume point: E14 (fresh benchmark).

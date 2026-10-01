@@ -129,5 +129,5 @@ traffic-safety,transportation,facts,traffic_fatality_rate_per_100k_fars;pedestri
 traffic-death-rate-trend,transportation,metric,traffic_fatality_rate_per_100k_fars,time+parents,line,,"Traffic deaths per 100,000 residents in 5-year periods since 2009-2013 (FARS)"
 traffic-deaths-trend,transportation,metric,traffic_fatalities_fars,time,line,,Traffic deaths each year (FARS)
 public-schools,education,facts,public_schools_count_ccd;public_school_membership_ccd;public_prek_membership_ccd;public_school_teachers_ccd;public_school_students_per_teacher_ccd,parents,table,,Public schools and their students and teachers
-public-school-enrollment-trend,education,metric,public_school_membership_ccd,time+parents,line,,Public school enrollment since 2017-18
-public-prek-trend,children_early_childhood,metric,public_prek_membership_ccd,time+parents,line,,Public pre-kindergarten enrollment since 2017-18
+public-school-enrollment-trend,education,metric,public_school_membership_ccd,time+parents,line,index=first,"Public school enrollment since 2017-18, indexed to the first school year"
+public-prek-trend,children_early_childhood,metric,public_prek_membership_ccd,time+parents,line,index=first,"Public pre-kindergarten enrollment since 2017-18, indexed to the first school year"
