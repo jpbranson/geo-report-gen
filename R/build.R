@@ -77,9 +77,11 @@ build_report <- function(report_id, render = TRUE, offline = FALSE, refresh = ch
     harvest <- timed("harvest", harvest_report(report_id))
     # Keyed on the inputs as the compose starts reading them: an edit made during the compose
     # changes the key of the next build, so it composes again.
-    inputs_key <- compose_key(report_id)
+    inputs_key <- compose_inputs_key(report_id)
     prev <- previous_build(report_id)
-    if (!force && !length(refresh) && reusable_compose(report_id, prev, inputs_key)) reused <- prev else
+    if (!force && !length(refresh) && reusable_compose(report_id, prev, compose_key(report_id, inputs_key))) {
+      reused <- prev
+    } else
       composed <- timed("compose", compose_report(report_id))
     key <- render_inputs_hash(report_id)
     up_to_date <- !force && !is.null(prev) && identical(prev$render_inputs_hash, key) && all(file.exists(report_outputs(report_id, formats)))
@@ -110,12 +112,18 @@ build_report <- function(report_id, render = TRUE, offline = FALSE, refresh = ch
 # Everything a compose reads apart from cached data: code, catalog tables and content; the
 # report's own configuration (its row in reports.csv, resolved settings and theme, manifest);
 # and the report.qmd the last compose wrote (so an edit there is never skipped).
-compose_key <- function(report_id) {
+compose_key <- function(report_id, inputs = compose_inputs_key(report_id)) {
+  hash_value(inputs, hash_files(file.path(report_dir(report_id), "report.qmd")))
+}
+
+# Everything in the compose key but report.qmd, which a compose both reads (edits are harvested
+# first) and writes: a build takes these when its compose starts and report.qmd as written.
+compose_inputs_key <- function(report_id) {
   cfg <- report_config(report_id)
   settings <- resolve_settings(report_id, cfg$profile)
   files <- c(list.files(root_path("modules"), full.names = TRUE),
              list.files(root_path("content"), recursive = TRUE, full.names = TRUE),
-             manifest_path(cfg), file.path(report_dir(report_id), "report.qmd"))
+             manifest_path(cfg))
   hash_value(loaded_inputs_hash(), hash_files(files[!endsWith(files, ".lock")]), cfg, settings,
              load_theme(settings$theme))
 }
@@ -196,7 +204,7 @@ build_manifest <- function(report_id, composed, harvest, status, err, result, re
     requests = list(total = length(reqs), by_source = by_source,
                     bytes = sum(vapply(reqs, function(r) as.numeric(r$bytes %||% 0), 0), na.rm = TRUE)),
     cache = as.list(run$cache),
-    compose_key = if (!is.null(ctx)) inputs_key,
+    compose_key = if (!is.null(ctx)) compose_key(report_id, inputs_key),   # with report.qmd as written
     complete = !is.null(ctx) && !isTRUE(run$incomplete))
   # A reused compose keeps the record of the compose that made the snapshot.
   if (!is.null(reused)) {

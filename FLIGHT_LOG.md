@@ -1405,3 +1405,14 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   the base school year drop out (South Region in pre-K; U.S. and Midwest in kc-core, whose CCD
   series start later). E13 checked in PLAN.
 - Resume point: E14 (fresh benchmark).
+- 13:55 E14 started: demos/benchmark.R --warm (cold run to be asked).
+- 14:20 E14 warm benchmark found a regression from 6b: "nothing changed" recomposed every report
+  (94 s; was 8 s). report.qmd is both read (harvest) and written by a compose; 6b hashed it when
+  the compose starts, so the stored key held the previous report.qmd. Fixed: compose_inputs_key()
+  (code, catalog, modules, content, manifest, config, settings, theme) at compose start, and
+  compose_key() adds report.qmd as written. Re-running the warm benchmark.
+- 14:20 Warm benchmark again: nothing changed 2.1 s (every compose reused); first build 164 s,
+  forced 169, resumed 132, theme 164, geography 14. gary-in forced build 36 s (compose 20, render
+  15). README benchmark section and docs/benchmark.csv updated; the user: cold run later on Windows.
+  Tests 416. E14 checked.
+- Resume point: D11 (PLAN cut to status + After 1.0; history moved; new short FLIGHT_LOG.md).

@@ -338,24 +338,26 @@ The catalog of subjects, sources and metrics, with verification status and known
 - `Rscript demos/benchmark.R [--warm]`: cold (or, with `--warm`, the project's cache), warm
   and resumed batches and what each kind of edit invalidates (results in `docs/benchmark.csv`).
 
-Results on 2026-09-29 (Windows laptop; the 12 sample builds and the intended rejection; 4
-parallel renders; `--warm`, so no cold run and no data refresh):
+Results on 2026-10-01 (Mac with Apple Silicon, in Docker; the 12 sample builds and the intended
+rejection; 4 compose and 4 render processes; `--warm`, so no cold run and no data refresh):
 
 | Step | Seconds | Compose / render | Rendered |
 |---|---:|---:|---|
-| First build of a fresh copy (warm cache) | 327 | 232 / 95 | 12 |
-| Nothing changed | 8 | 8 / 0 | 0; every compose reused |
-| Forced re-render | 329 | 234 / 95 | 12 |
-| Resumed after an interruption (default intro edited) | 271 | 195 / 77 | 9; 3 up to date |
-| Theme edit (default accent color) | 307 | 221 / 86 | 11; the civic-themed report reused |
-| Geography edit (one report becomes a union) | 29 | 17 / 12 | 1; the other reports reused |
+| First build of a fresh copy (warm cache) | 164 | 104 / 60 | 12 |
+| Nothing changed | 2 | 2 / 0 | 0; every compose reused |
+| Forced re-render | 169 | 106 / 63 | 12 |
+| Resumed after an interruption (default intro edited) | 132 | 87 / 45 | 9; 3 up to date |
+| Theme edit (default accent color) | 164 | 102 / 62 | 11; the civic-themed report reused |
+| Geography edit (one report becomes a union) | 14 | 7 / 7 | 1; the other reports reused |
 
 A build reuses its last compose when its code, catalog, content, own configuration, raw files
 and report.qmd are unchanged; a text or theme edit therefore recomposes every report it may
-touch (about 20 s each), and rendering takes 20-40 s per report. For one report (gary-in), a
-prose edit takes about 68 s (compose 37 s, render 29 s). The last cold run (2026-09-28, when
-48 metrics were operational) took 690 s and 536 requests; the current catalog needs far more
-(the review of 2026-09-29 counted 2,488 requests and 978 MB for the samples), and IPUMS takes
+touch (10-40 s each), and rendering takes 15-30 s per report. For one report (gary-in), a prose
+edit takes about 36 s (compose 20 s, render 15 s). Composing in several processes helps most when
+a batch waits on downloads: Maryland's 24 counties, new to the cache, composed in 123 s for half of
+them with 4 processes and 233 s for the other half in one. The last cold run of the samples
+(2026-09-28, when 48 metrics were operational) took 690 s and 536 requests; the current catalog
+needs far more (the review of 2026-09-29 counted 2,488 requests and 978 MB), and IPUMS takes
 about 5 minutes per extract.
 
 ## Limitations

@@ -748,9 +748,13 @@ E. Release check and tag
         levels against much larger benchmarks (now indexed; catalog --check flags such blocks),
         dot charts' value axis labelled with the period, a duplicated CT break label cut off at
         the right edge. Text was checked by scan, not read report by report
-14. [ ] Fresh benchmark with demos/benchmark.R (the README's cold run dates from 2026-09-28, when
+14. [x] Fresh benchmark with demos/benchmark.R (the README's cold run dates from 2026-09-28, when
         48 metrics were operational), with a cold run on an empty cache copy if time allows;
-        README table and docs/benchmark.csv updated
+        README table and docs/benchmark.csv updated. Done 2026-10-01 (--warm, Mac in Docker):
+        first build 164 s, nothing changed 2 s, forced re-render 169 s, resumed 132 s, theme edit
+        164 s, geography edit 14 s; a prose edit of gary-in 36 s (was 68 s). It caught a
+        regression of 6b (report.qmd hashed before the compose wrote it, so "nothing changed"
+        recomposed everything), fixed. The cold run: later, on the Windows machine (the user)
 15. [ ] Commit, tag v1.0.0 and push, on the user's go-ahead
 
 After 1.0 (not started before the tag)
