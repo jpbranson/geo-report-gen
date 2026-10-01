@@ -92,10 +92,12 @@ parse_geo_list <- function(text, vintage) {
 # All geographies of a type within a scope, with names and ACS total population (B01003)
 # from the vintage's 5-year release. The scope defaults to nationwide for the type.
 geo_catalog <- function(type, vintage, scope = type) {
-  d <- acs_table(vintage, "B01003", scope)
-  d <- d[d$variable == "B01003_001", , drop = FALSE]
-  data.frame(key = d$geo, type = sub(":.*$", "", d$geo), geoid = sub("^[^:]*:", "", d$geo),
-             name = d$name, pop = d$estimate, pop_moe = d$moe, stringsAsFactors = FALSE)
+  memoize(paste("geo_catalog", type, vintage, scope, sep = "|"), function() {
+    d <- acs_table(vintage, "B01003", scope)
+    d <- d[d$variable == "B01003_001", , drop = FALSE]
+    data.frame(key = d$geo, type = sub(":.*$", "", d$geo), geoid = sub("^[^:]*:", "", d$geo),
+               name = d$name, pop = d$estimate, pop_moe = d$moe, stringsAsFactors = FALSE)
+  })
 }
 
 # Connecticut planning region (county code, "09110") of each town code: towns kept their codes

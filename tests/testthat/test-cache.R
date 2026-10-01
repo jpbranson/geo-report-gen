@@ -60,3 +60,16 @@ test_that("cache prune deletes only replaced derived files that no build lists",
   cache_prune(delete = TRUE, reports = reports)
   expect_setequal(list.files(dir), files[-2])
 })
+
+test_that("a memoized value records the raw files it read each time a later report uses it", {
+  path <- file.path(tempdir(), "memo-test", "raw.parquet")
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  key <- "test-memo-raw"
+  run_reset(offline = TRUE)
+  memoize(key, function() cached(path, function() data.frame(a = 1), source = "test"))
+  expect_true(path %in% run$used)
+  run_reset(offline = TRUE)   # the next report of a batch
+  memoize(key, function() stop("not recomputed"))
+  expect_true(path %in% run$used)
+  rm(list = key, envir = memo)
+})

@@ -1326,3 +1326,30 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   deleted before the next data-sync, which syncs reports/.
 - 12:43 The user: prune, commit, then B5. `cache prune --yes`: 827 files, 523 MB deleted; a second
   dry run finds 0; cache/raw 5.1 GB.
+- 12:45 Committed d56d951 (A2-A4, C9, E12, PLAN/README/log). Started B5: Rprof of a warm
+  compose of gary-in (compose_report directly, offline).
+- 12:55 B5 done (profile in reports/_fp/b5.prof): see PLAN B5. Prose-edit loop now: compose ~20-30
+  s + render 25-45 s. Options for B6 put to the user: (1) ACS: keep the requested areas before
+  decoding (~6 s less per compose, every report and batch); (2) the block-result cache (compose of
+  a text edit to ~2 s; render stays); (3) both.
+- 13:00 The user: B6 = the ACS fix first. Found while designing it: memo outlives run_reset(), so in
+  a batch (one process) a raw file read through a memoized table is recorded in run$used only by
+  the first report that reads it (latest run: gary-in lists 374 ACS files, kc-core 8). build.json
+  sources are incomplete, and reusable_compose can miss a refreshed file. Fix in memoize(): an
+  entry keeps the raw files read while computing it and records them again on each use.
+- 13:08 B6 code: acs_scope_table() memoizes each raw table with its area keys; acs_table(...,
+  keys) decodes only the requested areas; acs_fetch tells an unpublished table from an empty
+  selection by the raw table; geo_catalog() memoized (it decoded B01003 through the old memo).
+  memoize() records the files behind an entry on reuse (test added). Tests pass. Next: compose
+  all offline -> reports/_fp/b6.rds, compare with a4b.rds (numbers must match; the retrieval line
+  and build.json sources of later reports may grow).
+- 13:05 B6 verified. First version (filter rows, keep per-column decode) gave gary-in 22.5 -> 20.4
+  s: decoding was no longer memoized and paid per-column data.frame + rbind overhead on every
+  call. Decoding all columns in one pass: warm batch compose (--force --no-render --offline) 262 s
+  -> 191 s for 12 reports (gary-in 30.6 -> 15.3); in-cities 1836003/1871000 slightly slower (12.6
+  -> 13.8, 10.9 -> 13.2: they reused the decoded tables of the report before them). Fingerprints:
+  b6 vs a4b only lake-in's retrieval line (memoize fix: it now lists files rebuilt today); b6b,
+  b6w vs b6: 0. Tests 414. PLAN B5, B6 checked. Not committed.
+- Resume point: commit B5-B6 on the user's go-ahead; next C7 (parallel compose workers; set the
+  fbi_cde rate with it) and 6b (compose key at load time).
+- 13:10 The user: commit B5-B6, then C7 and 6b.

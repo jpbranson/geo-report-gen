@@ -675,11 +675,22 @@ A. Remove what nothing uses
        _no_data, _summary and _change; no line over 100; 0 differences in 13 reports
 
 B. Iteration speed
-5. [ ] Profile one warm compose and name the bottleneck: in-cities-1827000 spent 31 s computing
-       with 1,290 cache hits and no misses; a render adds 25-45 s
-6. [ ] Then decide review item 21 (the block-result cache) or the fix the profile points to. Goal:
+5. [x] Profile one warm compose and name the bottleneck: in-cities-1827000 spent 31 s computing
+       with 1,290 cache hits and no misses; a render adds 25-45 s. Done 2026-10-01 (Rprof of
+       gary-in, 20.3 s, 1,316 hits, 0 misses): providers' fetch 80%, because the metric cache's key
+       includes a digest of the fetched data. acs_table 41% (8.3 s): it decodes whole tables (365
+       tables, 5.6 million long rows: every county, every Indiana place) to keep 6 areas; keeping
+       the areas before decoding takes 1.6 s instead of 7.5 s. Then cached-file reads 14%, R's
+       byte compiler 8%, FBI aggregation 6%
+6. [x] Then decide review item 21 (the block-result cache) or the fix the profile points to. Goal:
        a prose or theme edit of one report does not recompute its blocks. Record timings before
-       and after
+       and after. Done 2026-10-01, the user chose the ACS fix first: acs_table() decodes only the
+       requested areas, in one pass over all columns (raw tables memoized per session). Warm
+       compose, 12 reports: 262 s -> 191 s (gary-in 30.6 -> 15.3 s; austin-core and kc-core still
+       40 s, in other providers); 0 fingerprint differences. Also fixed: memoize() now records the
+       raw files behind an entry each time it is used, so every report of a batch lists them in
+       build.json (kc-core listed 8 ACS files, now 152). The block-result cache stays undecided:
+       a prose edit of gary-in is now about 15 s compose + 25-45 s render
 
 C. Bulk runs and the cache
 7. [ ] Compose in parallel worker processes, as render_pool renders (the cache already locks

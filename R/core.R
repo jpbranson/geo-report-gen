@@ -52,11 +52,20 @@ run_reset <- function(offline = FALSE, refresh = character()) {
 }
 run_reset()
 
-# Session-level memo for reference tables that never change during a run.
+# Session-level memo for reference tables that never change during a run. It outlives
+# run_reset(), so an entry keeps the raw cache files read while computing it and records them
+# again each time it is used: every report of a batch lists the files its values came from.
 memo <- new.env(parent = emptyenv())
+memo_used <- new.env(parent = emptyenv())
 
 memoize <- function(key, compute) {
-  if (!exists(key, envir = memo, inherits = FALSE)) assign(key, compute(), envir = memo)
+  if (!exists(key, envir = memo, inherits = FALSE)) {
+    before <- length(run$used)
+    assign(key, compute(), envir = memo)
+    assign(key, run$used[seq_along(run$used) > before], envir = memo_used)
+  } else {
+    run$used <- c(run$used, mget(key, envir = memo_used, ifnotfound = list(NULL))[[1]])
+  }
   get(key, envir = memo, inherits = FALSE)
 }
 

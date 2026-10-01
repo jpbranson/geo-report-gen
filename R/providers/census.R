@@ -140,23 +140,33 @@ acs_raw <- function(release, table, scope) {
   })
 }
 
-# Normalized layer: one ACS table for one scope as long data (geo, name, variable,
-# estimate, moe, status, bound). Memoized for the session; cheap to recompute.
-acs_table <- function(release, table, scope) {
-  memoize(paste("acs", release, table, scope, sep = "|"), function() {
+# The raw table of one scope with each row's area key, read once per session.
+acs_scope_table <- function(release, table, scope) {
+  memoize(paste("acs_raw", release, table, scope, sep = "|"), function() {
     df <- acs_raw(release, table, scope)
-    if (!nrow(df)) return(empty_census_long())
-    keys <- census_keys(df, scope)
-    est_cols <- grep(paste0("^", toupper(table), "_[0-9]+[A-Z]?E$"), names(df), value = TRUE)
-    out <- do.call(rbind, lapply(est_cols, function(ec) {
-      base <- sub("E$", "", ec)
-      note <- if (paste0(base, "EA") %in% names(df)) df[[paste0(base, "EA")]] else NA_character_
-      dec <- acs_decode(df[[ec]], df[[paste0(base, "M")]], note)
-      data.frame(geo = keys, name = df$NAME, variable = base, dec, stringsAsFactors = FALSE)
-    }))
-    out$note <- ""
-    out
+    list(df = df, geo = if (nrow(df)) census_keys(df, scope) else character())
   })
+}
+
+# Normalized layer: one ACS table for one scope as long data (geo, name, variable,
+# estimate, moe, status, bound), for the areas `keys` (every area when NULL). Decoding is the
+# slow step, so the areas are chosen first: a national table has thousands of rows, and a
+# report reads a few.
+acs_table <- function(release, table, scope, keys = NULL) {
+  t <- acs_scope_table(release, table, scope)
+  rows <- if (is.null(keys)) seq_along(t$geo) else which(t$geo %in% keys)
+  if (!length(rows)) return(empty_census_long())
+  df <- t$df[rows, , drop = FALSE]
+  geo <- t$geo[rows]
+  est_cols <- grep(paste0("^", toupper(table), "_[0-9]+[A-Z]?E$"), names(df), value = TRUE)
+  base <- sub("E$", "", est_cols)
+  # All variables are decoded in one pass, one block of rows per variable.
+  column <- function(cols) unlist(lapply(cols, function(cl) {
+    if (cl %in% names(df)) df[[cl]] else rep(NA_character_, nrow(df))
+  }), use.names = FALSE)
+  dec <- acs_decode(column(est_cols), column(paste0(base, "M")), column(paste0(base, "EA")))
+  data.frame(geo = rep(geo, length(base)), name = rep(df$NAME, length(base)),
+             variable = rep(base, each = nrow(df)), dec, note = "", stringsAsFactors = FALSE)
 }
 
 empty_census_long <- function() {
@@ -192,8 +202,9 @@ acs_fetch <- function(variables, pieces, releases) {
   prefetch_acs(jobs)
   piece_scopes <- mapply(census_scope, pieces$type, pieces$geoid)
   out <- lapply(seq_len(nrow(jobs)), function(i) {
-    d <- acs_table(jobs$release[i], jobs$table[i], jobs$scope[i])
-    if (!nrow(d)) d <- acs_unpublished(jobs$release[i], jobs$table[i], variables, pieces$key[piece_scopes == jobs$scope[i]])
+    published <- nrow(acs_scope_table(jobs$release[i], jobs$table[i], jobs$scope[i])$df) > 0
+    d <- if (published) acs_table(jobs$release[i], jobs$table[i], jobs$scope[i], pieces$key) else
+      acs_unpublished(jobs$release[i], jobs$table[i], variables, pieces$key[piece_scopes == jobs$scope[i]])
     d <- d[d$geo %in% pieces$key & d$variable %in% variables, , drop = FALSE]
     if (nrow(d)) d$period <- as.character(jobs$release[i])
     d
