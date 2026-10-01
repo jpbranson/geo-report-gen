@@ -1353,3 +1353,30 @@ now git-ignored and its line appended to .env (never printed); the user can dele
 - Resume point: commit B5-B6 on the user's go-ahead; next C7 (parallel compose workers; set the
   fbi_cde rate with it) and 6b (compose key at load time).
 - 13:10 The user: commit B5-B6, then C7 and 6b.
+- 13:20 6b done: compose_key() takes loaded_inputs_hash() (R/ and catalog/*.csv, hashed in
+  R/load.R when the process loads them) plus modules, content, manifest and report.qmd hashed
+  when the compose starts (build_report computes it after harvest and stores that). Test added;
+  tests 416. Every report recomposes once (the key changed).
+- C7 started: batch composes in worker processes (`gr.R build <ids> --no-render`), longest first by
+  the last compose time; each source's rate divided among the processes (GR_RATE_SHARE);
+  fbi_cde 8/s in total (measured limit 10/s); --refresh composes in one process.
+- 13:22 C7 code: compose_pool() in R/batch.R; batch_build composes in min(workers, reports)
+  processes (one with --refresh), reads each build.json and treats one older than the batch as
+  failed; source_rates gets fbi_cde = 8 (total) and every rate is divided by GR_RATE_SHARE.
+  Warm compose phase (forced, offline): 1 process 191 s, 2: 153, 4: 151, 8: 223. CPU time per
+  process rises ~65% with 4 at once (gary-in user 12.8 -> 21.1 s): the Mac's cores, not I/O.
+  Fingerprints c7.rds vs b6w.rds: 0. Tests 416. Note: `batch --no-render` still renders (the
+  flag is not passed to batch_build; existing).
+- Resume point: ask the user about the larger cold batch benchmark (network); commit 6b + C7.
+- 13:30 The user: cold benchmark on a smaller state. Maryland's 24 counties added to
+  config/reports.csv as temporary rows (md-<geoid>, note "C7 benchmark (temporary)"; the file
+  before is in reports/_fp/reports.csv.before). Halves alternate by population: A (Montgomery,
+  Baltimore Co., ...) composed with 4 processes first, then B (Prince George's, Anne Arundel, ...)
+  in one process (A pays the shared Maryland downloads, so the comparison favours sequential).
+  Script reports/_fp/c7bench.R. Afterwards: remove the rows and reports/md-*.
+- 13:33 C7 cold benchmark: half A (4 processes) 123 s, 154 requests (128 FBI, 24 LODES: the shared
+  Maryland files); half B (1 process) 233 s, 152 FBI requests; all ok, no warnings, no 429.
+  Temporary rows removed (config/reports.csv equals the copy before), reports/md-* deleted; the
+  cached Maryland data stay. README batch row and CLI usage updated. PLAN C7, C8 checked.
+- Resume point: commit 6b + C7 + C8 on the user's go-ahead; next D10-D11 (docs), then E13-E15.
+- 13:36 The user: commit 6b, C7, C8.

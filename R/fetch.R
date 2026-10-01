@@ -8,7 +8,12 @@
 
 # Polite request rates per source (requests per second). The Census API publishes no
 # hard limit for keyed use; BLS asks automated clients to throttle and identify themselves.
-source_rates <- c(census_api = 5, census_files = 3, bls = 1, bea = 2, default = 2)
+# Requests per second to each source, in total: a batch that composes in several processes
+# divides them among the processes (GR_RATE_SHARE). The FBI key allows 10 a second (its
+# x-ratelimit-limit header, measured 2026-10-01).
+source_rates <- c(census_api = 5, census_files = 3, bls = 1, bea = 2, fbi_cde = 8, default = 2)
+
+rate_share <- function() max(1, suppressWarnings(as.numeric(Sys.getenv("GR_RATE_SHARE", "1"))), na.rm = TRUE)
 
 # BLS rejects automated requests that do not name a contact, so BLS requests (and only
 # those: sources named "bls" or "bls_<program>") carry GR_HTTP_CONTACT, set in the git-ignored
@@ -127,7 +132,7 @@ http_request <- function(url, source, query = list(), secret = list()) {
          " is disabled (", url, ")", call. = FALSE)
   }
   realm <- if (is_bls(source)) "bls" else source   # all BLS programs share one polite rate
-  rate <- source_rates[[if (realm %in% names(source_rates)) realm else "default"]]
+  rate <- source_rates[[if (realm %in% names(source_rates)) realm else "default"]] / rate_share()
   req <- httr2::request(url)
   if (length(query) || length(secret)) req <- httr2::req_url_query(req, !!!query, !!!secret)
   req <- httr2::req_user_agent(req, user_agent_string(source))

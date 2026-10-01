@@ -693,25 +693,36 @@ B. Iteration speed
        a prose edit of gary-in is now about 15 s compose + 25-45 s render
 
 C. Bulk runs and the cache
-7. [ ] Compose in parallel worker processes, as render_pool renders (the cache already locks
+7. [x] Compose in parallel worker processes, as render_pool renders (the cache already locks
        entries and writes atomically); benchmark a batch larger than the samples (for example
-       every county of one state). Now compose runs one report at a time, 30-60 s each
-8. [ ] FBI Crime Data Explorer: confirm the key's rate limit (api.data.gov's default is 1,000
+       every county of one state). Now compose runs one report at a time, 30-60 s each.
+       2026-10-01: compose_pool() runs `gr.R build <ids> --no-render` in up to --workers
+       processes, longest reports first; source rates divided among them (fbi_cde 8/s in total);
+       --refresh composes in one process. Warm samples, compose phase: 1 process 191 s, 2: 153 s,
+       4: 151 s, 8: 223 s (each process's CPU time rises ~65% with 4 at once on the Mac; the
+       critical path is austin-core and kc-core, ~40 s each alone); fingerprints identical.
+       Cold, Maryland's 24 counties in two halves alternating by population (temporary rows,
+       removed): 12 with 4 processes 123 s (they also fetched the shared LODES files), 12 in one
+       process 233 s; 306 requests (280 FBI), no 429
+8. [x] FBI Crime Data Explorer: confirm the key's rate limit (api.data.gov's default is 1,000
        requests an hour) and throttle fbi_cde to it (now the default 2 per second). A batch
        across several states must finish with its crime data, not lose them to HTTP 429.
        Measured 2026-10-01: the key reports x-ratelimit-limit 10 and the count does not fall
        across requests a minute apart, so 10 a second; no 429 in 757 requests (up to 320 an hour,
        95 a minute). The throttle is per process, so set the fbi_cde rate with C7's workers
-       (workers x rate under 10 a second)
+       (workers x rate under 10 a second). Done with C7: fbi_cde 8 a second in total, divided
+       among the compose processes
 9. [x] `cache prune`: delete raw files that no report's build.json lists (cache 6.1 GB; the R2
        free tier is 10 GB); README cache paragraph updated. Done 2026-10-01, narrowed with the
        user: build.json lists derived files, not the downloads they come from (4.5 GB, among them
        the FEMA NRI zip that Docker cannot download), so `cache prune [--yes]` deletes only
        derived files a newer version replaced and no build lists (dry run: 827 files, 523 MB)
-6b. [ ] Compose key: build.json's compose_key hashes the code when the build ends, but the code
+6b. [x] Compose key: build.json's compose_key hashes the code when the build ends, but the code
        was loaded when the process started, so an edit during a batch marks a snapshot made with
        the old code as current (seen 2026-10-01: madison-ms reused a compose made before an edit
-       to R/blocks.R). Hash the code at load time
+       to R/blocks.R). Hash the code at load time. Done 2026-10-01: R/ and catalog/*.csv hashed
+       when the process loads them; modules, content, manifest and report.qmd when the compose
+       starts
 
 D. Documentation (after A-C, so it describes the final state)
 10. [ ] README: current counts (431 of 561 metrics operational), Indiana child care capacity (not

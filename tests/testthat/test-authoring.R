@@ -138,3 +138,16 @@ test_that("a build reuses the last compose only while nothing it read has change
   save_text_records(upsert_record(load_text_records(), "key-facts.title", "default", "Changed"))  # text edited
   expect_false(reusable_compose("gary-in", prev))
 })
+
+test_that("the compose key holds the code and catalog as loaded, so a later edit means a new compose", {
+  withr::local_envvar(GR_ROOT = temp_project())
+  fake_report("gary-in")
+  loaded <- get("loaded_inputs_hash", envir = memo)
+  on.exit(assign("loaded_inputs_hash", loaded, envir = memo), add = TRUE)
+  rm("loaded_inputs_hash", envir = memo)   # load the temporary project
+  key <- compose_key("gary-in")
+  cat("\n", file = root_path("catalog", "subjects.csv"), append = TRUE)
+  expect_identical(compose_key("gary-in"), key)   # this process still holds what it loaded
+  rm("loaded_inputs_hash", envir = memo)            # the next process loads the edited table
+  expect_false(identical(compose_key("gary-in"), key))
+})

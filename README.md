@@ -136,7 +136,7 @@ Everything runs through one entry point, `Rscript gr.R <command>`:
 | Command | What it does |
 |---|---|
 | `build <id>...` | fold inline edits back into the content, compute, write `report.qmd`, render if anything changed |
-| `batch [id...]` | build many reports: compose one by one (shared cache), then render in parallel |
+| `batch [id...]` | build many reports: compose, then render, each in up to `--workers` processes (shared cache) |
 | `new <id> --geo <spec> [--mode ...] [--profile ...] [--subjects a,b] [--metrics m1,m2] [--label ...]` | add a report, optionally with a manifest built from subjects and metrics |
 | `preview <id>` | live preview while editing `reports/<id>/report.qmd` |
 | `harvest <id>` | save inline edits without rebuilding |

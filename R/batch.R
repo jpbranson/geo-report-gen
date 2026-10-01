@@ -1,9 +1,10 @@
-# Batch builds. Phase 1 composes each report in turn in this process: the shared cache means
-# a benchmark or table used by many reports is fetched and computed once (and each report's
-# own requests run with bounded concurrency). Phase 2 renders the reports whose inputs
-# changed, running up to `workers` Quarto processes at a time. A failing report is recorded
-# and skipped; the rest continue. Re-running resumes: composed data come from the cache and
-# reports whose render inputs are unchanged are not re-rendered.
+# Batch builds. Phase 1 composes the reports in up to `workers` R processes, each building its
+# share of the reports in turn: the shared cache (entries are locked and written atomically)
+# means a benchmark or table used by many reports is fetched and computed once, and the
+# processes divide each source's request rate among them. Phase 2 renders the reports whose
+# inputs changed, running up to `workers` Quarto processes at a time. A failing report is
+# recorded and skipped; the rest continue. Re-running resumes: composed data come from the cache
+# and reports whose render inputs are unchanged are not re-rendered.
 
 batch_build <- function(ids = NULL, workers = 4, offline = FALSE, refresh = character(), force = FALSE,
                         formats = "html") {
@@ -12,11 +13,25 @@ batch_build <- function(ids = NULL, workers = 4, offline = FALSE, refresh = char
   unknown <- setdiff(ids, all$report_id)
   if (length(unknown)) stop("Unknown report id(s): ", paste(unknown, collapse = ", "), call. = FALSE)
   started <- Sys.time()
-  note("Batch of ", length(ids), " reports: composing (phase 1)")
+  # A refresh composes in this process alone, so each file is downloaded once.
+  procs <- if (length(refresh)) 1L else max(1L, min(as.integer(workers), length(ids)))
+  note("Batch of ", length(ids), " reports: composing in ", procs, " process", if (procs > 1) "es",
+       " (phase 1)")
   composed <- list()
-  for (id in ids) {
-    m <- build_report(id, render = FALSE, offline = offline, refresh = refresh, force = force, formats = formats)
-    composed[[id]] <- m
+  if (procs == 1) {
+    for (id in ids) {
+      composed[[id]] <- build_report(id, render = FALSE, offline = offline, refresh = refresh, force = force,
+                                     formats = formats)
+    }
+  } else {
+    compose_pool(ids, procs, offline = offline, force = force, formats = formats)
+    # A process that stopped early leaves the build.json of an earlier run: not this batch's.
+    for (id in ids) {
+      m <- previous_build(id)
+      built <- as.POSIXct(m$built_at %||% NA_character_, format = "%Y-%m-%dT%H:%M:%S%z")
+      composed[[id]] <- if (!is.na(built) && built >= trunc(started, "secs")) m else
+        list(status = "failed", error = "its compose process stopped before building it")
+    }
   }
   compose_secs <- as.numeric(difftime(Sys.time(), started, units = "secs"))
   todo <- ids[vapply(ids, function(id) {
@@ -28,7 +43,7 @@ batch_build <- function(ids = NULL, workers = 4, offline = FALSE, refresh = char
   render_results <- render_pool(todo, workers, formats)
   render_secs <- as.numeric(difftime(Sys.time(), t_render, units = "secs"))
   summary <- do.call(rbind, lapply(ids, function(id) {
-    m <- jsonlite::fromJSON(file.path(report_dir(id), "build.json"), simplifyVector = FALSE)
+    m <- if (is.null(composed[[id]]$report_id)) composed[[id]] else previous_build(id)
     data.frame(report_id = id, status = m$status,
                action = if (!identical(m$status, "ok")) "failed" else if (id %in% todo) "rendered" else "up to date",
                requests = m$requests$total %||% 0, cache_hits = m$cache$hit %||% 0, cache_misses = m$cache$miss %||% 0,
@@ -51,6 +66,39 @@ batch_build <- function(ids = NULL, workers = 4, offline = FALSE, refresh = char
                      "%d with warnings (see build.json)."),
                total, compose_secs, render_secs, sum(summary$requests), sum(summary$status != "ok"), sum(summary$warnings > 0)))
   invisible(log)
+}
+
+# Compose `ids` in `procs` R processes (`gr.R build <ids> --no-render`), dealing the reports out
+# longest first by their last compose time so the processes finish together; each process builds
+# its share in turn, so tables it holds in memory serve all of its reports. Their notes are
+# printed as they come.
+compose_pool <- function(ids, procs, offline = FALSE, force = FALSE, formats = "html") {
+  last <- vapply(ids, function(id) as.numeric(previous_build(id)$timings$compose %||% NA), 0)
+  last[is.na(last)] <- if (all(is.na(last))) 1 else stats::median(last, na.rm = TRUE)
+  share <- rep(list(character()), procs)
+  load <- numeric(procs)
+  for (id in ids[order(-last)]) {
+    k <- which.min(load)
+    share[[k]] <- c(share[[k]], id)
+    load[k] <- load[k] + last[[id]]
+  }
+  flags <- c("--no-render", if (offline) "--offline", if (force) "--force",
+             "--formats", paste(formats, collapse = ","))
+  rscript <- file.path(R.home("bin"), if (.Platform$OS.type == "windows") "Rscript.exe" else "Rscript")
+  running <- lapply(share, function(s) {
+    processx::process$new(rscript, c("gr.R", "build", s, flags), wd = gr_root(),
+                          env = c("current", GR_RATE_SHARE = procs), stdout = "|", stderr = "2>&1")
+  })
+  while (length(running)) {
+    processx::poll(running, 1000)
+    alive <- vapply(running, function(p) p$is_alive(), TRUE)
+    for (i in seq_along(running)) {
+      lines <- if (alive[i]) running[[i]]$read_output_lines() else running[[i]]$read_all_output_lines()
+      if (length(lines)) cat(lines, sep = "\n")
+    }
+    running <- running[alive]
+  }
+  invisible()
 }
 
 # Record a render outcome in the report's build manifest as soon as it is known, so an
