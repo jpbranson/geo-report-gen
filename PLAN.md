@@ -657,16 +657,22 @@ A. Remove what nothing uses
 1. [x] The 43 operational metrics that no profile or manifest reached: D1 removed OEWS and PEP
        characteristics (11); the other 32 are in profiles/exhaustive.csv, in a library block or a
        metric row, and the catalog check keeps it that way
-2. [ ] The 11 library blocks that only the exhaustive profile uses (pop-history, median-age,
+2. [x] The 11 library blocks that only the exhaustive profile uses (pop-history, median-age,
        per-capita-income, snap, rent-trend, vacancy, commute, broadband, household-size,
        disability, income-annual): delete those another block supersedes (for example pop-history
-       by pop-long-history, broadband by internet-access); keep the rest
-3. [ ] One helper for the states of a region or division: the same rule
+       by pop-long-history, broadband by internet-access); keep the rest. Done 2026-10-01: deleted
+       pop-history, median-age, snap, commute and broadband (their metrics stay in
+       pop-long-history, key-facts, economic-security, getting-around and internet-access); the
+       other 6 stay in the exhaustive profile
+3. [x] One helper for the states of a region or division: the same rule
        (`st[[type]] == geoid & st$in_nation == "TRUE"`) is written out in fara, hpsa, nces, fars,
-       eavs and bea
-4. [ ] Readability: compute_block_composition (about 110 lines) split into named steps; the 103
+       eavs and bea. Done 2026-10-01: nation_state_table() and member_states(type, geoid) in
+       R/geography.R, used by 14 providers; fingerprints identical but for the retrieval date
+       line (the edited providers' derived files were rebuilt that day)
+4. [x] Readability: compute_block_composition (about 110 lines) split into named steps; the 103
        lines over 100 characters in R/blocks.R wrapped. Proof as before: fingerprint every report
-       before and after (tools/fingerprint.R), 0 differences
+       before and after (tools/fingerprint.R), 0 differences. Done 2026-10-01: composition_results,
+       _no_data, _summary and _change; no line over 100; 0 differences in 13 reports
 
 B. Iteration speed
 5. [ ] Profile one warm compose and name the bottleneck: in-cities-1827000 spent 31 s computing
@@ -681,9 +687,20 @@ C. Bulk runs and the cache
        every county of one state). Now compose runs one report at a time, 30-60 s each
 8. [ ] FBI Crime Data Explorer: confirm the key's rate limit (api.data.gov's default is 1,000
        requests an hour) and throttle fbi_cde to it (now the default 2 per second). A batch
-       across several states must finish with its crime data, not lose them to HTTP 429
-9. [ ] `cache prune`: delete raw files that no report's build.json lists (cache 6.1 GB; the R2
-       free tier is 10 GB); README cache paragraph updated
+       across several states must finish with its crime data, not lose them to HTTP 429.
+       Measured 2026-10-01: the key reports x-ratelimit-limit 10 and the count does not fall
+       across requests a minute apart, so 10 a second; no 429 in 757 requests (up to 320 an hour,
+       95 a minute). The throttle is per process, so set the fbi_cde rate with C7's workers
+       (workers x rate under 10 a second)
+9. [x] `cache prune`: delete raw files that no report's build.json lists (cache 6.1 GB; the R2
+       free tier is 10 GB); README cache paragraph updated. Done 2026-10-01, narrowed with the
+       user: build.json lists derived files, not the downloads they come from (4.5 GB, among them
+       the FEMA NRI zip that Docker cannot download), so `cache prune [--yes]` deletes only
+       derived files a newer version replaced and no build lists (dry run: 827 files, 523 MB)
+6b. [ ] Compose key: build.json's compose_key hashes the code when the build ends, but the code
+       was loaded when the process started, so an edit during a batch marks a snapshot made with
+       the old code as current (seen 2026-10-01: madison-ms reused a compose made before an edit
+       to R/blocks.R). Hash the code at load time
 
 D. Documentation (after A-C, so it describes the final state)
 10. [ ] README: current counts (431 of 561 metrics operational), Indiana child care capacity (not
@@ -695,7 +712,7 @@ D. Documentation (after A-C, so it describes the final state)
         Docker as well as Windows
 
 E. Release check and tag
-12. [ ] Small: .DS_Store in .gitignore; User-Agent version 1.0 (`geo-report-gen/0.1` in R/fetch.R)
+12. [x] Small: .DS_Store in .gitignore; User-Agent version 1.0 (`geo-report-gen/0.1` in R/fetch.R)
 13. [ ] Full check: `gr.R test`, `gr.R catalog --check`, `gr.R verify`, demos/round_trip.R,
         `gr.R batch` (the samples were last batch-built at 09:00, before the 12:00 block
         removals), then a visual review of every sample report

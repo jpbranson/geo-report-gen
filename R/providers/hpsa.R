@@ -31,7 +31,6 @@ hpsa_components <- function(discipline) {
 }
 
 hpsa_fetch <- function(variables, pieces, periods, options = list()) {
-  st <- state_table()
   vintage <- as.integer(options$settings$boundary_vintage %||% 2024)
   out <- list()
   for (v in variables) {
@@ -42,8 +41,8 @@ hpsa_fetch <- function(variables, pieces, periods, options = list()) {
       type <- pieces$type[i]
       geoid <- pieces$geoid[i]
       x <- switch(type, county = d[d$county == geoid, ], state = d[substr(d$county, 1, 2) == geoid, ],
-                  region = , division = d[substr(d$county, 1, 2) %in% st$state[st[[type]] == geoid & st$in_nation == "TRUE"], ],
-                  cbsa = d[d$county %in% cbsa_counties(geoid, vintage), ], nation = d[substr(d$county, 1, 2) %in% st$state[st$in_nation == "TRUE"], ])
+                  region = , division = d[substr(d$county, 1, 2) %in% member_states(type, geoid), ],
+                  cbsa = d[d$county %in% cbsa_counties(geoid, vintage), ], nation = d[substr(d$county, 1, 2) %in% member_states("nation"), ])
       if (endsWith(v, "_COUNT")) length(unique(x$id)) else if (nrow(x) && !all(is.na(x$score))) max(x$score, na.rm = TRUE) else NA_real_
     }, 0)
     out[[length(out) + 1]] <- data.frame(geo = pieces$key, name = "", variable = v, estimate = est, moe = NA_real_,

@@ -34,7 +34,7 @@ eavs_jurisdictions <- function(year) {
     x <- utils::read.csv(unz(zip, cycle[["file"]]), colClasses = "character", check.names = FALSE)
     st <- state_table()
     x$state <- st$state[match(x$State_Abbr, st$usps)]
-    x <- x[x$state %in% st$state[st$in_nation == "TRUE"], , drop = FALSE]
+    x <- x[x$state %in% member_states("nation"), , drop = FALSE]
     code <- ifelse(nchar(x$FIPSCode) == 9, paste0("0", x$FIPSCode), x$FIPSCode)  # leading zero lost
     out <- data.frame(state = x$state, eavs_counties(code, x$state), stringsAsFactors = FALSE)
     for (item in c("A1b", "F1a")) {
@@ -86,8 +86,7 @@ eavs_notes <- c("", "does not apply in this state's election system (North Dakot
                 "not reported by every election jurisdiction in this area, or no jurisdiction in the survey matches it")
 
 eavs_fetch <- function(variables, pieces, periods, options = list()) {
-  st <- state_table()
-  st <- st[st$in_nation == "TRUE", ]
+  st <- nation_state_table()
   rows <- list()
   for (yr in as.integer(periods)) {
     j <- eavs_jurisdictions(yr)
@@ -98,7 +97,7 @@ eavs_fetch <- function(variables, pieces, periods, options = list()) {
     for (i in seq_len(nrow(pieces))) {
       p <- pieces[i, ]
       if (p$type %in% c("nation", "region", "division")) {
-        members <- st$state[switch(p$type, nation = TRUE, region = st$region == p$geoid, division = st$division == p$geoid)]
+        members <- member_states(p$type, p$geoid)
         g <- eavs_sum_states(by_state[members], state_cvap[members])
       } else {
         g <- if (p$type == "state") by_state[[p$geoid]] else if (p$geoid %in% split) eavs_group(j[0, ]) else

@@ -44,8 +44,7 @@ govfin_vars <- c("T01", "TAX", "DEBT", "POLICE", "POP")
 govfin_fetch <- function(variables, pieces, periods, options = list()) {
   u <- govfin_units()
   u <- u[!is.na(u$POP) & u$POP > 0, , drop = FALSE]
-  st <- state_table()
-  st <- st[st$in_nation == "TRUE", ]
+  st <- nation_state_table()
   u$region <- st$region[match(u$state, st$state)]
   u$division <- st$division[match(u$state, st$state)]
   rows <- lapply(seq_len(nrow(pieces)), function(i) {

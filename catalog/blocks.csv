@@ -4,13 +4,11 @@ locator,overview,locator,,none,map,,Map locating the study area and its benchmar
 historical-counties,overview,historical_map,,none,map,boundary_year=1900,County boundaries of 1900 around the study area (IPUMS NHGIS boundary file)
 key-facts,overview,facts,pop_total_acs;median_age_acs;median_household_income_acs;poverty_rate_acs;owner_occupied_share_acs;bachelors_plus_share_acs,parents,table,,Headline indicators for the study area and benchmarks (latest period)
 history-context,overview,history,,none,list,,Cited historical context events for the area and nation
-pop-history,demographics,metric,pop_total_dec,time,line,history_start=2000,Population by census (decennial counts)
 pop-growth,demographics,metric,pop_total_dec,time+parents,line,index=first; history_start=2000,Population growth indexed to the first census shown (study area and benchmarks)
 age-structure,demographics,composition,group:age_groups,time,stacked_bar,,Age structure over non-overlapping ACS periods (no parent chart)
 race-ethnicity,demographics,composition,group:race_ethnicity,time,stacked_bar,,Race and Hispanic origin by 5-year period (the 2020 coding change is drawn as a break)
 census-counts,households_families,facts,households_decennial;average_household_size_decennial;family_households_share_decennial;married_couple_households_share_decennial;living_alone_share_decennial;median_age_decennial;vacancy_rate_decennial;homeownership_rate_decennial,parents,table,,"Households, household types, age, vacancy and homeownership in the latest census"
 households-census-trend,households_families,metric,households_decennial,time+parents,line,index=first,"Households in the 2000, 2010 and 2020 censuses"
-median-age,demographics,metric,median_age_acs,parents,dot,,Median age compared with benchmarks
 income-trend,income_poverty_hardship,metric,median_household_income_acs;median_household_income_census,time+parents,line,history_start=1970,Median household income over time in constant dollars: censuses 1980-2000 (1979-1999 incomes; IPUMS NHGIS) and ACS periods
 income-distribution,income_poverty_hardship,distribution,median_household_income_acs,distribution,bar,,Household income distribution (study area vs widest containing benchmark)
 per-capita-income,income_poverty_hardship,metric,per_capita_income_acs;per_capita_income_census,time+parents,line,history_start=1970,Per capita income over time in constant dollars: censuses 1980-2000 (1979-1999 incomes; IPUMS NHGIS) and ACS periods
@@ -18,7 +16,6 @@ poverty-trend,income_poverty_hardship,metric,poverty_rate_acs;poverty_rate_censu
 child-poverty,children_early_childhood,metric,child_poverty_rate_acs,time+parents,line,,Child poverty rate
 labor-force,employment_labor,metric,labor_force_participation_acs;labor_force_participation_census,time+parents,line,history_start=1970,Labor force participation: censuses 1970-2000 (IPUMS NHGIS) and ACS periods
 education,education,metric,bachelors_plus_share_acs;bachelors_plus_share_census,time+parents,line,history_start=1970,Adults with a bachelor's degree or higher: censuses 1970-2000 (IPUMS NHGIS) and ACS periods
-snap,income_poverty_hardship,metric,snap_households_share_acs,parents,dot,,Households receiving SNAP
 housing-units-history,housing,metric,housing_units_dec,time,line,history_start=2000,Housing units by census
 tenure-trend,housing,metric,owner_occupied_share_acs;owner_occupied_share_census,time+parents,line,history_start=1970,Homeownership rate over time: censuses 1970-2000 (IPUMS NHGIS) and ACS periods
 home-value-trend,housing,metric,median_home_value_acs,time+parents,line,,Median home value over time in constant dollars
@@ -27,8 +24,6 @@ rent-burden,housing,metric,rent_burden_30plus_share_acs,time+parents,line,,Rente
 vacancy,housing,metric,vacancy_rate_acs,parents,dot,,Vacancy rate
 young-children,children_early_childhood,metric,children_under5_acs,time,line,,Children under 5 over time (study area only)
 working-parents,childcare,metric,children_under6_all_parents_working_share_acs,time+parents,line,,Young children whose parents all work (potential need for care)
-commute,transportation,metric,mean_commute_minutes_acs,parents,dot,,Mean travel time to work
-broadband,broadband,metric,broadband_households_share_acs,parents,dot,,Households with broadband (short history)
 poverty-map,income_poverty_hardship,map,poverty_rate_acs,within,map,,Poverty rate by census tract within the study area
 income-map,income_poverty_hardship,map,median_household_income_acs,within,map,,Median household income by census tract within the study area
 availability,appendix,availability,,none,table,,Measures not shown and why

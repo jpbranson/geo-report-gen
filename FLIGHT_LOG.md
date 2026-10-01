@@ -1247,3 +1247,82 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   reports/gary-in-exhaustive and reports/chicago-il stay on disk for the user. Nothing committed.
 - Resume point: PLAN.md "1.0 release checklist": D1-D3 and A1 done; next A2 (the 11 library blocks
   only the exhaustive profile uses: delete superseded ones), then A3.
+
+## 2026-10-01 (Claude, Mac): 1.0 checklist A2
+
+- Started A2: the 11 library blocks only profiles/exhaustive.csv uses; delete those another block
+  supersedes, keep the rest.
+- Assessed (no code changed yet). Superseded, to delete: pop-history (pop-long-history and
+  pop-growth show pop_total_dec), median-age (key-facts), snap (economic-security), commute
+  (getting-around), broadband (internet-access). Their metrics stay shown by those blocks, so the
+  exhaustive check needs no new metric rows. Keep: per-capita-income (census/ACS money income,
+  not BEA's PCPI), rent-trend, household-size and disability (the only trends of their metrics),
+  vacancy (the only ACS overall vacancy rate), income-annual (SAIPE yearly, sibling of
+  poverty-annual). References: catalog/blocks.csv, profiles/exhaustive.csv, content/text.csv
+  (pop-history.caption and .title); no sample report, manifest, test or prose uses them.
+- The edit removing those rows was denied by the permission classifier; waiting for the user.
+- Resume point: delete the 5 blocks' rows from the three files, then `gr.R test` and
+  `gr.R catalog --check`, then A3.
+- The user: delete the 5, keep the 6 in the exhaustive profile. Done: 5 rows of
+  catalog/blocks.csv and profiles/exhaustive.csv, 2 of content/text.csv. Catalog check clean
+  (420 operational of 561); tests 409 pass. PLAN A2 checked. Not committed.
+- Resume point: A3 (one helper for the states of a region or division in fara, hpsa, nces, fars,
+  eavs and bea).
+- Started A3: one helper for the states of a region or division.
+- 12:18 A3 code done: R/geography.R gets nation_state_table() (rows of the 50 states and DC) and
+  member_states(type, geoid) (codes of the nation, a region or a division); 14 providers use them
+  (bea, bls, eavs, fara, fars, govfin, hpsa, lodes, nces, nes, noaa, nri, pep, qcew); no
+  `in_nation == "TRUE"` filter is left outside geography.R. Editing a provider changes its
+  derived-file version, so their parquets are recomputed from cached raw files (old ones left for
+  C9's prune). Baseline fingerprint of the snapshots of 2026-09-30 13:45 (same code before A3):
+  reports/_fp/before.rds. Next: compose all offline -> reports/_fp/after.rds, compare.
+- 12:25 First test run: 15 failures (nri and lodes still used `st` further down; my check of
+  leftover references missed them). The offline compose started on that code was stopped (task and
+  its container); failed fetches are not cached, so it left nothing in cache/metrics. Fixed (nri
+  keeps st <- nation_state_table(); lodes keeps st <- state_table() for usps and names); a
+  codetools scan of every function finds no undefined variable outside ggplot aesthetics; tests
+  409 pass. Next: compose all offline -> reports/_fp/after.rds, compare with before.rds.
+- Started A4 while the A3 compose runs (code is loaded at start; blocks.R is in no cache key).
+  A4's baseline is A3's reports/_fp/after.rds.
+- A4 code done (blocks.R): compute_block_composition split into composition_results,
+  composition_no_data, composition_summary and composition_change (main function about 45 lines);
+  every line of blocks.R is at most 100 characters (was 105 over), by line breaks and a few named
+  intermediates, no logic change. Parses; codetools scan clean; tests 409 pass. Proof pending:
+  after A3's fingerprint (reports/_fp/after.rds) compare 0, compose again -> reports/_fp/a4.rds and
+  compare with after.rds.
+- Started C8 (research only until the composes finish), C9 (code; first run after the composes)
+  and E12, while the A3 compose runs. No edits to R/providers, metrics.R or stats.R meanwhile
+  (cache keys hash them lazily).
+- 12:34 A3 compose done (reports/_fp/after.rds; gary-in 61 s, austin-tx 277 s: derived files of
+  the edited providers recomputed offline). Compare with before.rds: values, texts, block data
+  and numbers identical in all 13 reports; only the report.qmd "Retrieval" line differs in 11
+  (dates now end October 01: the recomputed derived files carry today's date; existing behaviour,
+  a re-derived file counts as retrieved). A3 verified.
+- E12 done: .DS_Store in .gitignore; User-Agent geo-report-gen/1.0 (R/fetch.R).
+- C8: api.data.gov documents 1,000 requests an hour by default, 429 and a temporary block when
+  exceeded, X-RateLimit-Limit/-Remaining headers. One request with our key returned
+  x-ratelimit-limit 10, remaining 9: not the hourly default; investigating the window.
+- A4 compose started -> reports/_fp/a4.rds (compare with after.rds).
+- 12:36 C8 measured: three requests (two back to back, one 65 s later) all returned
+  x-ratelimit-limit 10, remaining 9, so the reported limit is 10 requests a second, not the
+  hourly 1,000 (an hourly counter would have dropped). cache/requests.log: 757 FBI requests since
+  2026-09-28, 0 HTTP 429 (2 x 503), at most 320 in an hour and 95 in a minute (chicago-il). The
+  FBI publishes no limit for CDE; an hourly cap above 320 cannot be ruled out without passing it.
+  The throttle (source_rates default 2/s, per process) is within the limit for one process; with
+  C7's parallel workers the key's limit is shared, so workers x rate must stay under 10/s.
+  Proposal: decide the fbi_cde rate together with C7.
+- 12:39 A4 compose done (reports/_fp/a4.rds): 0 differences against after.rds. madison-ms had
+  reused its compose: the A3 run composed it at 12:33 with code loaded before the blocks.R edits,
+  but build.json's compose_key hashes the code when the build ends, so the old snapshot was keyed
+  to the new code. Forced its recompose (build --no-render --force --offline): a4b.rds, 0
+  differences in all 13. A4 verified. The key issue added to PLAN as item 6b.
+- C9 done with the user's narrower rule: cache_prune() in R/fetch.R, `gr.R cache prune [--yes]`
+  (dry run by default), test in test-cache.R (tests 412), README cache paragraph and command
+  table. Dry run on the real cache: 827 replaced derived files, 523 MB (census_pep 105, lodes 101,
+  ipums_nhgis 81, fars 70, nces 50, bea 41, ...). Not run with --yes: waiting for the user.
+- PLAN: A3, A4, C9, E12 checked; C8 measured (rate decided with C7); 6b added.
+- Resume point: user go-ahead for `cache prune --yes` and a commit of A2-A4, C9, E12; then B5
+  (profile a warm compose; no compose running now). reports/_fp/ (fingerprints, ~MB) must be
+  deleted before the next data-sync, which syncs reports/.
+- 12:43 The user: prune, commit, then B5. `cache prune --yes`: 827 files, 523 MB deleted; a second
+  dry run finds 0; cache/raw 5.1 GB.

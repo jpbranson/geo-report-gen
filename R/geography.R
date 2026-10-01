@@ -26,6 +26,18 @@ geo_support <- function() memoize("geo_support", function() read_table(root_path
 
 state_table <- function() memoize("state_table", function() read_table(root_path("catalog", "geo_states.csv")))
 
+# The rows of state_table() in the nation: the 50 states and DC, not Puerto Rico or the Island Areas.
+nation_state_table <- function() {
+  st <- state_table()
+  st[st$in_nation == "TRUE", , drop = FALSE]
+}
+
+# The state codes of the nation, a census region or a division (`geoid` is unused for the nation).
+member_states <- function(type, geoid = NULL) {
+  st <- nation_state_table()
+  if (type == "nation") st$state else st$state[st[[type]] == geoid]
+}
+
 geo_row <- function(type, geoid, vintage) {
   data.frame(type = type, geoid = geoid, key = paste0(type, ":", geoid),
              vintage = as.integer(vintage), stringsAsFactors = FALSE)

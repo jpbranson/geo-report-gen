@@ -17,7 +17,7 @@ is_bls <- function(source) startsWith(source, "bls")
 
 user_agent_string <- function(source) {
   contact <- if (is_bls(source)) Sys.getenv("GR_HTTP_CONTACT") else ""
-  if (nzchar(contact)) paste0("geo-report-gen/0.1 (", contact, ")") else "geo-report-gen/0.1"
+  if (nzchar(contact)) paste0("geo-report-gen/1.0 (", contact, ")") else "geo-report-gen/1.0"
 }
 
 # ---- Cache --------------------------------------------------------------------
@@ -87,6 +87,36 @@ retrieved_at <- function(path) {
 derived_path <- function(source, name, code_file) {
   v <- memoize(paste0("code_", code_file), function() substr(code_version(file.path("R", "providers", code_file)), 1, 8))
   cache_path("raw", source, paste0(name, "-", v, ".parquet"))
+}
+
+# Derived tables that a newer version of the same table replaced (after an edit to the provider
+# code) and that no report on disk lists in its build.json. The newest version of each table is
+# always kept, and so are the downloads: everything deleted can be rebuilt offline from them.
+# Lists what it would delete; `delete = TRUE` deletes the files with their .lock and .meta.json.
+cache_prune <- function(delete = FALSE, reports = root_path("reports")) {
+  raw <- cache_path("raw")
+  version <- "-[0-9a-f]{8}[.]parquet$"
+  files <- list.files(raw, pattern = version, recursive = TRUE)
+  table <- sub(version, "", files)
+  mtime <- as.numeric(file.mtime(file.path(raw, files)))
+  newest <- mtime == stats::ave(mtime, table, FUN = max)
+  listed <- unlist(lapply(Sys.glob(file.path(reports, "*", "build.json")), function(b) {
+    jsonlite::fromJSON(b)$sources$file
+  }))
+  old <- files[!newest & !file.path("raw", files) %in% listed]
+  size <- file.size(file.path(raw, old))
+  mb <- function(bytes) sprintf("%.1f MB", sum(bytes) / 1e6)
+  by_source <- tapply(size, sub("/.*$", "", old), sum)
+  for (s in names(by_source)) cat(sprintf("  %-22s %s\n", s, mb(by_source[[s]])))
+  if (!delete) {
+    note(length(old), " replaced derived files (", mb(size), ") would be deleted; ",
+         "run `cache prune --yes` to delete them")
+  } else {
+    paths <- file.path(raw, old)
+    unlink(c(paths, paste0(paths, ".lock"), paste0(paths, ".meta.json")))
+    note("Deleted ", length(old), " replaced derived files (", mb(size), ")")
+  }
+  invisible(file.path("raw", old))
 }
 
 # ---- HTTP ---------------------------------------------------------------------

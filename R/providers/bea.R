@@ -52,10 +52,9 @@ bea_lines <- function(table, codes) {
 # Census regions and divisions: sums of their states (50 + DC) for the additive variables of `long`
 # (key, variable, year, value, flag); one withheld state withholds the sum.
 bea_sum_regions <- function(long, variables) {
-  st <- state_table()
   s <- long[startsWith(long$key, "state:") & long$variable %in% variables, , drop = FALSE]
   s$state <- sub("^state:", "", s$key)
-  s <- merge(s, st[st$in_nation == "TRUE", c("state", "region", "division")], by = "state")
+  s <- merge(s, nation_state_table()[, c("state", "region", "division")], by = "state")
   do.call(rbind, lapply(c("region", "division"), function(level) {
     g <- split(s, list(s[[level]], s$variable, s$year), drop = TRUE)
     do.call(rbind, lapply(g, function(x) {

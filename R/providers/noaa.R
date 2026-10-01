@@ -150,8 +150,7 @@ noaa_year_values <- function(year, pieces, vintage) {
   e <- noaa_events(year)
   ec <- noaa_event_counties(year)
   matched <- noaa_zone_match(year)
-  st <- state_table()
-  nation <- st$state[st$in_nation == "TRUE"]
+  nation <- member_states("nation")
   total <- function(rows, share = rep(1, length(rows))) c(EVENTS = length(unique(rows)),
     DEATHS = sum(e$deaths[rows] * share), DAMAGE = sum(e$damage[rows] * share))
   out <- lapply(seq_len(nrow(pieces)), function(i) {
@@ -160,7 +159,7 @@ noaa_year_values <- function(year, pieces, vintage) {
     unavailable <- function(note) list(est = rep(NA_real_, 3), note = note)
     r <- switch(type,
       nation = , region = , division = , state = {
-        states <- switch(type, nation = nation, region = , division = st$state[st[[type]] == geoid & st$in_nation == "TRUE"], state = geoid)
+        states <- switch(type, nation = nation, region = , division = member_states(type, geoid), state = geoid)
         list(est = total(which(e$state %in% states)), note = "")
       },
       county = , cbsa = {

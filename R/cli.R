@@ -23,6 +23,10 @@ Geography and catalog
   verify                      live checks of operational sources (writes catalog/verification_log.csv)
   test                        run the automated tests (offline, with fixtures in tests/fixtures)
 
+Cache
+  cache prune [--yes]         list (--yes: delete) derived files that newer versions replaced
+                              and no report's build.json lists; downloads are never deleted
+
 Options
   --offline                   use the cache only; never touch the network
   --refresh <source,...>      re-download raw data for these sources (e.g. census_acs5)
@@ -40,7 +44,7 @@ parse_cli <- function(args) {
     a <- args[i]
     if (startsWith(a, "--")) {
       key <- sub("^--", "", a)
-      if (key %in% c("offline", "force", "no-render", "check", "html")) {
+      if (key %in% c("offline", "force", "no-render", "check", "html", "yes")) {
         flags[[key]] <- TRUE
       } else {
         flags[[key]] <- args[i + 1]
@@ -82,6 +86,10 @@ gr_main <- function(args) {
     catalog = catalog_command(f),
     verify = verify_sources(),
     test = testthat::test_dir(root_path("tests", "testthat")),
+    cache = {
+      if (!identical(p$args[1], "prune")) stop("cache: the only subcommand is `cache prune [--yes]`")
+      cache_prune(delete = isTRUE(f$yes))
+    },
     help = cat(gr_usage),
     { cat("Unknown command '", cmd, "'\n", sep = ""); cat(gr_usage); quit(status = 2) })
   invisible(TRUE)

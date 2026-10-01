@@ -139,18 +139,16 @@ laus_state_sums <- function(states, key, measures, periods) {
 laus_fetch <- function(variables, pieces, periods, options = list()) {
   out <- list()
   measures <- laus_measures[intersect(names(laus_measures), variables)]
-  st <- state_table()
-  st <- st[st$in_nation == "TRUE", ]
   for (i in seq_len(nrow(pieces))) {
     type <- pieces$type[i]
     geoid <- pieces$geoid[i]
     if (type == "nation") {
-      out[[length(out) + 1]] <- laus_state_sums(st$state, pieces$key[i], measures[setdiff(names(measures), "rate")], periods)
+      out[[length(out) + 1]] <- laus_state_sums(member_states("nation"), pieces$key[i], measures[setdiff(names(measures), "rate")], periods)
       next
     }
     # LAUS has no regional population: it is the sum of the states'.
     if (type %in% c("region", "division") && "population" %in% names(measures)) {
-      out[[length(out) + 1]] <- laus_state_sums(st$state[st[[type]] == geoid], pieces$key[i], measures["population"], periods)
+      out[[length(out) + 1]] <- laus_state_sums(member_states(type, geoid), pieces$key[i], measures["population"], periods)
     }
     area <- laus_area_code(type, geoid)
     if (is.na(area)) next

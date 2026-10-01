@@ -50,8 +50,7 @@ nes_level <- function(year, level) {
 nes_year <- function(year) {
   memoize(paste0("nes_", year), function() cached(derived_path("census_nes", paste0("nes_", year), "nes.R"), source = "census_nes", compute = function() {
     d <- do.call(rbind, lapply(c("co", "st", "us"), function(level) nes_level(year, level)))
-    st <- state_table()
-    st <- st[st$in_nation == "TRUE", , drop = FALSE]
+    st <- nation_state_table()
     s <- d[d$key %in% paste0("state:", st$state), , drop = FALSE]
     s$state <- sub("^state:", "", s$key)
     s <- merge(s, st[, c("state", "region", "division")], by = "state")

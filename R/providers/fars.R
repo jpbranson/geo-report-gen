@@ -91,8 +91,7 @@ fars_locate <- function(year, state, vintage) {
 fars_year_values <- function(year, pieces, vintage) {
   d <- fars_crashes(year)
   vars <- c("DEATHS", "PED_DEATHS", "BIKE_DEATHS")
-  st <- state_table()
-  nation <- st$state[st$in_nation == "TRUE"]
+  nation <- member_states("nation")
   located_share <- tapply(!is.na(d$lat), d$state, mean)
   out <- list()
   for (i in seq_len(nrow(pieces))) {
@@ -101,7 +100,7 @@ fars_year_values <- function(year, pieces, vintage) {
     note <- ""
     sel <- switch(type,
       nation = d$state %in% nation,
-      region = , division = d$state %in% st$state[st[[type]] == geoid & st$in_nation == "TRUE"],
+      region = , division = d$state %in% member_states(type, geoid),
       state = d$state == geoid,
       county = d$county == geoid,
       cbsa = d$county %in% cbsa_counties(geoid, vintage),

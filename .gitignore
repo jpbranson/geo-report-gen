@@ -19,6 +19,9 @@ renv/library/
 renv/local/
 renv/staging/
 
+# macOS Finder metadata
+.DS_Store
+
 # Tools
 .quarto/
 .claude/

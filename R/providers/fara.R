@@ -60,7 +60,6 @@ fara_variables <- list(`2025` = c("SD_LILA", "DD_LILA", "SD_LAPOP", "DD_LAPOP", 
 
 fara_fetch <- function(variables, pieces, periods, options = list()) {
   d <- fara_tracts()
-  st <- state_table()
   vintage <- as.integer(options$settings$boundary_vintage %||% 2024)
   out <- list()
   for (yr in as.integer(periods)) {
@@ -73,8 +72,8 @@ fara_fetch <- function(variables, pieces, periods, options = list()) {
         county = x$county == geoid,
         cbsa = x$county %in% cbsa_counties(geoid, vintage),
         state = x$state == geoid,
-        region = , division = x$state %in% st$state[st[[type]] == geoid & st$in_nation == "TRUE"],
-        nation = x$state %in% st$state[st$in_nation == "TRUE"],
+        region = , division = x$state %in% member_states(type, geoid),
+        nation = x$state %in% member_states("nation"),
         stop("Food Access Research Atlas: unsupported geography type '", type, "'.", call. = FALSE))
       rows <- x[sel, , drop = FALSE]
       value <- function(v) if (!nrow(rows)) NA_real_ else if (v %in% c("TRACTS", "LRAM_TRACTS")) nrow(rows) else sum(rows[[v]], na.rm = TRUE)

@@ -127,8 +127,7 @@ nces_label <- function(year) {
 # Values of one school year for the requested pieces: rows (geo, variable, estimate, status, note).
 nces_year_values <- function(year, pieces, vintage) {
   s <- nces_schools(year)
-  st <- state_table()
-  nation <- st$state[st$in_nation == "TRUE"]
+  nation <- member_states("nation")
   # States whose schools NCES placed in counties that no longer exist (Connecticut's former
   # counties before planning regions): their current counties have no values that year.
   recoded <- unique(substr(setdiff(s$county, geo_catalog("county", vintage)$geoid), 1, 2))
@@ -139,7 +138,7 @@ nces_year_values <- function(year, pieces, vintage) {
     note <- ""
     sel <- switch(type,
       nation = s$state %in% nation,
-      region = , division = s$state %in% st$state[st[[type]] == geoid & st$in_nation == "TRUE"],
+      region = , division = s$state %in% member_states(type, geoid),
       state = s$state == geoid,
       county = if (!geoid %in% s$county && substr(geoid, 1, 2) %in% recoded) {
         note <- "NCES placed this state's schools in its former counties that year"

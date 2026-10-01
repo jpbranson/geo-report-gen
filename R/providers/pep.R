@@ -97,10 +97,9 @@ pep_long <- function() {
 
 # Sum states (50 + DC) to nation, regions and divisions for years that lack them.
 add_state_aggregates <- function(long) {
-  st <- state_table()
   states <- long[startsWith(long$key, "state:"), , drop = FALSE]
   states$state <- sub("^state:", "", states$key)
-  states <- merge(states, st[st$in_nation == "TRUE", c("state", "region", "division")], by = "state")
+  states <- merge(states, nation_state_table()[, c("state", "region", "division")], by = "state")
   agg <- function(level, codes) {
     a <- stats::aggregate(states[pep_counts], by = list(code = codes, year = states$year, series = states$series), FUN = sum)
     cbind(key = if (level == "nation") "nation:US" else paste0(level, ":", a$code), a[c("year", pep_counts, "series")])

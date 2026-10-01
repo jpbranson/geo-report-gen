@@ -36,3 +36,27 @@ test_that("retrieval times come from the record written at retrieval, not the fi
   unlink(paste0(path, ".meta.json"))
   expect_equal(format(retrieved_at(path), "%Y"), "2001")
 })
+
+test_that("cache prune deletes only replaced derived files that no build lists", {
+  withr::local_envvar(GR_CACHE = file.path(tempdir(), "prune-cache"))
+  reports <- file.path(tempdir(), "prune-reports")
+  unlink(c(cache_root(), reports), recursive = TRUE)
+  dir <- cache_path("raw", "src")
+  dir.create(dir, recursive = TRUE)
+  files <- c("t-aaaaaaaa.parquet", "t-bbbbbbbb.parquet", "t-cccccccc.parquet", "u-dddddddd.parquet",
+             "download.zip")
+  for (i in seq_along(files)) {
+    write_text_file("x", file.path(dir, files[i]))
+    Sys.setFileTime(file.path(dir, files[i]), as.POSIXct("2026-01-01") + i * 60)
+  }
+  write_text_file("x", file.path(dir, "t-bbbbbbbb.parquet.meta.json"))
+  write_text_file("", file.path(dir, "t-bbbbbbbb.parquet.lock"))
+  # A report on disk still lists the oldest version of t; c is the newest; u has one version.
+  dir.create(file.path(reports, "r1"), recursive = TRUE)
+  write_json_file(list(sources = list(list(file = "raw/src/t-aaaaaaaa.parquet"))),
+                  file.path(reports, "r1", "build.json"))
+  expect_equal(cache_prune(reports = reports), "raw/src/t-bbbbbbbb.parquet")
+  expect_true(file.exists(file.path(dir, "t-bbbbbbbb.parquet")))  # a dry run deletes nothing
+  cache_prune(delete = TRUE, reports = reports)
+  expect_setequal(list.files(dir), files[-2])
+})

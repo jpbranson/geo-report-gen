@@ -18,8 +18,7 @@ nri_long <- function() {
   memoize("nri_long", function() cached(derived_path("fema_nri", "nri_long", "nri.R"), source = "fema_nri", compute = function() {
     zip <- cached_download(nri_url, cache_path("raw", "fema_nri", "NRI_Table_Counties_v120.zip"), "fema_nri")
     x <- utils::read.csv(unz(zip, "NRI_Table_Counties.csv"), colClasses = "character", check.names = FALSE)
-    st <- state_table()
-    st <- st[st$in_nation == "TRUE", ]
+    st <- nation_state_table()
     x <- x[x$STATEFIPS %in% st$state, , drop = FALSE]
     additive <- c("POPULATION", "BUILDVALUE", "EAL_VALT", "EAL_VALB", paste0(nri_hazards, "_EALT"))
     num <- function(v) suppressWarnings(as.numeric(v))

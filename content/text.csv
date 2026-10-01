@@ -274,8 +274,6 @@ pop-growth.caption,default,"Population relative to {index_base} (index = 100), {
 pop-growth.prose,default,"{summary_sentence} {change_sentence} {growth_sentence} Each line shows population relative to its {index_base} count, so areas of different size share one scale.",2026-09-28T00:00:00,,
 pop-growth.title,default,Population growth compared,2026-09-28T00:00:00,,
 pop-growth.y_label,default,Index ({index_base} = 100),2026-09-28T00:00:00,,
-pop-history.caption,default,"Population of {area_short} by decennial census, {period_span}",2026-09-28T00:00:00,,
-pop-history.title,default,Population by census,2026-09-28T00:00:00,,
 pop-long-history.caption,default,"Population of {area_short}: census counts and annual estimates, {period_span}",2026-09-28T00:00:00,,
 pop-long-history.prose,default,Census counts and estimates for {area_short} run from {first_observed_period} ({first_observed}) to {last_observed_period} ({last_observed}). {summary_sentence} {change_sentence} {turning_sentence},2026-09-29T00:00:00,,
 pop-long-history.source_note,default,"Sources: {source_short}; census counts 1790-1990 via IPUMS NHGIS, University of Minnesota, www.nhgis.org; annual estimates, U.S. Census Bureau Population Estimates Program.",2026-09-29T00:00:00,,

@@ -145,17 +145,23 @@ Everything runs through one entry point, `Rscript gr.R <command>`:
 | `catalog [--check] [--html]` | validate the catalog, write `catalog/catalog.html` |
 | `verify` | live checks of every operational source (appends to `catalog/verification_log.csv`) |
 | `test` | automated tests (offline, with fixtures) |
+| `cache prune [--yes]` | list (with `--yes`, delete) derived files that newer versions replaced |
 
 Options: `--offline` (cache only), `--refresh <source,...>` (re-download the raw files in those
 `cache/raw/<source>` folders, e.g. `census_acs5`, `bls`, `bea`), `--force` (recompose and re-render),
 `--no-render`, `--workers <n>`, `--formats html,typst`. A build whose inputs, code and raw
 files are unchanged since its last compose reuses that compose (build.json says so).
 
-The cache only grows. `cache/metrics/` holds computed results, including ones no longer used
-after code or data changes; it can be deleted whenever no build is running, and the next build
-recomputes what it needs (about 7 seconds per report). The `.lock` files beside cache entries
-can be deleted at the same time. `cache/raw/` holds downloads, some slow to get again (IPUMS
-extracts need a new request on your account), so delete from it only with `--refresh` in mind.
+The cache grows unless pruned. An edit to a provider's code gives its derived tables
+(`cache/raw/<source>/<name>-<version>.parquet`) a new version, built from the cached downloads, and
+leaves the old version behind: `Rscript gr.R cache prune` lists the old versions that no report's
+build.json lists, and `cache prune --yes` deletes them (the newest version of each table and every
+download stay). Run it when no build is running; data-sync then removes the same files from the
+bucket. `cache/metrics/` holds computed results, including ones no longer used after code or data
+changes; it can be deleted whenever no build is running, and the next build recomputes what it
+needs (about 7 seconds per report). The `.lock` files beside cache entries can be deleted at the
+same time. `cache/raw/` holds downloads, some slow to get again (IPUMS extracts need a new request
+on your account), so delete from it only with `--refresh` in mind.
 
 PDF: `--formats typst` (or `--formats html,typst`) also writes `reports/<id>/report.pdf` through
 Quarto's Typst engine, with the same text, tables, charts and maps, a table of contents and

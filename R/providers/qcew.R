@@ -64,8 +64,6 @@ qcew_lookup <- function(d, measure, own, industry, keys) {
 
 qcew_fetch <- function(variables, pieces, periods, options = list()) {
   parts <- do.call(rbind, strsplit(variables, "_", fixed = TRUE))
-  st <- state_table()
-  st <- st[st$in_nation == "TRUE", , drop = FALSE]
   groups <- pieces$type %in% c("region", "division")
   out <- list()
   for (yr in as.integer(periods)) {
@@ -78,7 +76,7 @@ qcew_fetch <- function(variables, pieces, periods, options = list()) {
       x <- qcew_lookup(d, measure, own, industry, pieces$key)
       # A region or division is the sum of its states; one withheld state withholds the sum.
       for (i in which(groups)) {
-        members <- paste0("state:", st$state[st[[pieces$type[i]]] == pieces$geoid[i]])
+        members <- paste0("state:", member_states(pieces$type[i], pieces$geoid[i]))
         s <- qcew_lookup(d, measure, own, industry, members)
         ok <- all(s$status == "ok")
         x$estimate[i] <- if (ok) sum(s$estimate) else NA_real_

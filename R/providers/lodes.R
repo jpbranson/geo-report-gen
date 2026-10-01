@@ -99,7 +99,7 @@ lodes_fetch <- function(variables, pieces, periods, options = list()) {
          vintage, " boundaries.")
   }
   st <- state_table()
-  covered <- st$state[st$in_nation == "TRUE"]  # the 50 states and DC; Puerto Rico is not in LODES
+  covered <- member_states("nation")  # the 50 states and DC; Puerto Rico is not in LODES
   states <- lapply(seq_len(nrow(pieces)), function(i) lodes_piece_states(pieces$type[i], pieces$geoid[i], vintage))
   prefix <- sub("_.*$", "", variables)
   column <- sub("^[WR]_", "", variables)
