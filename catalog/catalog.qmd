@@ -52,7 +52,7 @@ inventory, not a claim to cover every public dataset. Documentation was checked 
 Known gaps and cautions:
 
 - **Child care.** No open national file of licensed facilities and capacity was found; capacity
-  comes from state licensing systems (Texas is implemented; Indiana, New York, California,
+  comes from state licensing systems (Texas and Indiana are implemented; New York, California,
   Colorado, Washington and Missouri are documented). There are no county data on child care
   enrollment or use. Capacity is a regulatory maximum that includes school-age slots, not
   enrollment, and state rules differ, so ratios should not be compared across states. NDCP

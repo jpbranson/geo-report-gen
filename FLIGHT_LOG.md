@@ -33,3 +33,11 @@ The log of the sessions up to 1.0 is docs/history/FLIGHT_LOG.md.
 - D11: PLAN.md cut to the 1.0 status and the "After 1.0" list; the plan before 1.0, the running
   log and the two reviews of 2026-09-29 moved to docs/history/ (git mv); this file started fresh.
 - Resume point: E15 (commit, tag v1.0.0 and push) on the user's go-ahead.
+- 14:30 Documentation check (the user asked before E15): every path the docs name exists (bar
+  the generated catalog.html); CLI usage, parser and README options agree; no stale counts or
+  removed features in README, PLAN, FLIGHT_LOG, docs/sources.md, docs/nhgis.md or code comments.
+  Fixed: catalog/catalog.qmd said Indiana child care capacity was only documented (it is
+  implemented); README now states the count-block index rule that catalog --check enforces.
+  catalog.html renders; tests 416. docs/REQUIREMENTS.md (the brief) and docs/history/ are records,
+  left as they are.
+- Resume point: E15 (tag v1.0.0, push) on the user's go-ahead.

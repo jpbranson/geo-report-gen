@@ -281,6 +281,9 @@ above it. Moving a row moves the block; numbering and the table of contents foll
   table's line labels in older releases before moving it back. `breaks` is shown to readers.
   Every new block, and every metric that no block shows, also gets a row in
   `profiles/exhaustive.csv`; `gr.R catalog --check` (and the tests) report any that are missing.
+  A block that shows a count over time against benchmarks needs `index=first` in its options
+  (levels would put the area beside a state or the nation many times its size); the check
+  reports any that lack it, and manifest metric rows get it automatically.
 - **Change text:** edit the report inline or `content/text.csv` (see above).
 - **Change the look:** edit `config/themes.csv` (fonts, colors, sizes, number formats, print), or
   add a theme and select it with the `theme` setting. Themes never change a statistic.
