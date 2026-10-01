@@ -109,7 +109,7 @@ One-time setup:
    The keys are saved in rclone's own configuration in your user profile, never in the project.
    (`rclone config` asks for the same settings one by one and keeps the keys out of your shell
    history.)
-4. Run `data-sync` first on the machine with the most data: it uploads everything (about 4 GB).
+4. Run `data-sync` first on the machine with the most data: it uploads everything (about 6 GB).
 
 #### Tar bundle
 
@@ -239,8 +239,9 @@ totals cover the 50 states and DC; Puerto Rico and the Island Areas have no Cens
   applicable, unavailable, not aggregable and invalid denominator. Each report lists what it
   could not show, and why.
 - One ACS release for every area; trends use non-overlapping 5-year periods. Dollars are shown in
-  constant `dollar_year` dollars with the R-CPI-U-RS; nominal values are kept. Estimate series
-  of different vintages are separate lines, never spliced.
+  constant `dollar_year` dollars with the R-CPI-U-RS from 1978 (earlier years follow the Census
+  Bureau's historical income index, joined by ratio at 1978); nominal values are kept. Estimate
+  series of different vintages are separate lines, never spliced.
 
 ## Editing text
 
@@ -359,134 +360,27 @@ about 5 minutes per extract.
 
 ## Limitations
 
-- 446 of the 576 cataloged metrics are operational (ACS detailed tables, decennial census,
-  population estimates, SAIPE, SAHIE, CDC PLACES, County Business Patterns, Nonemployer
-  Statistics, LEHD LODES, BLS QCEW, BEA county income and GDP, NHTSA FARS, FEMA National Risk
-  Index, USDA Food Environment Atlas, EAC Election Administration and Voting Survey, Census of
-  Governments finance, FBI Crime Data Explorer, IPUMS NHGIS, BLS unemployment, FHFA, building
-  permits, child care prices, Texas licensing, NCES public schools, NOAA Storm Events); the rest
-  are documented only.
-- Other sources added on 2026-09-30 (each documented in its catalog rows): child care prices (NDCP)
-  by age of child and the labor force rate of mothers of young children; census counts of
-  households, household types, vacancy, homeownership, median age and race (2000-2020);
-  Population Estimates components of change (2021-2025); BEA transfers, income maintenance, earnings and earnings by industry; LAUS
-  employed and unemployed persons and, for states and larger areas, participation and
-  employment-population rates; Texas and Indiana child care providers (current snapshots) with
-  capacity per 100 children under 5; building permits by structure size, from 1990 for counties;
-  USDA Food Access Research Atlas (SRAM 2025, LRAM 2019; tracts summed to counties and above);
-  HRSA shortage areas (a daily snapshot); national CPS annual averages since 1948; and a county
-  map of 1900 from NHGIS boundary files. Not built:
-  County Health Rankings (terms need the user's decision), MIT Election Lab returns (a guestbook
-  download), HUD homelessness counts (a bot challenge blocks scripted downloads), NDCP age bands
-  and NCES before 2017. BLS OEWS wages and the Population Estimates by county age, sex and race
-  were built and then removed (no report used them); their catalog rows remain as documentation.
-- NCES public schools cover school years 2017-18 through 2024-25: schools, enrollment, public
-  pre-K, teacher full-time equivalents and students per teacher (not class size). Students are
-  counted at their school, not their residence. Fully virtual schools count only in state and
-  larger totals. A measure needs reporting by at least 95% of schools in each state part;
-  eligible totals omit nonreporting schools. Earlier CCD history remains to be implemented.
-- LODES (jobs by workplace and employed residents, 2002-2023) counts primary jobs, each worker's
-  highest-paying job, summed from census blocks: cities, tracts and unions get exact values, on
-  2024 boundaries in every year. It has no national or regional totals, and states that supplied
-  no job data in some years (Alaska from 2017, Michigan from 2022, Washington, DC, before 2010,
-  Massachusetts before 2011, four more states in 2002-2003) have no values then. Federal civilian
-  jobs are counted from 2010. Commuting flows (the origin-destination files) are not used yet.
-- QCEW (jobs, establishments and pay at employers covered by unemployment insurance, 2001-2025)
-  covers counties, states and the nation; regions are sums of states. BLS's 1990-2000 files are a
-  NAICS reconstruction with one-year spikes (Oakland County, Michigan, 1997; New Jersey 1995) and
-  are not used. Values withheld to protect employers are shown as not published, never as zero.
-  The annual files take 1.9 GB in the cache (downloaded once and shared by every report).
-- County GDP (BEA, 2001-2024) is in current dollars, which add up across areas, plus BEA's real
-  GDP index for growth, which does not: combined areas and Census regions have no real growth
-  line. The industry mix uses twelve industry groups, withheld far less often than single
-  sectors. Connecticut's planning regions have GDP for 2024 only and no real GDP index.
-- Nonemployer Statistics (1997-2023, counties, states and the nation) count businesses without
-  paid employees, mostly the self-employed, which the job sources leave out, including home-based
-  child care. Rates use BEA's population, or the Census Bureau's estimates where BEA has none
-  (Connecticut's planning regions before 2024). Child care counts dip in 2017 nationally with no
-  documented cause.
-- Traffic deaths (NHTSA FARS, 1982-2023) are counted where crashes happened. Counties come from
-  the crash codes; cities, their county parts and tracts from crash coordinates, which start in
-  2001, located in full-resolution 2024 TIGER/Line boundaries (a state-year needs 95% of crashes
-  with coordinates). Rates per 100,000 residents use 5-year totals and the ACS 5-year population.
-  Connecticut's planning regions are not coded (FARS keeps the former counties).
-- Severe weather (NOAA Storm Events, 1950-2025: events, deaths and property damage by year) counts
-  what National Weather Service offices recorded, so counts follow reporting practice. Coverage
-  widens in 1955 and 1996 (tornadoes only 1950-1954; tornadoes, thunderstorm wind and hail
-  1955-1995; all event types from 1996), and the three periods are separate series. Winter, heat
-  and flood events are recorded for forecast zones: such an event counts in each county of its zone
-  and shares its deaths and damage equally among them, using NWS's current county-zone file. Zones
-  were redrawn over the years, so a state has county values in a year only when 95% of its zone
-  events match a current zone (about half the states before 2013, about a fifth in 2022-2025). States and
-  larger areas need no zones. Damage is a rough estimate in dollars of the event year, shown in
-  constant dollars. In an area made of several counties an event of a zone that covers several of them
-  counts in each; deaths and damage are shared, so they add up. There are no cities or tracts;
-  Connecticut's planning regions have no values.
-- Census years before the ACS (IPUMS NHGIS) cover income and poverty (1970 or 1980 to 2000),
-  education, work, commuting (commuting modes 1990 and 2000) and homeownership (1970 to 2000).
-  Most come from the census long form, a sample; NHGIS publishes no margins of error for them,
-  so they are drawn as dots and never tested. Areas are linked across censuses by name and code,
-  on each census's boundaries. A chart with census years and ACS periods also states the change
-  from the first census to the latest period, as approximate and untested. Connecticut's planning
-  regions get census counts and shares summed from their towns (which kept their codes); their
-  medians, and combined areas' medians, have no census values. The NHGIS terms forbid
-  redistributing the data: extracts stay in the cache, and the test fixtures are made up. Other
-  NHGIS holdings (constant-boundary counts, tried and removed; Connecticut crosswalks) are described in
-  `docs/nhgis.md`.
-- Population census counts reach back to 1790 for counties, states and the nation, and to 1970
-  for places and county subdivisions (IPUMS NHGIS until 1990). A county's early counts cover
-  its territory at each census, which may differ from today's.
-- County Business Patterns before 1998 (IPUMS NHGIS) give all-industry jobs from 1970 and
-  payroll and establishments from 1974 for counties, states and the nation, under SIC industry
-  codes; they are drawn as a separate series from the NAICS years. National files start in 1977
-  and state files skip 1971, 1973 and 1976. The 1975 state file reports payroll in thousands
-  of dollars; the provider converts it. Payroll per employee starts in 1974.
-- Constant dollars use the R-CPI-U-RS from 1978. Earlier years follow the Census Bureau's
-  historical income index (the CPI-U-X1 for 1967-1977, the CPI-U before), joined by ratio at
-  1978 as the Census Bureau joins them.
-- Crime rates (FBI Crime Data Explorer, 1985-2025) need a free api.data.gov key in `.env`
-  (`DATA_GOV_API_KEY`), sent only as a request header. The FBI publishes police agencies: a city
-  is its police department (matched by name) and needs all 12 months reported in a year (Gary did
-  not report in 2020 or 2021); states and the nation cover the agencies that reported. A county
-  adds up every agency the FBI lists in it, dividing a department that serves several counties
-  by where its residents live; agencies listed in no county (most state police, and the New York
-  City and D.C. police) are left out, and a year needs agencies serving 75% of the county's
-  residents to report every month, so county figures are approximate. An agency's year with under
-  a quarter of its usual offenses (the median of the three years on each side, when that is at
-  least 20) also counts as not reported: Kansas City, Kansas marked 2023 as reported while moving
-  to NIBRS but sent almost nothing. From 2013 violent crime counts rape under a revised, broader
-  definition, so the years before and after are separate series. Agencies that report through
-  NIBRS are converted by the FBI to the same summary counts, so that move is not a break.
-- Government finances (2022 Census of Governments) describe the county government for counties
-  and the city's own government for cities, not all local governments in an area. Connecticut
-  has no county governments, and consolidated city-counties (Indianapolis, Wyandotte County and
-  Kansas City, Kansas) count as cities, so those counties have no county-government values.
-- Voter registration and turnout (EAC survey, 2020 and 2024) are totals of election
-  jurisdictions: counties, New England towns, Wisconsin municipalities and a few cities that run
-  their own elections. Counties split by such a city (Kansas City, Missouri) and Wisconsin and
-  Alaska counties have no values; the national value covers the states that reported every
-  jurisdiction. Counts by voting method are not used, because they do not add up in some states.
-- The USDA Food Environment Atlas publishes county values only (no state or national values and
-  no populations behind its rates), so its table shows the county alone and combined areas get
-  no value. It still uses Connecticut's former counties, so Connecticut planning regions have no
-  Atlas values.
-- The FEMA National Risk Index is used for counties (city reports show their county). Its
-  scores rank counties against each other, so they exist only for single counties; expected
-  losses add up to states, the nation and combined areas. FEMA's terms require the statement
-  printed under each hazard table and chart. Census tracts (a 635 MB national file) are not used.
-- County Business Patterns (jobs, establishments and payroll where businesses are located)
-  covers counties, states and the nation. From 2017 a sector with fewer than 3 establishments in
-  a county is not published, so jobs by industry are shown by NAICS sector (combining sectors
-  would lose whole groups) and small sectors can be missing for small counties.
-- City histories start in 2000: the Census API has no earlier census tables for places.
-- Medians of combined areas have no margin of error (the Census Bureau publishes no method).
-- SAIPE and SAHIE (annual poverty, income and health insurance estimates) cover counties, states
-  and the nation, so city reports show county context; combined areas get a value without a
-  margin of error, because the model errors of different counties cannot be combined.
-- CDC PLACES health measures are model-based estimates from the latest release only (CDC advises
-  against comparing releases). They are not age-adjusted, and CDC publishes no state values, so a
-  state is the sum of its counties. Kentucky and Pennsylvania lack most measures in the 2025
-  release, and the social-needs questions were asked only in some states (not Texas); tables then
-  say why no estimate is shown.
-- Licensed child care capacity is implemented for Texas only; it is a current snapshot.
+These apply across sources. How each source is used, and its own limits, is in
+`docs/sources.md`; each source's documentation and checks are in the catalog
+(`catalog/catalog.html`).
+
+- 420 of the 561 cataloged metrics are operational, from 34 of its 126 sources; the rest are
+  documented only. Not built: County Health Rankings (terms need the user's decision), MIT
+  Election Lab returns and HUD homelessness counts (their downloads block scripts).
+- Many sources publish counties, not cities (SAIPE, SAHIE, BEA, QCEW, County Business Patterns,
+  FEMA, the Food Environment Atlas): a city report then shows its county as context, labeled as
+  such. Cities, tracts and combined areas get exact values only where a source publishes them or
+  its records can be placed (LODES blocks, crash coordinates, school addresses).
+- City histories from the Census API start in 2000; census years 1970-2000 come from IPUMS
+  NHGIS, linked across censuses by name and code on each census's boundaries.
+- Census years before the ACS have no margins of error, so they are drawn as dots and never
+  tested; a chart that joins them to ACS periods states the long-run change as approximate.
+- Combined areas have no margin of error for medians (the Census Bureau publishes no method) or
+  for model-based estimates (the model errors of SAIPE and SAHIE areas cannot be combined).
+- Connecticut's planning regions (counties since 2022) are missing from sources that still use
+  the former counties (FARS, NOAA zones, the Food Environment Atlas, county-level GDP before 2024).
+- Some sources are current snapshots only (child care licensing in Texas and Indiana, HRSA
+  shortage areas, the latest CDC PLACES release), so they have no history.
+- Licenses: IPUMS NHGIS forbids redistributing its data (extracts stay in the cache; test fixtures
+  are made up), and FEMA requires the statement printed under its tables and charts.
 - Custom polygons and area-weighted allocation are not supported.

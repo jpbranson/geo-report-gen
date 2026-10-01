@@ -725,9 +725,13 @@ C. Bulk runs and the cache
        starts
 
 D. Documentation (after A-C, so it describes the final state)
-10. [ ] README: current counts (431 of 561 metrics operational), Indiana child care capacity (not
+10. [x] README: current counts (431 of 561 metrics operational), Indiana child care capacity (not
         Texas only), Limitations cut to limits that apply across sources (per-source detail stays
-        in the catalog and catalog.html), no dated changelog
+        in the catalog and catalog.html), no dated changelog. Done 2026-10-01: 420 of 561 from 34
+        of 126 sources; the per-source bullets (how each adapter uses its source; mostly not in
+        the catalog) moved verbatim to docs/sources.md, the dated bullet folded into it;
+        Limitations keeps 9 cross-source limits; data-sync size 6 GB. Also `batch --no-render`
+        now skips rendering
 11. [ ] PLAN.md cut to a status and the "After 1.0" list (its top checklist still says 537 metrics
         and 321 tests, and "Nothing is committed" is out of date); FLIGHT_LOG.md and
         docs/review-2026-09-29-*.md moved to docs/history/; "How to resume" covers the Mac with

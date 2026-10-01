@@ -7,7 +7,7 @@
 # and reports whose render inputs are unchanged are not re-rendered.
 
 batch_build <- function(ids = NULL, workers = 4, offline = FALSE, refresh = character(), force = FALSE,
-                        formats = "html") {
+                        formats = "html", render = TRUE) {
   all <- expand_reports()
   ids <- ids %||% all$report_id
   unknown <- setdiff(ids, all$report_id)
@@ -34,7 +34,7 @@ batch_build <- function(ids = NULL, workers = 4, offline = FALSE, refresh = char
     }
   }
   compose_secs <- as.numeric(difftime(Sys.time(), started, units = "secs"))
-  todo <- ids[vapply(ids, function(id) {
+  todo <- if (!render) character() else ids[vapply(ids, function(id) {
     m <- composed[[id]]
     identical(m$status, "ok") && (force || isTRUE(m$needs_render) || !all(file.exists(report_outputs(id, formats))))
   }, logical(1))]
@@ -45,7 +45,8 @@ batch_build <- function(ids = NULL, workers = 4, offline = FALSE, refresh = char
   summary <- do.call(rbind, lapply(ids, function(id) {
     m <- if (is.null(composed[[id]]$report_id)) composed[[id]] else previous_build(id)
     data.frame(report_id = id, status = m$status,
-               action = if (!identical(m$status, "ok")) "failed" else if (id %in% todo) "rendered" else "up to date",
+               action = if (!identical(m$status, "ok")) "failed" else if (id %in% todo) "rendered" else
+                 if (!render) "composed" else "up to date",
                requests = m$requests$total %||% 0, cache_hits = m$cache$hit %||% 0, cache_misses = m$cache$miss %||% 0,
                warnings = length(m$warnings), compose_s = m$timings$compose %||% NA,
                render_s = render_results[[id]]$seconds %||% NA, error = substr(m$error %||% "", 1, 160),

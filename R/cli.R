@@ -73,7 +73,8 @@ gr_main <- function(args) {
       if (!all(ok)) quit(status = 1)
     },
     batch = batch_build(if (length(p$args)) p$args else NULL, workers = as.integer(f$workers %||% 4),
-                        offline = isTRUE(f$offline), refresh = refresh, force = isTRUE(f$force), formats = formats),
+                        offline = isTRUE(f$offline), refresh = refresh, force = isTRUE(f$force), formats = formats,
+                        render = !isTRUE(f[["no-render"]])),
     preview = preview_report(p$args[1]),
     new = new_report(p$args[1], f),
     harvest = print(harvest_report(p$args[1])$status),

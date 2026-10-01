@@ -1380,3 +1380,11 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   cached Maryland data stay. README batch row and CLI usage updated. PLAN C7, C8 checked.
 - Resume point: commit 6b + C7 + C8 on the user's go-ahead; next D10-D11 (docs), then E13-E15.
 - 13:36 The user: commit 6b, C7, C8.
+- 13:40 The user: proceed D10 -> E13 -> E14 -> D11 -> E15, step by step (plus the batch
+  --no-render fix and deleting reports/_fp before a data-sync). Started D10 (README).
+- 13:38 D10 done: README Limitations cut to 9 cross-source limits (420 of 561 metrics, 34 of 126
+  sources); per-source bullets moved verbatim to docs/sources.md (the catalog lacks most of this
+  adapter detail), with the dated "added on 2026-09-30" bullet turned into undated bullets and
+  child care capacity for Texas and Indiana; pre-1978 constant dollars moved to Statistics.
+  `batch --no-render` fixed (render arg; summary says "composed"). Tests 416.
+- Resume point: E13 (full check).
