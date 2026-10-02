@@ -43,6 +43,24 @@ log (docs/history/FLIGHT_LOG.md) and the two reviews of 2026-09-29 are in docs/h
 
 ## After 1.0 (not started before the tag)
 
+- Separate the engine from the user's project (first structural item). A user's reports,
+  settings and text now live in tracked files (config/reports.csv, config/settings.csv,
+  content/text.csv, config/manifests/), so pulling a new release means merge conflicts.
+  - Engine: this repository (R/, the catalog, quarto/, the default profiles, themes, settings
+    and text).
+  - Project: a folder named by `GR_PROJECT` (default: the checkout, so nothing changes for a
+    current clone) holding the user's reports.csv, settings and text records, manifests,
+    profiles, modules, reports/ and cache/. Engine defaults are read first and the project's
+    rows override them, as text scopes already do.
+  - Start from `GR_ROOT` and `GR_CACHE` (root_path() would split into engine and project
+    paths), and the test helpers that build temporary project copies. Writes (`new`, inline
+    and bulk edits, `verify`) go to the project only; Docker mounts the project folder.
+  - Done when a project made by a 1.0 checkout builds unchanged after pulling a newer engine,
+    with a test for it and README steps for moving an existing checkout's edits into a
+    project folder.
+  - Not a full R package: the audience runs Docker, and the product is a folder of
+    configuration and editable reports. Reconsider if people want parts from their own R code
+    (a small package of the margin-of-error and geography functions would fit that).
 - Cold benchmark from an empty cache, on the Windows machine (FEMA downloads work there); README
   and docs/benchmark.csv updated with it.
 - Queue items waiting on the maintainer: County Health Rankings (terms), MIT Election Lab (guestbook
