@@ -1528,3 +1528,8 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   git push --force-with-lease=main:9e556fd4bc1e9caf933fd883252af01cf9e3cc1e origin main;
   git push origin v1.0.0; watch the check workflow; gh release create v1.0.0; make the repo
   public; turn the wiki off; add topics.
+- 13:35 The user ran the remote add, the force push and the tag push. CI (check workflow) passed
+  on GitHub: image build, 457 tests, catalog --check. GitHub release v1.0.0 created; wiki and
+  projects off; topics added; repository public. Anonymous clone and README links checked.
+- Resume point: 1.0 is released. Next work is PLAN.md "After 1.0". The pre-rewrite history
+  bundle in that session's scratchpad still holds the old commits (delete it).
