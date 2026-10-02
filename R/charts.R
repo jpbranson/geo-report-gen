@@ -256,8 +256,3 @@ render_block_facts <- function(b, txt, th) {
   names(tab) <- c(txt$indicator_header %||% "Indicator", et$label, txt$period_header %||% "Period")
   knitr::kable(tab, format = "pipe", align = c("l", rep("r", nrow(et)), "l"))
 }
-
-# Event lists are written directly into the .qmd (so statements are editable inline);
-# nothing to draw here.
-render_block_history <- function(b, txt, th) invisible(NULL)
-render_block_text <- function(b, txt, th) invisible(NULL)

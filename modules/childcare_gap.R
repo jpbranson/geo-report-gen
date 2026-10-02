@@ -4,7 +4,9 @@
 # `render(output, text, theme)` function. It is inserted into a report with a manifest row
 # of type "custom" whose ref is the file name ("childcare_gap"). The engine calls compute()
 # while composing (data come from validated metrics through ctx$metric()) and render() while
-# the report renders. Nothing in the engine is specific to this module.
+# the report renders. When the analysis does not apply to an area, compute() returns
+# list(not_applicable = "<reason>"): the block is left out and the reason listed under "What is
+# not shown and why". Nothing in the engine is specific to this module.
 
 title <- "Licensed child care slots per 100 children under 5"
 
@@ -12,14 +14,14 @@ compute <- function(ctx, options) {
   # Areas published by both sources: counties and the state (the licensing data are
   # county totals, so a city is represented by the counties it intersects).
   areas <- Filter(function(e) all(e$pieces$type %in% c("county", "state")), ctx$entities)
-  if (!length(areas)) stop("No county or state areas to compare for this study area.")
+  if (!length(areas)) return(list(not_applicable = "it compares counties and states, and this report has none."))
   capacity <- ctx$latest("childcare_capacity_tx", areas)
   children <- ctx$latest("children_under5_acs", areas)
   d <- merge(capacity[, c("entity_id", "label", "value", "period_label")],
              children[, c("entity_id", "value", "moe", "period_label")], by = "entity_id", suffixes = c("_capacity", "_children"))
   d <- d[!is.na(d$value_capacity) & !is.na(d$value_children) & d$value_children > 0, , drop = FALSE]
   # This example uses Texas licensing records only (Indiana's capacity has its own library blocks).
-  if (!nrow(d)) stop("This comparison uses Texas licensing records, so it covers Texas counties only.")
+  if (!nrow(d)) return(list(not_applicable = "it uses Texas licensing records, so it covers Texas counties only."))
   # A ratio of a count without sampling error to an ACS estimate: MOE from the ratio formula
   # with the capacity treated as exact.
   d$per_100 <- 100 * d$value_capacity / d$value_children

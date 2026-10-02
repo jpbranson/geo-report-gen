@@ -73,3 +73,12 @@ test_that("a memoized value records the raw files it read each time a later repo
   expect_true(path %in% run$used)
   rm(list = key, envir = memo)
 })
+
+test_that("--refresh matches a cache folder or a source id", {
+  run_reset(offline = TRUE, refresh = "in_fssa")
+  expect_true(wants_refresh(cache_path("raw", "in_fssa", "provider-listings.html"), "in_fssa_provider_listings"))
+  expect_false(wants_refresh(cache_path("raw", "census_bps", "co2020a.txt"), "census_bps"))
+  run_reset(offline = TRUE, refresh = "census_bps")
+  expect_true(wants_refresh(cache_path("raw", "census_bps", "co2020a.txt"), "census_bps"))
+  run_reset(offline = TRUE)
+})

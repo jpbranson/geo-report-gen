@@ -15,20 +15,44 @@ source_rates <- c(census_api = 5, census_files = 3, bls = 1, bea = 2, fbi_cde = 
 
 rate_share <- function() max(1, suppressWarnings(as.numeric(Sys.getenv("GR_RATE_SHARE", "1"))), na.rm = TRUE)
 
-# BLS rejects automated requests that do not name a contact, so BLS requests (and only
-# those: sources named "bls" or "bls_<program>") carry GR_HTTP_CONTACT, set in the git-ignored
-# .env file, in the User-Agent header.
+# User-Agent header. BLS rejects automated requests that do not name a contact, so BLS requests
+# (and only those: sources named "bls" or "bls_<program>") carry GR_HTTP_CONTACT, set in the
+# git-ignored .env file; BLS refuses the contact when anything else is in the parentheses.
+# Other requests name the project: FEMA's and the Department of Labor's servers refuse a bare
+# "geo-report-gen/1.0" (HTTP 403; checked 2026-10-02).
 is_bls <- function(source) startsWith(source, "bls")
 
 user_agent_string <- function(source) {
   contact <- if (is_bls(source)) Sys.getenv("GR_HTTP_CONTACT") else ""
-  if (nzchar(contact)) paste0("geo-report-gen/1.0 (", contact, ")") else "geo-report-gen/1.0"
+  about <- if (nzchar(contact)) contact else "+https://github.com/jpbranson/geo-report-gen"
+  paste0("geo-report-gen/1.0 (", about, ")")
 }
 
 # ---- Cache --------------------------------------------------------------------
 
+# --refresh names folders under cache/raw/ or cache/geo/ (e.g. census_acs5, in_fssa) or source
+# ids; each matching file is fetched or rebuilt once in the run.
 wants_refresh <- function(path, source) {
-  !is.na(source) && source %in% run$refresh && !(path %in% run$refreshed)
+  named <- (!is.na(source) && source %in% run$refresh) || cache_folder(path) %in% run$refresh
+  named && !(path %in% run$refreshed)
+}
+
+# The folder of a cache file under cache/raw/ or cache/geo/ (NA for other paths).
+cache_folder <- function(path) {
+  root <- paste0(cache_root(), "/")
+  if (!startsWith(path, root)) return(NA_character_)
+  parts <- strsplit(substring(path, nchar(root) + 1), "/", fixed = TRUE)[[1]]
+  if (length(parts) > 2 && parts[1] %in% c("raw", "geo")) parts[2] else NA_character_
+}
+
+# Names --refresh accepts: existing cache folders and registered sources.
+check_refresh <- function(names) {
+  folders <- c(list.files(cache_path("raw")), list.files(cache_path("geo")))
+  unknown <- setdiff(names, c(folders, ls(provider_registry)))
+  if (length(unknown)) {
+    stop("--refresh: no cache folder or source named ", paste(unknown, collapse = ", "), ". Folders in ",
+         "cache/raw/ and cache/geo/: ", paste(sort(unique(folders)), collapse = ", "), call. = FALSE)
+  }
 }
 
 read_cache_file <- function(path) {
@@ -191,14 +215,27 @@ http_perform_many <- function(reqs, max_active = 4) {
   resps
 }
 
+# An HTTP error status as a condition of class gr_http_error carrying `status`, so a provider
+# can treat 404 (not published) differently from a failure that should not be cached.
+http_error <- function(status, ...) {
+  stop(structure(list(message = paste0("HTTP ", status, ...), call = NULL, status = status),
+                 class = c("gr_http_error", "error", "condition")))
+}
+
+# The text of a response body for an error message: tags removed (it may be an HTML page),
+# whitespace collapsed, at most n characters.
+body_text <- function(body, n) substr(trimws(gsub("\\s+", " ", gsub("<[^>]*>", " ", body))), 1, n)
+
 check_status <- function(resp, what) {
   if (!inherits(resp, "httr2_response")) {
     stop("Request failed for ", what, ": ", conditionMessage(resp), call. = FALSE)
   }
   status <- httr2::resp_status(resp)
   if (status >= 400) {
-    body <- tryCatch(substr(httr2::resp_body_string(resp), 1, 300), error = function(e) "")
-    stop("HTTP ", status, " for ", what, if (nzchar(body)) paste0(": ", body), call. = FALSE)
+    # The start of the response body often says why (e.g. an invalid parameter).
+    body <- tryCatch(body_text(substr(httr2::resp_body_string(resp), 1, 2000), 300),
+                     error = function(e) "")
+    http_error(status, " for ", what, if (nzchar(body)) paste0(": ", body))
   }
   invisible(status)
 }
@@ -220,7 +257,7 @@ cached_download <- function(url, path, source) {
   resp <- http_perform(http_request(url, source), path = tmp)
   if (httr2::resp_status(resp) >= 400) {
     unlink(tmp)
-    stop("HTTP ", httr2::resp_status(resp), " downloading ", url, call. = FALSE)
+    http_error(httr2::resp_status(resp), " downloading ", url)
   }
   replace_file(tmp, path)
   run$refreshed <- c(run$refreshed, path)
@@ -261,7 +298,7 @@ census_parse <- function(resp, what) {
       stop("The Census Data API rejected CENSUS_API_KEY in .env as invalid. Check the key, or activate it ",
            "with the link in the email the sign-up sent (https://api.census.gov/data/key_signup.html).", call. = FALSE)
     }
-    stop("The Census Data API returned no data for ", what, ": ", substr(body, 1, 200), call. = FALSE)
+    stop("The Census Data API returned no data for ", what, ": ", body_text(body, 200), call. = FALSE)
   }
   m <- jsonlite::fromJSON(body, simplifyVector = TRUE)
   df <- as.data.frame(m[-1, , drop = FALSE], stringsAsFactors = FALSE)

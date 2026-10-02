@@ -1,4 +1,4 @@
-﻿# Machine-specific settings and secrets
+# Machine-specific settings and secrets
 .env
 .Renviron
 api_data_gov_key.txt

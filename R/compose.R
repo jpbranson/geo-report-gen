@@ -67,8 +67,9 @@ compose_report <- function(report_id) {
 }
 
 # Compute every block; a block that fails becomes an error block and the report goes on. A
-# block whose source publishes nothing below the nation for this study area is left out (its
-# id is kept in the "skipped" attribute for the availability appendix).
+# block whose source publishes nothing below the nation for this study area, or a custom module
+# that does not apply to it, is left out: the "skipped" attribute maps its id to the reason
+# for the availability appendix (NA: the nation-only reason).
 compute_blocks <- function(rows, ctx) {
   blocks <- list()
   skipped <- character()
@@ -80,7 +81,13 @@ compute_blocks <- function(rows, ctx) {
       list(id = row$id, kind = "error", error = conditionMessage(e), fields = "title",
            values = list(block_id = row$id), section = row$section)
     })
-    if (isTRUE(b$nation_only)) skipped <- c(skipped, row$id) else blocks[[row$id]] <- b
+    if (isTRUE(b$nation_only)) {
+      skipped[row$id] <- NA_character_
+    } else if (!is.null(b$not_applicable)) {
+      skipped[row$id] <- b$not_applicable
+    } else {
+      blocks[[row$id]] <- b
+    }
   }
   attr(blocks, "skipped") <- skipped
   blocks
@@ -111,7 +118,11 @@ sources_markdown <- function(srcs, ctx) {
     detail <- paste(unique(srcs$detail[srcs$source_id == id]), collapse = "; ")
     row <- cat_src[cat_src$source_id == id, , drop = FALSE]
     if (!nrow(row)) return(paste0("- ", id, ": ", detail))
-    paste0("- **", row$name, "** (", row$agency, "). ", detail, ". Documentation: <", row$doc_url, ">.")
+    # A source whose terms require a statement wherever its data appear (FEMA) has it as the
+    # text record @notice.<source_id>, so it is printed even if a block's own text drops it.
+    notice <- resolve_text(ctx$text_records, paste0("@notice.", id), NULL, ctx$report_id, ctx$profile)$text
+    paste0("- **", row$name, "** (", row$agency, "). ", detail, ". Documentation: <", row$doc_url, ">.",
+           if (nzchar(notice)) paste0(" ", notice))
   }, "")
   # When the data entered the local cache (downloaded or retrieved from an API).
   times <- do.call(c, lapply(unique(run$used), retrieved_at))
@@ -125,9 +136,13 @@ sources_markdown <- function(srcs, ctx) {
   geo_note <- paste0("- **Geography**: ", area$label, " (", paste(area$members$key, collapse = ", "), "; ",
                      area$vintage, " boundaries). ", paste(area$notes, collapse = " "),
                      if (length(ctx$benchmark_notes)) paste0(" ", paste(ctx$benchmark_notes, collapse = " ")))
-  bm_lines <- vapply(ctx$benchmarks, function(b) paste0("- **Benchmark** ", b$label, ": ", b$relation, "."), "")
+  bm_lines <- vapply(ctx$benchmarks, function(b) paste0("- **Comparison area** ", b$label, ": ", b$relation, "."), "")
   paste(c(geo_note, bm_lines, lines), collapse = "\n")
 }
+
+# Text from outside the report's own content (error messages, reasons from sources) shown as
+# written: Markdown and HTML characters are escaped, so "<key>" or a stray "*" stays visible.
+md_escape <- function(x) gsub("([\\\\`*_\\[\\]<>|$@#~^])", "\\\\\\1", x, perl = TRUE)
 
 availability_markdown <- function(unav, blocks, ctx) {
   errs <- Filter(function(b) identical(b$kind, "error"), blocks)
@@ -139,19 +154,21 @@ availability_markdown <- function(unav, blocks, ctx) {
     # PLACES measure for a region), so the list stays complete but short.
     key <- paste(unav$entity, unav$period, unav$status, unav$reason, sep = "\r")
     tab <- do.call(rbind, lapply(split(unav, factor(key, levels = unique(key))), function(g) {
-      data.frame(Measure = paste(unique(g$metric), collapse = "; "), Area = g$entity[1], Period = g$period[1],
-                 Status = gsub("_", " ", g$status[1]), Reason = g$reason[1], stringsAsFactors = FALSE)
+      data.frame(Measure = md_escape(paste(unique(g$metric), collapse = "; ")), Area = md_escape(g$entity[1]),
+                 Period = g$period[1], Status = gsub("_", " ", g$status[1]), Reason = md_escape(g$reason[1]),
+                 stringsAsFactors = FALSE)
     }))
     lines <- c(lines, knitr::kable(tab, format = "pipe", row.names = FALSE))
   }
   if (length(errs)) {
     lines <- c(lines, "", paste0("- Block **", names(errs), "** could not be produced: ",
-                                 vapply(errs, `[[`, "", "error")))
+                                 md_escape(vapply(errs, `[[`, "", "error"))))
   }
   skipped <- attr(blocks, "skipped")
   if (length(skipped)) {
-    lines <- c(lines, "", paste0("- Block **", skipped, "** is left out: its source publishes nothing for ",
-                                 ctx$area$short, " or its comparison areas below the nation."))
+    reason <- ifelse(is.na(skipped), paste0("its source publishes nothing for ", ctx$area$short,
+                                            " or its comparison areas below the nation."), md_escape(skipped))
+    lines <- c(lines, "", paste0("- Block **", names(skipped), "** is left out: ", reason))
   }
   paste(lines, collapse = "\n")
 }
@@ -323,7 +340,8 @@ block_markdown <- function(r, b, level, track, ctx) {
   field <- function(name) paste0(r$id, ".", name)
   heading <- function() c(paste0(level, " ", track(field("title")), " {#blk-", r$id, "}"), "")
   if (identical(b$kind, "error")) {
-    return(c(heading(), paste0("::: {.gr-unavailable}\nThis block could not be produced: ", b$error, "\n:::"), ""))
+    return(c(heading(), paste0("::: {.gr-unavailable}\nThis block could not be produced: ", md_escape(b$error),
+                               "\n:::"), ""))
   }
   out <- if ("title" %in% b$fields) heading()
   for (f in intersect(c("body", "prose", "no_data"), b$fields)) out <- c(out, text_div(field(f), track(field(f)), r$id))

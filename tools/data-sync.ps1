@@ -16,7 +16,7 @@ $root = Split-Path -Parent $PSScriptRoot
 $remote = if ($env:GR_SYNC_REMOTE) { $env:GR_SYNC_REMOTE } else { 'gr-r2:geo-report-data' }
 $work = Join-Path $root '.data-sync'
 if (-not (Get-Command rclone -ErrorAction SilentlyContinue)) {
-  throw 'rclone was not found: install it with  winget install Rclone.Rclone  and open a new terminal (see README).'
+  throw 'rclone was not found: install it with  winget install Rclone.Rclone  and open a new terminal (see docs/data-sync.md).'
 }
 
 # --checkers 32: reading a file's time from the bucket takes one request per file.

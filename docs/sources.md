@@ -158,7 +158,7 @@ source's own documentation, coverage, suppression rules and checks are in the ca
 
 ## Not built, or built and removed
 
-- Not built: County Health Rankings (their terms need the user's decision), MIT Election Lab
+- Not built: County Health Rankings (pending a review of its terms of use), MIT Election Lab
   returns (a guestbook download), HUD homelessness counts (a bot challenge blocks scripted
   downloads), NCES before 2017, NDCP six-month age bands.
 - BLS OEWS wages and the Population Estimates by county age, sex and race were built and then

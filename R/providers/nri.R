@@ -13,10 +13,21 @@ nri_scores <- c("RISK_SCORE", "SOVI_SCORE", "RESL_SCORE", "HWAV_RISKS")
 nri_hazards <- c("AVLN", "CFLD", "CWAV", "DRGT", "ERQK", "HAIL", "HWAV", "HRCN", "ISTM", "IFLD", "LNDS", "LTNG",
                  "SWND", "TRND", "TSUN", "VLCN", "WFIR", "WNTW")
 
+# FEMA's server refuses scripted downloads from some systems, Docker included (HTTP 403); a copy
+# saved from a web browser to the cache path works the same.
+nri_download <- function() {
+  path <- cache_path("raw", "fema_nri", "NRI_Table_Counties_v120.zip")
+  tryCatch(cached_download(nri_url, path, "fema_nri"), gr_http_error = function(e) {
+    if (e$status != 403) stop(e)
+    stop("FEMA refused the download (HTTP 403). Download ", nri_url, " in a web browser and save it as ",
+         "cache/raw/fema_nri/NRI_Table_Counties_v120.zip.", call. = FALSE)
+  })
+}
+
 # Long form: key, variable, value for counties (all variables) and summed areas (additive ones).
 nri_long <- function() {
   memoize("nri_long", function() cached(derived_path("fema_nri", "nri_long", "nri.R"), source = "fema_nri", compute = function() {
-    zip <- cached_download(nri_url, cache_path("raw", "fema_nri", "NRI_Table_Counties_v120.zip"), "fema_nri")
+    zip <- nri_download()
     x <- utils::read.csv(unz(zip, "NRI_Table_Counties.csv"), colClasses = "character", check.names = FALSE)
     st <- nation_state_table()
     x <- x[x$STATEFIPS %in% st$state, , drop = FALSE]

@@ -36,6 +36,8 @@ Options
   --formats html,typst        output formats (typst = PDF, experimental)
 "
 
+usage_text <- function() sub("Rscript gr.R", gr_command(), gr_usage, fixed = TRUE)
+
 # Options that are switches, and options that take a value (`--key value` or `--key=value`).
 # Anything else is an error, so a mistyped option never runs a build with the defaults.
 cli_switches <- c("offline", "force", "no-render", "check", "html", "yes", "help")
@@ -60,12 +62,12 @@ parse_cli <- function(args) {
       } else if (key %in% cli_valued) {
         if (is.null(value)) {
           value <- args[i + 1]
-          if (is.na(value) || startsWith(value, "--")) stop("--", key, " needs a value (see Rscript gr.R help)", call. = FALSE)
+          if (is.na(value) || startsWith(value, "--")) stop("--", key, " needs a value (see ", gr_command(), " help)", call. = FALSE)
           i <- i + 1
         }
         flags[[key]] <- value
       } else {
-        stop("Unknown option --", key, " (see Rscript gr.R help)", call. = FALSE)
+        stop("Unknown option --", key, " (see ", gr_command(), " help)", call. = FALSE)
       }
     } else pos <- c(pos, a)
     i <- i + 1
@@ -83,9 +85,11 @@ gr_main <- function(args) {
   }
   workers <- suppressWarnings(as.integer(f$workers %||% 4))
   if (is.na(workers) || workers < 1) stop("--workers needs a whole number of 1 or more", call. = FALSE)
+  check_refresh(refresh)
+  run_reset(offline = isTRUE(f$offline), refresh = refresh)   # for find, new and the catalog too
   cmd <- if (isTRUE(f$help)) "help" else p$cmd %||% "help"
   need_args <- function(n, usage) {
-    if (length(p$args) < n) stop("Usage: Rscript gr.R ", usage, call. = FALSE)
+    if (length(p$args) < n) stop("Usage: ", gr_command(), " ", usage, call. = FALSE)
   }
   switch(cmd,
     build = {
@@ -124,20 +128,23 @@ gr_main <- function(args) {
       if (!nrow(hits)) cat("No matches.\n") else print(hits[, c("key", "name", "pop")], row.names = FALSE)
     },
     catalog = catalog_command(f),
-    verify = verify_sources(),
+    verify = {
+      if (isTRUE(f$offline)) stop("verify checks the live sources, so it cannot run with --offline", call. = FALSE)
+      verify_sources()
+    },
     test = testthat::test_dir(root_path("tests", "testthat")),
     cache = {
-      if (!identical(p$args[1], "prune")) stop("cache: the only subcommand is `cache prune [--yes]`")
+      if (!identical(p$args[1], "prune")) stop("cache: the only subcommand is `cache prune [--yes]`", call. = FALSE)
       cache_prune(delete = isTRUE(f$yes))
     },
-    help = cat(gr_usage),
-    { cat("Unknown command '", cmd, "'\n", sep = ""); cat(gr_usage); quit(status = 2) })
+    help = cat(usage_text()),
+    { cat("Unknown command '", cmd, "'\n", sep = ""); cat(usage_text()); quit(status = 2) })
   invisible(TRUE)
 }
 
 preview_report <- function(report_id) {
   qmd <- file.path(report_dir(report_id), "report.qmd")
-  if (!file.exists(qmd)) stop("Build the report first: Rscript gr.R build ", report_id, call. = FALSE)
+  if (!file.exists(qmd)) stop("Build the report first: ", gr_command(), " build ", report_id, call. = FALSE)
   note("Previewing ", qmd, " (edit the file; the browser refreshes). Stop with Ctrl+C, then rebuild to save edits.")
   # In the container (GR_PREVIEW_PORT is set by the Dockerfile) Quarto must listen on all
   # interfaces at the port compose.yaml publishes; the host's browser opens it.

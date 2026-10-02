@@ -64,3 +64,13 @@ test_that("period overlap, growth rates, reliability and inflation factors", {
   idx <- data.frame(year = c(2000, 2024), index = c(100, 150))
   expect_equal(inflation_factor(c(2000, 1999), 2024, idx), c(1.5, NA))
 })
+
+test_that("a difference from a benchmark is called higher or lower only when the test supports it", {
+  th <- load_theme("default")
+  u <- "percent of renter households"
+  expect_equal(compare_level(54.7, 14.9, 51.1, 0.1, 0, TRUE, u, th), "ns")   # wide survey MOE
+  expect_equal(compare_level(12.0, 0.5, 8.0, 0.1, 0, TRUE, u, th), "higher")
+  expect_equal(compare_level(12.0, NA, 8.0, 0.1, 0, TRUE, u, th), "untested")
+  expect_equal(compare_level(5.04, 0, 4.96, 0, 0, FALSE, u, th), "same")     # face value, same rounded figure
+  expect_equal(compare_level(4.1, 0, 4.3, 0, 0, FALSE, u, th), "lower")
+})

@@ -5,9 +5,11 @@
 #   fields    the block's editable text fields (e.g. "title", "prose", "caption")
 #   sources   provenance rows (source_id, detail) for the sources appendix
 #   unavailable  rows explaining values that could not be shown (and why)
-# and a renderer render_block_<k>(block, text, theme) in charts.R / maps.R. Adding a kind means
-# writing those two functions. (compose.R also treats a few kinds specially: the sources and
-# availability appendices, history, and maps.)
+#   figure, table  TRUE when the block draws a chart or a table
+#   not_applicable a reason, instead of the above, when the block does not apply to the report
+# A kind that draws also needs a renderer render_block_<k>(block, text, theme) in charts.R or
+# maps.R. (compose.R also treats a few kinds specially: the sources and availability
+# appendices, history, and maps.)
 
 # Settings keys may be overridden per block via the manifest `options` column; any other
 # option (e.g. index=first) is a block option.
@@ -400,7 +402,7 @@ metric_values <- function(res, metric_id, ctx, settings, focus = ctx$study, rela
     v$benchmark_sentence <- benchmark_sentence(ctx, res, metric_id, bms, focus, last, units, survey,
                                                settings)
     v$relation_sentence <- relation_sentence(ctx, res, metric_id, bms, focus, mine, first, last,
-                                             units)
+                                             units, survey, settings)
   }
   v
 }
@@ -479,10 +481,20 @@ growth_sentence <- function(ctx, res, metric_id, bms, first, last, v, units) {
                                      area_short = v$area_short))
 }
 
-# Levels against each benchmark in the latest period. Survey estimates are tested (with the
-# part-whole adjustment when a benchmark contains the study area); without margins of error a
-# survey difference is "untested", and other data are compared at face value ("about the
-# same" when both round to the same figure).
+# How a value compares with a benchmark's value for the same period. Survey estimates are tested
+# (with the part-whole adjustment when the benchmark contains the study area): "higher" or
+# "lower" when significant, "ns" otherwise; without margins of error a survey difference is
+# "untested". Other data are compared at face value, "same" when both round to the same figure.
+# Census counts carry an MOE of 0: they are compared at face value, not tested.
+compare_level <- function(value, moe, b_value, b_moe, share, survey, units, th) {
+  testable <- survey && !is.na(moe) && !is.na(b_moe)
+  if (testable && !diff_test(value, moe, b_value, b_moe, part_share = share)$significant) return("ns")
+  if (!testable && survey) return("untested")
+  if (!testable && fmt_value(value, units, th) == fmt_value(b_value, units, th)) return("same")
+  if (value > b_value) "higher" else "lower"
+}
+
+# Levels against each benchmark in the latest period (see compare_level).
 benchmark_sentence <- function(ctx, res, metric_id, bms, focus, last, units, survey, settings) {
   th <- ctx$theme
   parts <- list(higher = character(), lower = character(), ns = character(), same = character(),
@@ -492,14 +504,7 @@ benchmark_sentence <- function(ctx, res, metric_id, bms, focus, last, units, sur
              drop = FALSE]
     if (!nrow(b) || is.na(b$value)) next
     share <- if (identical(focus$id, "study")) dependence_share(metric_id, bm, settings) else 0
-    t <- diff_test(last$value, last$moe, b$value, b$moe, part_share = share)
-    # Census counts carry an MOE of 0: they are compared at face value, not tested.
-    testable <- survey && !is.na(last$moe) && !is.na(b$moe)
-    key <- if (testable && !t$significant) "ns" else
-      if (!testable && survey) "untested" else
-        if (!testable && fmt_value(last$value, units, th) == fmt_value(b$value, units, th)) {
-          "same"
-        } else if (last$value > b$value) "higher" else "lower"
+    key <- compare_level(last$value, last$moe, b$value, b$moe, share, survey, units, th)
     item <- paste0(entity_text_label(bm, ctx), " (", fmt_value(b$value, units, th, b$bound), ")")
     parts[[key]] <- c(parts[[key]], item)
   }
@@ -522,9 +527,12 @@ benchmark_sentence <- function(ctx, res, metric_id, bms, focus, last, units, sur
 
 # The area's position against the widest benchmark that contains it (usually the nation) in the
 # first and latest periods: the gap in percentage points for percentages, a ratio otherwise.
-# Same-year comparisons need no price adjustment. The change in the gap is not tested, so the
-# wording stays neutral (no "widened" or "narrowed").
-relation_sentence <- function(ctx, res, metric_id, bms, focus, mine, first, last, units) {
+# Each period's gap is stated only when compare_level supports a direction, so the sentence
+# never calls a difference that the benchmark sentence calls not significant. Same-year
+# comparisons need no price adjustment. The change in the gap is not tested, so the wording
+# stays neutral (no "widened" or "narrowed").
+relation_sentence <- function(ctx, res, metric_id, bms, focus, mine, first, last, units, survey,
+                              settings) {
   containing <- Filter(function(e) isTRUE(e$contains_study), bms)
   if (!length(containing) || nrow(mine) < 2) return("")
   ref <- containing[[length(containing)]]
@@ -535,11 +543,19 @@ relation_sentence <- function(ctx, res, metric_id, bms, focus, mine, first, last
   common <- list(benchmark = entity_text_label(ref, ctx), area_short = focus$short,
                  first_period = first$period_label, latest_period = last$period_label)
   if (unit_kind(units) == "percent") {
-    gap <- c(first$value - rb$value[1], last$value - rb$value[2])
-    side <- function(g) phrase(ctx, if (g >= 0) "side_above" else "side_below", list())
-    points <- formatC(abs(gap), format = "f", digits = 1)
-    return(phrase(ctx, "gap", c(common, list(gap_first = points[1], side_first = side(gap[1]),
-                                             gap_latest = points[2], side_latest = side(gap[2])))))
+    share <- if (identical(focus$id, "study")) dependence_share(metric_id, ref, settings) else 0
+    position <- function(own, i, it) {
+      level <- compare_level(own$value, own$moe, rb$value[i], rb$moe[i], share, survey, units,
+                             ctx$theme)
+      if (level == "ns") return(phrase(ctx, if (it) "gap_ns_it" else "gap_ns", list()))
+      if (level == "same") return(phrase(ctx, if (it) "gap_level_it" else "gap_level", list()))
+      gap <- formatC(abs(own$value - rb$value[i]), format = "f", digits = 1)
+      if (gap == "0.0") gap <- phrase(ctx, "gap_under_tenth", list())
+      out <- phrase(ctx, if (own$value > rb$value[i]) "gap_above" else "gap_below", list(gap = gap))
+      if (level == "untested") phrase(ctx, "gap_untested", list(position = out)) else out
+    }
+    return(phrase(ctx, "gap", c(common, list(position_first = position(first, 1, FALSE),
+                                             position_latest = position(last, 2, TRUE)))))
   }
   if (rb$value[1] <= 0 || rb$value[2] <= 0) return("")
   phrase(ctx, "ratio_change", c(common, list(
@@ -570,7 +586,7 @@ compare_values <- function(res, metric_id, ctx, settings) {
       t <- diff_test(r$value, r$moe, ref$value, ref$moe)
       cmp <- if (!t$significant) "cmp_ns" else if (r$value > ref$value) "cmp_above" else
         "cmp_below"
-      flag <- phrase(ctx, cmp, list())
+      flag <- phrase(ctx, cmp, list(benchmark = entity_text_label(bm[[1]], ctx)))
     }
     paste0(s$short, " ", fmt_value(r$value, units, th, r$bound), flag)
   }, "")
@@ -821,8 +837,9 @@ compute_block_distribution <- function(row, ctx, settings, opts) {
   }
   release <- utils::tail(metric_periods(recipe, settings), 1)
   bins <- acs_bins(recipe$bins_table, release)
+  # Every study area (several in compare mode) and the widest benchmark that contains them.
   bm <- Filter(function(e) e$role == "benchmark" && isTRUE(e$contains_study), ctx$entities)
-  entities <- c(list(ctx$study), if (length(bm)) list(bm[[length(bm)]]))
+  entities <- c(ctx$studies, if (length(bm)) list(bm[[length(bm)]]))
   rows <- list()
   for (e in entities) {
     data <- acs_fetch(c(bins$variable), e$pieces, release)
@@ -842,7 +859,7 @@ compute_block_distribution <- function(row, ctx, settings, opts) {
   period_label <- get_provider(recipe$source_id)$period_label(release)
   list(data = list(results = res),
        values = list(metric_label = metric_doc(metric_id)$label, latest_period = period_label,
-                     benchmark = if (length(entities) > 1) entities[[2]]$short else "",
+                     benchmark = if (length(bm)) bm[[length(bm)]]$short else "",
                      dollar_year = as.character(release),
                      dollar_note = paste0("in ", release, " dollars (nominal for this period)")),
        fields = c("title", "prose", "caption", "alt", "x_label", "y_label", "legend_title",
@@ -1027,6 +1044,7 @@ load_module <- function(name) {
 compute_block_custom <- function(row, ctx, settings, opts) {
   mod <- load_module(row$ref)
   out <- mod$compute(module_context(ctx, settings, opts), opts)
+  if (!is.null(out$not_applicable)) return(list(id = row$id, not_applicable = out$not_applicable))
   list(data = out$data, module = row$ref,
        values = c(out$values %||% list(), list(module_title = mod$title %||% row$ref)),
        fields = c("title", "prose", "caption", "alt", "x_label", "y_label", "legend_title", "note",

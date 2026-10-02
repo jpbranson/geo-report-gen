@@ -48,8 +48,12 @@ register_provider("fhfa_hpi", list(
 
 bps_region_files <- c(`1` = "Northeast%20Region/ne", `2` = "Midwest%20Region/mw", `3` = "South%20Region/so", `4` = "West%20Region/we")
 
+# A year or region file the Census Bureau has not published (HTTP 404) is NULL; any other failure
+# stops, so a table missing years is never cached.
 bps_read <- function(url, file) {
-  path <- cached_download(url, cache_path("raw", "census_bps", file), "census_bps")
+  path <- tryCatch(cached_download(url, cache_path("raw", "census_bps", file), "census_bps"),
+                   gr_http_error = function(e) if (e$status == 404) NULL else stop(e))
+  if (is.null(path)) return(NULL)
   lines <- readLines(path, warn = FALSE)
   body <- lines[-(1:3)]
   body <- body[nzchar(trimws(body))]
@@ -64,8 +68,7 @@ bps_long <- function() {
     out <- list()
     units_of <- function(d, cols) rowSums(sapply(cols, function(j) suppressWarnings(as.numeric(d[[j]]))))
     for (yr in 1990:2025) {
-      d <- tryCatch(bps_read(sprintf("https://www2.census.gov/econ/bps/County/co%da.txt", yr), sprintf("co%da.txt", yr)),
-                    error = function(e) NULL)
+      d <- bps_read(sprintf("https://www2.census.gov/econ/bps/County/co%da.txt", yr), sprintf("co%da.txt", yr))
       if (is.null(d)) next
       out[[length(out) + 1]] <- data.frame(key = paste0("county:", pad(d$V2, 2), pad(d$V3, 3)), year = yr,
                                            units = units_of(d, c(8, 11, 14, 17)), units_1 = units_of(d, 8), units_5plus = units_of(d, 17),
@@ -74,7 +77,7 @@ bps_long <- function() {
     for (yr in 2007:2025) {
       for (reg in names(bps_region_files)) {
         url <- sprintf("https://www2.census.gov/econ/bps/Place/%s%da.txt", bps_region_files[[reg]], yr)
-        d <- tryCatch(bps_read(url, sprintf("place_%s_%da.txt", reg, yr)), error = function(e) NULL)
+        d <- bps_read(url, sprintf("place_%s_%da.txt", reg, yr))
         if (is.null(d)) next
         fips_place <- trimws(d$V6)
         ok <- grepl("^[0-9]{5}$", fips_place) & fips_place != "99990"

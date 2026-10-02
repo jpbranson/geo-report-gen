@@ -104,14 +104,16 @@ current_field_text <- function(records, field, report_id, profile, snap, events)
   field_text(records, field, report_id, profile, snap$rows, snap$blocks, events)$text
 }
 
-# Insert or update one record (field + scope). Markdown-backed records are updated in their file.
+# Insert or update one record (field + scope). A Markdown-backed record keeps its reference; the
+# new text is written to its file by save_text_records, so a failed edit leaves the file alone.
 upsert_record <- function(records, field, scope, text, fixed_facts = "", note = "") {
   hit <- which(records$field_id == field & records$scope == scope)
   stamp <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S")
+  files <- attr(records, "prose_files")
   if (length(hit)) {
     old <- records$text[hit]
     if (grepl("^@[A-Za-z0-9_./-]+\\.md$", old)) {
-      write_text_file(text, root_path("content", sub("^@", "", old)))
+      files[[root_path("content", sub("^@", "", old))]] <- text
     } else {
       records$text[hit] <- text
     }
@@ -121,15 +123,35 @@ upsert_record <- function(records, field, scope, text, fixed_facts = "", note = 
     records <- rbind(records, data.frame(field_id = field, scope = scope, text = text, updated = stamp,
                                          fixed_facts = fixed_facts, note = note, stringsAsFactors = FALSE))
   }
+  attr(records, "prose_files") <- files
   records
 }
 
-# Save records under a lock so parallel builds never lose each other's edits.
-save_text_records <- function(records) {
+# Builds in a batch run in parallel and each may save inline edits, so every change to
+# content/text.csv holds its lock from reading the records to writing them back. The lock is
+# re-entrant within a process (filelock), so only the outermost call takes and releases it.
+text_lock <- new.env()
+with_text_lock <- function(code) {
+  if (isTRUE(text_lock$held)) return(code)
   lock <- filelock::lock(paste0(text_path(), ".lock"), timeout = 60000)
-  on.exit(filelock::unlock(lock))
-  records <- records[order(records$field_id, records$scope), , drop = FALSE]
-  write_table(records, text_path())
+  if (is.null(lock)) {
+    stop("Timed out waiting for the lock on content/text.csv (another gr.R process holds it). ",
+         "Try again when it finishes.", call. = FALSE)
+  }
+  text_lock$held <- TRUE
+  on.exit({
+    text_lock$held <- FALSE
+    filelock::unlock(lock)
+  })
+  force(code)
+}
+
+save_text_records <- function(records) {
+  files <- attr(records, "prose_files")
+  with_text_lock({
+    write_table(records[order(records$field_id, records$scope), , drop = FALSE], text_path())
+    for (path in names(files)) write_text_file(files[[path]], path)
+  })
 }
 
 # Numbers typed into text that equal a current value are "fixed facts": remember which value
@@ -187,32 +209,34 @@ harvest_report <- function(report_id) {
   }
   if (!length(changed)) return(list(status = "no inline edits", applied = list()))
   cfg <- report_config(report_id)
-  records <- load_text_records()
-  events <- history_events()
-  applied <- list()
-  conflicts <- list()
-  for (f in changed) {
-    current <- current_field_text(records, f, report_id, cfg$profile, snap, events)
-    if (identical(current, base[[f]])) {
-      vals <- c(snap$values["report"], snap$values[sub("\\..*$", "", f)])
-      facts <- detect_fixed_facts(now[[f]], vals)
-      records <- upsert_record(records, f, paste0("report:", report_id), now[[f]], facts, "inline edit")
-      applied[[f]] <- now[[f]]
-      if (nzchar(facts)) warn(f, ": contains numbers that match current values (", facts, "); they will not update with the data unless replaced by placeholders.")
-    } else if (!identical(current, now[[f]])) {
-      conflicts[[length(conflicts) + 1]] <- data.frame(field_id = f, generated = base[[f]], edited_in_qmd = now[[f]],
-                                                        canonical_now = current, stringsAsFactors = FALSE)
+  with_text_lock({
+    records <- load_text_records()
+    events <- history_events()
+    applied <- list()
+    conflicts <- list()
+    for (f in changed) {
+      current <- current_field_text(records, f, report_id, cfg$profile, snap, events)
+      if (identical(current, base[[f]])) {
+        vals <- c(snap$values["report"], snap$values[sub("\\..*$", "", f)])
+        facts <- detect_fixed_facts(now[[f]], vals)
+        records <- upsert_record(records, f, paste0("report:", report_id), now[[f]], facts, "inline edit")
+        applied[[f]] <- now[[f]]
+        if (nzchar(facts)) warn(f, ": contains numbers that match current values (", facts, "); they will not update with the data unless replaced by placeholders.")
+      } else if (!identical(current, now[[f]])) {
+        conflicts[[length(conflicts) + 1]] <- data.frame(field_id = f, generated = base[[f]], edited_in_qmd = now[[f]],
+                                                          canonical_now = current, stringsAsFactors = FALSE)
+      }
     }
-  }
-  if (length(conflicts)) {
-    cf <- do.call(rbind, conflicts)
-    write_table(cf, file.path(report_dir(report_id), "conflicts.csv"))
-    stop(nrow(cf), " edited field(s) in ", report_id, "/report.qmd were also changed in content/text.csv since the ",
-         "report was generated: ", paste(cf$field_id, collapse = ", "), ". Nothing was saved. See ",
-         file.path("reports", report_id, "conflicts.csv"), ", make the two versions agree (edit either one), then rebuild.",
-         call. = FALSE)
-  }
-  save_text_records(records)
+    if (length(conflicts)) {
+      cf <- do.call(rbind, conflicts)
+      write_table(cf, file.path(report_dir(report_id), "conflicts.csv"))
+      stop(nrow(cf), " edited field(s) in ", report_id, "/report.qmd were also changed in content/text.csv since the ",
+           "report was generated: ", paste(cf$field_id, collapse = ", "), ". Nothing was saved. See ",
+           file.path("reports", report_id, "conflicts.csv"), ", make the two versions agree (edit either one), then rebuild.",
+           call. = FALSE)
+    }
+    save_text_records(records)
+  })
   unlink(file.path(report_dir(report_id), "conflicts.csv"))
   note("Harvested ", length(applied), " inline edit(s) from ", report_id, "/report.qmd")
   list(status = "applied", applied = applied)
@@ -241,7 +265,7 @@ check_skeleton <- function(report_id, now) {
 
 text_export <- function(report_id, path) {
   snap_path <- file.path(snapshot_dir(report_id), "report.rds")
-  if (!file.exists(snap_path)) stop("Build the report first: Rscript gr.R build ", report_id, call. = FALSE)
+  if (!file.exists(snap_path)) stop("Build the report first: ", gr_command(), " build ", report_id, call. = FALSE)
   snap <- readRDS(snap_path)
   fields <- names(snap$texts)
   block <- sub("\\..*$", "", fields)
@@ -268,37 +292,39 @@ text_import <- function(path) {
   }
   bad_scope <- x$edit_scope[!grepl("^(default|profile:[a-z0-9-]+|report:[a-z0-9-]+)$", x$edit_scope)]
   if (length(bad_scope)) stop("Invalid edit_scope value(s): ", paste(unique(bad_scope), collapse = ", "), call. = FALSE)
-  records <- load_text_records()
-  events <- history_events()
-  snaps <- list()
-  conflicts <- list()
-  for (i in seq_len(nrow(x))) {
-    r <- x[i, ]
-    cfg <- report_config(r$report_id)
-    if (is.null(snaps[[r$report_id]])) {
-      snap_path <- file.path(snapshot_dir(r$report_id), "report.rds")
-      if (!file.exists(snap_path)) stop("Build the report first: Rscript gr.R build ", r$report_id, call. = FALSE)
-      snaps[[r$report_id]] <- readRDS(snap_path)
+  with_text_lock({
+    records <- load_text_records()
+    events <- history_events()
+    snaps <- list()
+    conflicts <- list()
+    for (i in seq_len(nrow(x))) {
+      r <- x[i, ]
+      cfg <- report_config(r$report_id)
+      if (is.null(snaps[[r$report_id]])) {
+        snap_path <- file.path(snapshot_dir(r$report_id), "report.rds")
+        if (!file.exists(snap_path)) stop("Build the report first: ", gr_command(), " build ", r$report_id, call. = FALSE)
+        snaps[[r$report_id]] <- readRDS(snap_path)
+      }
+      snap <- snaps[[r$report_id]]
+      current <- current_field_text(records, r$field_id, r$report_id, cfg$profile, snap, events)
+      if (hash_text(current) != r$base_hash) {
+        conflicts[[length(conflicts) + 1]] <- data.frame(report_id = r$report_id, field_id = r$field_id,
+                                                          imported = r$text, canonical_now = current, stringsAsFactors = FALSE)
+        next
+      }
+      vals <- c(snap$values["report"], snap$values[sub("\\..*$", "", r$field_id)])
+      records <- upsert_record(records, r$field_id, r$edit_scope, r$text, detect_fixed_facts(r$text, vals), "bulk import")
     }
-    snap <- snaps[[r$report_id]]
-    current <- current_field_text(records, r$field_id, r$report_id, cfg$profile, snap, events)
-    if (hash_text(current) != r$base_hash) {
-      conflicts[[length(conflicts) + 1]] <- data.frame(report_id = r$report_id, field_id = r$field_id,
-                                                        imported = r$text, canonical_now = current, stringsAsFactors = FALSE)
-      next
+    if (length(conflicts)) {
+      cf <- do.call(rbind, conflicts)
+      out <- paste0(tools::file_path_sans_ext(path), "-conflicts.csv")   # never the imported file itself
+      write_table(cf, out)
+      stop(nrow(cf), " row(s) changed in content since export (", paste(cf$field_id, collapse = ", "),
+           "). Nothing was imported. Details: ", out, ". Rebuild the report(s), export again, re-apply your edits, ",
+           "and import that file.", call. = FALSE)
     }
-    vals <- c(snap$values["report"], snap$values[sub("\\..*$", "", r$field_id)])
-    records <- upsert_record(records, r$field_id, r$edit_scope, r$text, detect_fixed_facts(r$text, vals), "bulk import")
-  }
-  if (length(conflicts)) {
-    cf <- do.call(rbind, conflicts)
-    out <- paste0(tools::file_path_sans_ext(path), "-conflicts.csv")   # never the imported file itself
-    write_table(cf, out)
-    stop(nrow(cf), " row(s) changed in content since export (", paste(cf$field_id, collapse = ", "),
-         "). Nothing was imported. Details: ", out, ". Rebuild the report(s), export again, re-apply your edits, ",
-         "and import that file.", call. = FALSE)
-  }
-  save_text_records(records)
+    save_text_records(records)
+  })
   for (i in seq_len(nrow(x))) warn_hidden(records, x$field_id[i], x$edit_scope[i], reports_in_file)
   note("Imported ", nrow(x), " changed text field(s) from ", path)
   invisible(list(applied = nrow(x), conflicts = 0))

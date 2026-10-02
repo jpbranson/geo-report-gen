@@ -24,6 +24,9 @@ gr_root <- function() {
 
 root_path <- function(...) file.path(gr_root(), ...)
 
+# How the user runs gr.R, for hints in messages: through docker compose inside the image.
+gr_command <- function() if (file.exists("/.dockerenv")) "docker compose run --rm gr" else "Rscript gr.R"
+
 # The shared cache can live outside the project (e.g. on a team drive) via GR_CACHE.
 cache_root <- function() {
   dir <- Sys.getenv("GR_CACHE")
@@ -73,11 +76,12 @@ note <- function(...) {
   message(format(Sys.time(), "%H:%M:%S"), "  ", paste0(...))
 }
 
-# Warnings are collected so they appear in the build manifest as well as the console.
+# Warnings are collected so they appear in the build manifest as well as the console; each
+# distinct warning is printed once per run (a missing key affects many tables).
 warn <- function(...) {
   msg <- paste0(...)
+  if (!msg %in% run$warnings) message("WARNING: ", msg)
   run$warnings <- unique(c(run$warnings, msg))
-  message("WARNING: ", msg)
   invisible(msg)
 }
 

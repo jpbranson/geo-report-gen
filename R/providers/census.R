@@ -181,9 +181,12 @@ acs_variables <- function(release, table) {
   cached(path, source = "census_acs5", compute = function() {
     url <- paste0("https://api.census.gov/data/", acs_dataset(release), "/groups/", toupper(table), ".json")
     resp <- http_perform(http_request(url, "census_api", secret = list(key = census_key())))
-    if (httr2::resp_status(resp) >= 400) {
+    # A table the release does not publish (404) has no variables; any other error stops, so
+    # a temporary failure is not cached as "not published".
+    if (httr2::resp_status(resp) == 404) {
       return(data.frame(variable = character(), label = character(), concept = character()))
     }
+    check_status(resp, paste("ACS", release, table, "variables"))
     vars <- jsonlite::fromJSON(httr2::resp_body_string(resp), simplifyVector = FALSE)$variables
     est <- names(vars)[grepl("E$", names(vars))]
     data.frame(variable = sub("E$", "", est),

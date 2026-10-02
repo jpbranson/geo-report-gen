@@ -17,14 +17,17 @@ govfin_url <- "https://www2.census.gov/programs-surveys/gov-finances/tables/2022
 govfin_units <- function() {
   memoize("govfin_units", function() cached(derived_path("census_govfin", "units_2022", "govfin.R"), source = "census_govfin", compute = function() {
     zip <- cached_download(govfin_url, cache_path("raw", "census_govfin", basename(govfin_url)), "census_govfin")
-    dir <- "2022_Individual_Unit_files/"
-    read <- function(file, widths, names) {
-      as.data.frame(readr::read_fwf(unz(zip, paste0(dir, file)), readr::fwf_widths(widths, names),
+    read <- function(pattern, widths, names) {
+      member <- grep(pattern, utils::unzip(zip, list = TRUE)$Name, value = TRUE)
+      if (length(member) != 1) stop("Expected one file matching ", pattern, " in ", basename(zip), call. = FALSE)
+      as.data.frame(readr::read_fwf(unz(zip, member), readr::fwf_widths(widths, names),
                                     col_types = readr::cols(.default = "c"), progress = FALSE))
     }
-    pid <- read("Fin_PID_2022.txt", c(12, 64, 35, 5, 9), c("id", "name", "county_name", "place", "pop"))
+    pid <- read("/Fin_PID_2022[.]txt$", c(12, 64, 35, 5, 9), c("id", "name", "county_name", "place", "pop"))
     pid <- pid[substr(pid$id, 3, 3) %in% c("1", "2"), , drop = FALSE]
-    items <- read("2022FinEstDAT_07152026modp.txt", c(12, 3, 12), c("id", "item", "amount"))
+    # The estimates file's name carries its release date (2022FinEstDAT_07152026modp.txt), which
+    # changes when the Census Bureau revises the archive.
+    items <- read("/2022FinEstDAT[^/]*[.]txt$", c(12, 3, 12), c("id", "item", "amount"))
     items <- items[items$id %in% pid$id, , drop = FALSE]
     amount <- function(keep) {
       a <- tapply(as.numeric(items$amount[keep]), items$id[keep], sum)

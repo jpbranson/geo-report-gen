@@ -1,29 +1,32 @@
 # Flight log
 
-Running record so work can resume after an interruption. Newest entries at the bottom.
-Read this file, `PLAN.md` (checklist) and `docs/REQUIREMENTS.md` (the full brief) first.
+The maintainer's working log: sessions with Claude Code, recorded so work can resume after an
+interruption. It is not user documentation (start with README.md). Newest entries at the
+bottom. PLAN.md has the status and what comes after 1.0; docs/REQUIREMENTS.md is the brief.
 
 ## How to resume
 
-1. Environment: R 4.6.1 at `C:\Program Files\R\R-4.6.1\bin\Rscript.exe`; project library via renv
-   (`renv/`, activated by `.Rprofile` when R starts in the project root). Quarto 1.9.38 at
-   `C:\Program Files\RStudio\resources\app\bin\quarto\bin\quarto.exe` (also Positron's 1.10.18).
-2. Local settings: `.env` (git-ignored; read by R/load.R): `CENSUS_API_KEY=...` (never print or log
-   it) and `GR_HTTP_CONTACT=<user's email>` (approved by the user 2026-09-28; sent only to BLS).
-3. Run things from the project root with R 4.6.1 explicitly:
-   `& "C:\Program Files\R\R-4.6.1\bin\Rscript.exe" gr.R <command>` (PowerShell). The `Rscript` on PATH
-   is a rig shim for R 4.3.2, which has no project library and fails (`no package called 'dplyr'`).
-4. Check the latest entry below for "Next steps". PLAN.md holds the checklist with current status.
-5. Git: first commit 85db1c0 (2026-09-28). Commit at milestones; reports/, cache/, .env are ignored.
-6. Visual review: `.claude/launch.json` "reports" serves the repo on port 8765 (node script in the
-   session scratchpad; recreate if missing). Figures can be extracted from report.html (base64 PNGs).
-7. Docker (any machine with Docker Desktop): `docker compose run --rm gr <command>` from the project
-   root; see README "Docker". Used on the user's Apple Silicon Mac and planned for the Windows PC.
-   To move cache/ and reports/ between machines: tools/data-sync.sh (Mac) or
-   .\tools\data-sync.cmd (Windows) syncs both ways with a Cloudflare R2 bucket (rclone bisync);
-   tools/bundle-data.* writes a tar to Downloads instead; README "Moving the data". rclone is
-   installed on the PC (winget) and the gr-r2 remote is in the user's rclone.conf, which Claude's
-   sandboxed shell cannot see: run data-sync or rclone against R2 unsandboxed, or ask the user.
+1. Local settings: `.env` in the project root (git-ignored; read by R/load.R) holds
+   `CENSUS_API_KEY`, `GR_HTTP_CONTACT` (the user's email, sent only to BLS), `DATA_GOV_API_KEY`
+   (FBI Crime Data Explorer) and `IPUMS_API_KEY`. Never print or log the keys.
+2. Windows PC: R 4.6.1 at `C:\Program Files\R\R-4.6.1\bin\Rscript.exe` with the renv library
+   (activated by `.Rprofile`); Quarto from RStudio or Positron. Run from the project root with R
+   4.6.1 explicitly: `& "C:\Program Files\R\R-4.6.1\bin\Rscript.exe" gr.R <command>`. The `Rscript`
+   on the PATH is an older R without the project library.
+3. Mac (Apple Silicon): the native R has no project library; everything runs in Docker from the
+   project root: `docker compose run --rm gr <command>` (test, build, batch, verify, catalog
+   --check, cache prune), and `docker compose run --rm --entrypoint Rscript gr <script.R>` or
+   `... gr -e '<R code>'` for scripts such as demos/round_trip.R and tools/fingerprint.R. FEMA
+   refuses downloads from Docker (HTTP 403), so `verify` reports fema_nri failed; its file must
+   already be in cache/raw/fema_nri/. After `renv.lock` changes: `docker compose build`.
+4. Moving cache/ and reports/ between the machines: `sh tools/data-sync.sh` (Mac) or
+   `.\tools\data-sync.cmd` (Windows) syncs both ways with the Cloudflare R2 bucket, when no build
+   is running; docs/data-sync.md. Delete scratch folders under reports/ first (it syncs).
+5. Proving a refactoring changes nothing: `tools/fingerprint.R <before.rds>`, change, then
+   `<after.rds>` and `--compare` (0 differences). Visual review: the charts are base64 images in
+   reports/<id>/report.html and can be extracted into contact sheets.
+6. Git: commit at milestones; reports/, cache/ and .env are ignored. Check the latest entry below
+   for the resume point.
 
 ## Standing facts (verified 2026-09-28)
 
@@ -805,7 +808,7 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   (finished 23:23). Checked: .data-sync listings for path1 and path2 each hold 4,468 files, the
   same as the local files the rules select (cache/raw, cache/geo, reports: 3.98 GB). The Mac gets
   its own token (user's choice); it needs the new scripts committed and pushed first.
-- 23:27 committed and pushed at the user's request (2376e72 on main; scanned first: no .env
+- 23:27 committed and pushed at the user's request (f5e7db4 on main; scanned first: no .env
   values in the changes or history beyond the known author email and old FLIGHT_LOG line;
   .wrangler/, wrangler's account cache, now git-ignored). Next: the Mac pulls, gets its own
   token, creates gr-r2 and runs sh tools/data-sync.sh.
@@ -840,7 +843,7 @@ now git-ignored and its line appended to .env (never printed); the user can dele
 
 - User instruction: finish the interrupted NCES step, then process the queue one item at a
   time; record issues/blockers for review and proceed to the next item. Keep this log current.
-- Starting state: main at 9d81a0d; existing uncommitted PLAN/flight-log changes, shared TIGER
+- Starting state: main at 4520bc6; existing uncommitted PLAN/flight-log changes, shared TIGER
   point-location helpers in geography.R and fars.R, and untracked R/providers/nces.R preserved.
 - Item 1 in progress: NCES draft handles 2017-18 through 2024-25; raw files are mostly cached.
   Recipes, blocks, profile entries, tests and verification remain. Earlier CCD history still
@@ -866,7 +869,7 @@ now git-ignored and its line appended to .env (never printed); the user can dele
 
 - User: finish the rest of the NCES step, then proceed through the PLAN.md queue one item at a
   time; note any issue or blocker here for review and go on to the next item; keep this log current.
-- State found: main at 9d81a0d, NCES work uncommitted (see the 00:07 Codex entry). R 4.6.1
+- State found: main at 4520bc6, NCES work uncommitted (see the 00:07 Codex entry). R 4.6.1
   `gr.R test` runs directly from the shell here (no renv workaround needed): 330 pass.
 - Removed a BOM the previous session added to catalog/{blocks,metrics,recipes}.csv and
   profiles/{early-childhood,economic-development,general}.csv (HEAD had none in those six).
@@ -1326,7 +1329,7 @@ now git-ignored and its line appended to .env (never printed); the user can dele
   deleted before the next data-sync, which syncs reports/.
 - 12:43 The user: prune, commit, then B5. `cache prune --yes`: 827 files, 523 MB deleted; a second
   dry run finds 0; cache/raw 5.1 GB.
-- 12:45 Committed d56d951 (A2-A4, C9, E12, PLAN/README/log). Started B5: Rprof of a warm
+- 12:45 Committed 5e9b08e (A2-A4, C9, E12, PLAN/README/log). Started B5: Rprof of a warm
   compose of gary-in (compose_report directly, offline).
 - 12:55 B5 done (profile in reports/_fp/b5.prof): see PLAN B5. Prose-edit loop now: compose ~20-30
   s + render 25-45 s. Options for B6 put to the user: (1) ACS: keep the requested areas before
@@ -1418,3 +1421,110 @@ now git-ignored and its line appended to .env (never printed); the user can dele
 - Resume point: D11 (PLAN cut to status + After 1.0; history moved; new short FLIGHT_LOG.md).
 - 14:25 D11: this log moved to docs/history/ with PLAN.md (as PLAN-before-1.0.md) and the two
   reviews; the log continues in FLIGHT_LOG.md at the project root.
+
+## 2026-10-01 (Claude, Mac): 1.0 checklist D11 and the tag
+
+- D11: PLAN.md cut to the 1.0 status and the "After 1.0" list; the plan before 1.0, the running
+  log and the two reviews of 2026-09-29 moved to docs/history/ (git mv); this file started fresh.
+- Resume point: E15 (commit, tag v1.0.0 and push) on the user's go-ahead.
+- 14:30 Documentation check (the user asked before E15): every path the docs name exists (bar
+  the generated catalog.html); CLI usage, parser and README options agree; no stale counts or
+  removed features in README, PLAN, FLIGHT_LOG, docs/sources.md, docs/nhgis.md or code comments.
+  Fixed: catalog/catalog.qmd said Indiana child care capacity was only documented (it is
+  implemented); README now states the count-block index rule that catalog --check enforces.
+  catalog.html renders; tests 416. docs/REQUIREMENTS.md (the brief) and docs/history/ are records,
+  left as they are.
+- Resume point: E15 (tag v1.0.0, push) on the user's go-ahead.
+
+## 2026-10-01 (Claude, Mac): public release review (before E15)
+
+- The user asked for a release-readiness pass for the public 1.0 on GitHub: newcomer walkthrough
+  from a clean clone, clarity of docs/code/CLI text, release blockers. No push, tag or publish.
+- Resume point: audit in progress (README, CLI, docs, code, tests, secrets, license).
+- 14:55 Baseline: tests 416 pass. Clean clone + Docker: no .env gives a clear Census-key error
+  (README wrongly called every key optional); with keys, a cold build of madison-ms (IPUMS and
+  FEMA files seeded) took 612 s, 771 requests, 1.05 GB, 0 warnings, and its report.qmd equals the
+  warm one but for retrieval dates. Done: LICENSE (GPL-3.0, the user's choice); README quick
+  start, keys table, License section; data-sync moved to docs/data-sync.md; build prints a
+  "composing" line; snapshot sources (HRSA, Texas HHSC, Indiana FSSA) take their period from the
+  retrieval year (they went blank every 1 January), with a test.
+- Resume point: CLI argument checks, Census invalid-key message, provider and text fixes from
+  the four reviews (list in the final report), then full test, catalog --check, batch.
+- 15:20 Done since: CLI rejects unknown options and missing values, checks --workers/--formats
+  and missing arguments (tests in test-cli.R); clear invalid-Census-key error; text-import keeps
+  the import file whatever its name and checks for a build; verify survives a failing ACS recipe
+  check; census counts compared at face value (MOE 0 made every difference "higher"); compare-mode
+  distribution colors and legal-boundary note; FARS Connecticut metros and Kusilvak; LAUS for DC;
+  QCEW contact check; Food Access Atlas Connecticut guard; render key includes content.R and
+  blocks.R; wording in text.csv and the child care module; stale comments; compose.yaml binds
+  preview to 127.0.0.1. Fresh image build from Dockerfile: 120 s, ok.
+- Resume point: full test run, catalog --check, a batch rebuild of the samples to compare
+  reports before/after, then the final report.
+- 15:20 Verification: tests 438 pass (on an image built from scratch too); catalog --check clean.
+  All 13 sample builds rebuilt offline in a scratch clone (copy of cache/ and reports/): the only
+  differences are the intended wording fixes, the annexation note in tx-cities and the Connecticut
+  reason in ct-capitol's food access block. The first batch with 4 workers had 3 compose
+  processes killed for lack of memory (Docker's 8 GB), rebuilding derived tables after the
+  provider edits; batch now reports such kills and README says to use --workers 2. The NDCP table
+  (ndcp_long-ff43c37e, identical values) was built alone and copied into cache/ so the next build
+  here does not hit that limit. Two misdirected runs (a backgrounded `cd`) built in this checkout
+  instead of the clone; both were killed mid-compose and only added derived cache entries.
+- Resume point: E15 (tag v1.0.0) on the user's go-ahead; open findings are in PLAN.md "After 1.0".
+
+## 2026-10-02 (Claude, Mac): release review fixes, history rewrite and the 1.0 release
+
+- The user asked: remove the scratch clones; fix the review's items 1-2 (untested gap sentence,
+  inline edits lost in parallel batches); rewrite history to drop the Cloudflare account ID and
+  an unrelated bucket name (item 3); fix the other items and the polish list; then release 1.0
+  (tests, sample rebuild, release notes, tag, public repo).
+- Done: scratch clone removed. History rewritten with git filter-repo --replace-text (backup
+  bundle of the old history in the session scratchpad); filter-repo's final `git reset --hard`
+  failed and a retry was blocked by the permission check, so the same 3-line redaction was
+  applied to this file by hand. `origin` was removed by filter-repo (it always does).
+- This log moved here from the project root (review item 9); its "How to resume" replaces the
+  pre-1.0 one.
+- Item 1: compare_level() in R/blocks.R is the one rule for higher/lower/not significant/level;
+  relation_sentence uses it per period (gap phrases in content/text.csv). Item 2:
+  with_text_lock() in R/authoring.R holds the content/text.csv lock from read to write in
+  harvest, text-import and new; Markdown-backed text is written only on save.
+- Resume point: remaining review items (4-13) and polish, then tests, sample rebuild, release.
+- Code items done (tests 457 pass): User-Agent names the project for non-BLS requests (FEMA and
+  DOL refused the bare one; BLS refuses anything but the contact); gr_http_error condition with
+  status; BPS, ACS variable labels and EAVS no longer cache transient failures; govfin finds its
+  estimates file by pattern; FEMA 403 says how to save the file from a browser; FEMA statement
+  from @notice.fema_nri in the sources appendix; error and reason text escaped (md_escape) and
+  HTML stripped from error bodies; modules and map blocks can be not_applicable (left out with a
+  reason); distribution shows every compared area; ZCTA shares labeled as land area; --refresh
+  takes cache folders or source ids and rejects others; --offline applies to every command
+  (verify refuses it); new --mode separate prints the real ids; hints say docker compose inside
+  the image; each warning printed once; "comparison area" wording; EAVS periods as plain years;
+  dead renderers removed; .gitignore BOM. data-sync-filters.txt left as is (an edit forces a
+  resync on both machines).
+- Resume point: README/docs (items 4, 5, 9, 11, 12, 13), PLAN, CI workflow, release notes, then
+  full checks and the sample rebuild.
+- Docs done: README quick start (GR_HTTP_CONTACT), FEMA browser workaround, --refresh, ZCTA
+  land shares, new data releases, module not_applicable, Help, CI; docs wording; brief preface;
+  .github/workflows/check.yml (image build, test, catalog --check).
+- Checked in a scratch copy sharing cache/: an early-childhood report for Gary leaves the
+  Texas-only module out with its reason; a metro report (cbsa:43780, economic-development)
+  leaves the tract map out, and found a pre-existing defect: locator and historical maps took
+  the state from the first two GEOID digits, which metro areas and ZCTAs lack (render failed;
+  a ZCTA would have drawn the Virgin Islands). Fixed with locator_states() (state overlap).
+- Resume point: full sample batch (--workers 2), diff report.qmd against the copies in the
+  session scratchpad, PLAN.md, commit, then the user-blocked git steps.
+- Checks: tests 457 pass; catalog --check clean; round trip 10/10; batch --workers 2 rebuilt the
+  12 samples (434 s; austin-78704 rejected as intended; 0 warnings). report.qmd diffs against the
+  copies taken before: only the intended changes (escaped "$1,250" in tables, "comparison area"
+  wording, the sources prose, FEMA statement, EAVS years, and the earlier review's wording fixes
+  that had not been rebuilt here). Rendered gap sentences now say "not statistically different"
+  where the test does (madison-ms rent burden, gary-in health insurance). A compare report with
+  an income distribution shows both cities and the nation.
+- Resume point: commit; re-add origin; force-push the rewritten main; tag v1.0.0; release notes;
+  watch CI; make the repo public; wiki off; topics.
+- Committed the fixes (old commit hashes in this log updated to the rewritten ones). The force
+  push of the rewritten main was blocked by the permission check, so origin is not re-added and
+  nothing is pushed; v1.0.0 is tagged locally. Release notes drafted in the session scratchpad.
+- Resume point (needs the user): git remote add origin https://github.com/jpbranson/geo-report-gen.git;
+  git push --force-with-lease=main:9e556fd4bc1e9caf933fd883252af01cf9e3cc1e origin main;
+  git push origin v1.0.0; watch the check workflow; gh release create v1.0.0; make the repo
+  public; turn the wiki off; add topics.

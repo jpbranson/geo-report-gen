@@ -60,8 +60,10 @@ eavs_counties <- function(code, state) {
   if (any(ct)) county[ct] <- ct_town_regions(eavs_vintage)[last5[ct]]
   split <- rep("", length(code))
   for (i in which(full & is.na(county) & !town)) {
-    parts <- tryCatch(place_parts(substr(code[i], 1, 7), eavs_vintage), error = function(e) NULL)
-    if (is.null(parts) || !nrow(parts) || !sum(parts$pop)) next
+    # A code that is not a census place (e.g. a township) has no parts; a failed request stops,
+    # so a city is never cached without its county.
+    parts <- place_parts(substr(code[i], 1, 7), eavs_vintage)
+    if (!nrow(parts) || !sum(parts$pop)) next
     share <- parts$pop / sum(parts$pop)
     if (max(share) >= 0.99) county[i] <- parts$county[which.max(share)] else split[i] <- paste(parts$county, collapse = ";")
   }
@@ -135,6 +137,6 @@ register_provider("eac_eavs", list(
   geo_types = c("nation", "region", "division", "state", "county"),
   fetch = eavs_fetch,
   periods = function(settings, recipe) as.integer(names(eavs_cycles)),
-  period_label = function(period) paste(period, "election"),
+  period_label = function(period) as.character(period),
   period_kind = "point",
   availability_note = "The EAVS reports election jurisdictions (counties, New England towns, Wisconsin municipalities, a few cities); values are for counties, states and larger areas."))

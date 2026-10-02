@@ -15,7 +15,7 @@ root=$(cd "$(dirname "$0")/.." && pwd)
 remote=${GR_SYNC_REMOTE:-gr-r2:geo-report-data}
 work="$root/.data-sync"
 if ! command -v rclone >/dev/null 2>&1; then
-  echo "rclone was not found: install it with  brew install rclone  (see README)." >&2
+  echo "rclone was not found: install it with  brew install rclone  (see docs/data-sync.md)." >&2
   exit 1
 fi
 

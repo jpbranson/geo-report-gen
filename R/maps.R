@@ -54,11 +54,27 @@ map_theme <- function(th) {
 
 # ---- Locator ------------------------------------------------------------------------------
 
+# States to draw around the study area. Most GEOIDs start with their state's code; metro areas
+# and ZCTAs do not (cbsa:43780, zcta:78704), so they are placed by the states whose area their
+# outline overlaps (shared borders do not count).
+locator_states <- function(pieces, study, vintage) {
+  prefixed <- pieces$type %in% c("state", "county", "place", "place_part", "cousub", "tract", "bg", "sdu")
+  states <- substr(pieces$geoid[prefixed], 1, 2)
+  if (any(pieces$type %in% c("cbsa", "zcta"))) {
+    all_states <- boundaries("state", vintage)
+    crs <- local_crs(study)
+    outline <- sf::st_union(sf::st_transform(study, crs))
+    overlap <- lengths(sf::st_relate(sf::st_transform(all_states, crs), outline, pattern = "2********")) > 0
+    states <- c(states, all_states$GEOID[overlap])
+  }
+  unique(states)
+}
+
 compute_block_locator <- function(row, ctx, settings, opts) {
   v <- ctx$area$vintage
   study <- do.call(rbind, lapply(ctx$studies, entity_geometry, vintage = v))
   all_pieces <- do.call(rbind, lapply(ctx$studies, `[[`, "pieces"))
-  states <- unique(substr(all_pieces$geoid[all_pieces$type != "nation"], 1, 2))
+  states <- locator_states(all_pieces, study, v)
   area_types <- unique(all_pieces$type)
   if (any(area_types %in% c("region", "division", "nation", "state")) || !length(states)) {
     context <- boundaries("state", v)
@@ -132,6 +148,12 @@ compute_block_map <- function(row, ctx, settings, opts) {
   recipe <- recipe_for(metric_id)
   v <- ctx$area$vintage
   release <- utils::tail(metric_periods(recipe, settings), 1)
+  if (isTRUE(ctx$compare)) {
+    return(list(id = row$id, not_applicable = "a tract map shows one area, and this report compares several."))
+  }
+  if (!all(ctx$study$pieces$type %in% c("county", "place", "place_part"))) {
+    return(list(id = row$id, not_applicable = "tract maps are drawn for counties and places only."))
+  }
   sub <- study_subareas(ctx, v)
   keys <- paste0("tract:", sub$GEOID)
   pieces <- data.frame(key = keys, type = "tract", geoid = sub$GEOID, stringsAsFactors = FALSE)
@@ -225,7 +247,7 @@ compute_block_historical_map <- function(row, ctx, settings, opts) {
   v <- ctx$area$vintage
   study <- do.call(rbind, lapply(ctx$studies, entity_geometry, vintage = v))
   pieces <- do.call(rbind, lapply(ctx$studies, `[[`, "pieces"))
-  states <- unique(substr(pieces$geoid[!pieces$type %in% c("nation", "region", "division")], 1, 2))
+  states <- locator_states(pieces, study, v)
   if (!length(states)) stop("A historical county map needs a study area within states.", call. = FALSE)
   context <- boundaries("state", v)
   context <- context[context$GEOID %in% states, ]

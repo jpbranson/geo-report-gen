@@ -157,3 +157,16 @@ test_that("the compose key holds the code and catalog as loaded, so a later edit
   rm("loaded_inputs_hash", envir = memo)            # the next process loads the edited table
   expect_false(identical(compose_key("gary-in"), key))
 })
+
+test_that("a Markdown-backed record is written only when the records are saved, under one lock", {
+  withr::local_envvar(GR_ROOT = temp_project())
+  prose <- root_path("content", "prose", "intro.md")
+  before <- readLines(prose, warn = FALSE)
+  records <- upsert_record(load_text_records(), "intro.body", "default", "New introduction.")
+  expect_equal(readLines(prose, warn = FALSE), before)   # a failed import or harvest leaves it alone
+  with_text_lock(save_text_records(records))             # nested: only the outer call takes the lock
+  expect_false(isTRUE(text_lock$held))
+  expect_equal(readLines(prose, warn = FALSE), "New introduction.")
+  r <- load_text_records()
+  expect_equal(r$text[r$field_id == "intro.body" & r$scope == "default"], "@prose/intro.md")
+})

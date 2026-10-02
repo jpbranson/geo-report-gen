@@ -1,0 +1,18 @@
+# Builds the Docker image from the Dockerfile and runs the offline tests and the catalog check
+# (no keys or downloads needed: the tests use tests/fixtures/).
+name: check
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the image
+        run: docker build -t geo-report-gen .
+      - name: Tests
+        run: docker run --rm -v "$PWD:/app" geo-report-gen test
+      - name: Catalog check
+        run: docker run --rm -v "$PWD:/app" geo-report-gen catalog --check

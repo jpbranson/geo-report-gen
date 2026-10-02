@@ -1,5 +1,8 @@
 # Requirements (project brief, as provided 2026-09-28)
 
+The brief the project was built against, given to Claude Code and kept as written. It records
+intent, not current behavior: README.md describes what the project does.
+
 Build a configurable US geographic reporting system
 
 You are working as a senior statistical software engineer with expertise in R, Quarto, US public data, geographic analysis, and information design. Design and implement a maintainable report-generation system inspired by https://datausa.io. Its primary product is a reproducible Quarto document for a user-specified US geography or collection of geographies.

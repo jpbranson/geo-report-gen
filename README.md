@@ -17,12 +17,15 @@ downloaded when first needed and cached. Each report is an editable Quarto docum
 You need git, [Docker Desktop](https://www.docker.com/products/docker-desktop/) and a free
 [Census API key](https://api.census.gov/data/key_signup.html).
 
-1. Clone the repository and put your key in `.env` at its root (git-ignored; never commit it):
+1. Clone the repository and put your key and email address in `.env` at its root (git-ignored;
+   never commit it). The Bureau of Labor Statistics requires a contact for downloads; without
+   one, reports show dollars without inflation adjustment and no unemployment rates.
 
    ```
    git clone https://github.com/jpbranson/geo-report-gen.git
    cd geo-report-gen
    echo "CENSUS_API_KEY=<your key>" > .env
+   echo "GR_HTTP_CONTACT=<your email>" >> .env
    ```
 
 2. Build a sample report, then open `reports/madison-ms/report.html` in a browser:
@@ -33,7 +36,8 @@ You need git, [Docker Desktop](https://www.docker.com/products/docker-desktop/) 
 
    The first run builds the Docker image (a few minutes) and downloads the data the report needs
    into `cache/`: about 10 minutes and 1 GB, mostly national files that later reports reuse.
-   The build prints nothing while it downloads; that is expected.
+   After its "composing" line the build is quiet while it downloads; that is expected. Warnings
+   about the optional keys below are expected too: the report lists what they would add.
 
 3. Make a report for your own area: look up its ID, add the report, build it (under 3 minutes
    with the cache from step 2).
@@ -57,8 +61,9 @@ machine. To preview edits live: `docker compose run --rm --service-ports gr prev
 open http://localhost:4848. Differences from running R directly:
 
 - Charts use Noto Sans instead of the default theme's Segoe UI, a Windows font.
-- FEMA's server refuses downloads from Linux (HTTP 403), so National Risk Index values are shown
-  only if the file is already in `cache/raw/fema_nri/` (from a build outside Docker).
+- FEMA's server refuses downloads from Docker (HTTP 403). To include the National Risk Index,
+  open https://www.fema.gov/about/reports-and-data/openfema/nri/v120/NRI_Table_Counties.zip in a
+  browser and save the file as `cache/raw/fema_nri/NRI_Table_Counties_v120.zip`.
 - Dates and times (cache times, "retrieved on") use `TZ`: Central time unless you set `TZ` in the
   shell.
 - After `renv.lock` changes, rebuild the image with `docker compose build`.
@@ -81,7 +86,7 @@ cache or reports.
 | Key | Needed for |
 |---|---|
 | `CENSUS_API_KEY` | Required: geography lookup and every Census Bureau table. [Free key](https://api.census.gov/data/key_signup.html). |
-| `GR_HTTP_CONTACT` | Your email address. BLS (prices, employment, wages) refuses automated downloads without a contact, so it is sent in the User-Agent of BLS requests only. |
+| `GR_HTTP_CONTACT` | Recommended: your email address. BLS (consumer prices for constant dollars, unemployment, employment, wages) refuses automated downloads without a contact, so it is sent in the User-Agent of BLS requests only. |
 | `DATA_GOV_API_KEY` | FBI crime data. [Free key](https://api.data.gov/signup/). |
 | `IPUMS_API_KEY` | Census years 1970-2000 (IPUMS NHGIS). [Free key](https://account.ipums.org/api_keys); the account must also be [registered for NHGIS](https://uma.pop.umn.edu/nhgis/registration/new). The first build requests data extracts, which IPUMS takes about 5 minutes each to produce. |
 
@@ -109,8 +114,9 @@ Everything runs through one entry point, `Rscript gr.R <command>`:
 | `test` | automated tests (offline, with fixtures) |
 | `cache prune [--yes]` | list (with `--yes`, delete) derived files that newer versions replaced |
 
-Options: `--offline` (cache only), `--refresh <source,...>` (re-download the raw files in those
-`cache/raw/<source>` folders, e.g. `census_acs5`, `bls`, `bea`), `--force` (recompose and re-render),
+Options: `--offline` (cache only), `--refresh <name,...>` (download again, and rebuild, the files in
+those `cache/raw/<name>` or `cache/geo/<name>` folders, e.g. `census_acs5`, `bls`, `bea`; a
+source id from `catalog/sources.csv` also works), `--force` (recompose and re-render),
 `--no-render`, `--workers <n>`, `--formats html,typst`. A build whose inputs, code and raw
 files are unchanged since its last compose reuses that compose (build.json says so).
 
@@ -190,9 +196,11 @@ an explanation; no area-based allocation is applied.
 Benchmarks: every level in `benchmark_levels` (county, state, region, nation) that contains the
 area is offered. If no county contains it, each intersecting county holding at least
 `benchmark_min_share` of the residents is offered and labeled with that share; the others are
-listed in the report's notes. Coterminous and duplicate benchmarks are dropped. Compare mode uses
-only benchmarks shared by all areas. `benchmarks` in the settings overrides the policy. National
-totals cover the 50 states and DC; Puerto Rico and the Island Areas have no Census region.
+listed in the report's notes. For a ZCTA, whose population by county is not published, the
+share is of its land area; it only chooses and labels benchmarks, and no value is allocated.
+Coterminous and duplicate benchmarks are dropped. Compare mode uses only benchmarks shared by
+all areas. `benchmarks` in the settings overrides the policy. National totals cover the 50
+states and DC; Puerto Rico and the Island Areas have no Census region.
 
 ## Statistics
 
@@ -265,8 +273,15 @@ above it. Moving a row moves the block; numbering and the table of contents foll
   in `R/core.R` and call `register_provider()`. Add a block kind with `compute_block_<kind>()`
   and `render_block_<kind>()`. Neither needs changes elsewhere.
 - **Custom analysis:** a trusted R file in `modules/` defines `title`, `compute(ctx, options)` and
-  `render(output, text, theme)`; insert it with a manifest row of type `custom`. See
-  `modules/childcare_gap.R`.
+  `render(output, text, theme)`; insert it with a manifest row of type `custom`. Where it does
+  not apply, `compute` returns `list(not_applicable = "<reason>")` and the report lists the
+  reason. See `modules/childcare_gap.R` (Texas counties only).
+- **New data releases:** the ACS release and the geography vintage are the `acs_release` and
+  `boundary_vintage` settings (`config/settings.csv`); raise both when the Census Bureau publishes
+  the next 5-year release. Other sources' latest years are set in their provider files
+  (`R/providers/`, ranges in `docs/sources.md`). Some downloads keep the same file name when a
+  source adds a year (FHFA, BEA, BLS, SAIPE/SAHIE), so after raising a year, rebuild with
+  `--refresh <folder>` to fetch the new files.
 - **Audience profiles:** copy a file in `profiles/`; profile-scoped text records and settings
   change wording and depth without touching the analysis. `general` is a short community
   overview: one block per question, with current conditions and history in each subject.
@@ -303,6 +318,7 @@ The catalog of subjects, sources and metrics, with verification status and known
   (unions, overlaps, benchmarks), settings and text precedence, CSV round trips, caching, and the
   inline/bulk editing round trip with conflict detection. They run offline on trimmed real
   responses in `tests/fixtures/` (made-up values for IPUMS NHGIS, whose data may not be shared).
+  GitHub Actions runs them and `catalog --check` on every push (`.github/workflows/check.yml`).
 - `Rscript gr.R verify`: live checks of every operational source; results with dates and
   evidence go to `catalog/verification_log.csv`.
 - `Rscript demos/round_trip.R`: the editing round trip on a real report through a data refresh.
@@ -354,6 +370,10 @@ These apply across sources. How each source is used, and its own limits, is in
 - Some sources are current snapshots only (child care licensing in Texas and Indiana, HRSA
   shortage areas, the latest CDC PLACES release), so they have no history.
 - Custom polygons and area-weighted allocation are not supported.
+
+## Help
+
+Questions and bug reports: [GitHub issues](https://github.com/jpbranson/geo-report-gen/issues).
 
 ## License
 

@@ -59,7 +59,7 @@ parse_geo <- function(spec, vintage) {
   if (tolower(s) %in% c("us", "usa", "nation", "united states")) return(geo_row("nation", "US", vintage))
   if (!grepl(":", s, fixed = TRUE)) {
     stop("Geography '", spec, "' must be type:GEOID (e.g. place:1827000) or name:<name>. ",
-         "Find IDs with: Rscript gr.R find \"", s, "\"", call. = FALSE)
+         "Find IDs with: ", gr_command(), " find \"", s, "\"", call. = FALSE)
   }
   raw_type <- tolower(trimws(sub(":.*$", "", s)))
   geoid <- trimws(sub("^[^:]*:", "", s))
@@ -168,7 +168,7 @@ resolve_name <- function(query, vintage) {
     return(geo_row(hits$type, hits$geoid, vintage))
   }
   if (!nrow(hits)) {
-    stop("No geography named '", query, "' in ", vintage, " boundaries. Try: Rscript gr.R find \"",
+    stop("No geography named '", query, "' in ", vintage, " boundaries. Try: ", gr_command(), " find \"",
          query, "\"", call. = FALSE)
   }
   listing <- paste0("  ", hits$key, "  ", hits$name, collapse = "\n")
@@ -616,7 +616,7 @@ area_parents <- function(area) {
 level_rank <- c(tract = 1, bg = 0, cousub = 2, zcta = 2, place = 2, place_part = 2, sdu = 2,
                 county = 3, cbsa = 4, state = 5, division = 6, region = 7, nation = 8)
 
-# Benchmark policy (documented in README "Benchmarks"):
+# Benchmark policy (documented in README, "Geography"):
 # 1. Containing parents at each level in `benchmark_levels` are offered (county, state,
 #    region, nation by default).
 # 2. If no single parent at a level contains the area, each intersecting parent holding at
@@ -681,18 +681,20 @@ benchmark_candidates <- function(area, settings) {
       }
       next
     }
+    # Shares are of residents, except where only land area is published (ZCTA-county parts).
+    measure <- function(basis) ifelse(grepl("land area", basis), "land area", "residents")
     keep <- at[!is.na(at$share) & at$share >= min_share, , drop = FALSE]
     for (k in seq_len(nrow(keep))) {
       picks[[length(picks) + 1]] <- list(key = keep$parent[k], level = lvl, share = keep$share[k], contains = FALSE,
-                                         relation = sprintf("contains %s of the study area's residents",
-                                                            fmt_share(keep$share[k])))
+                                         relation = sprintf("contains %s of the study area's %s",
+                                                            fmt_share(keep$share[k]), measure(keep$basis[k])))
     }
     skip <- at[!(at$parent %in% keep$parent), , drop = FALSE]
     if (nrow(skip)) {
       listed <- paste0(geo_info(skip$parent, area$vintage)$name, " (", vapply(skip$share, fmt_share, ""), ")",
                        collapse = ", ")
       notes <- c(notes, paste0("Also intersecting at the ", lvl, " level but holding under ", fmt_share(min_share),
-                               " of residents: ", listed, "."))
+                               " of ", paste(unique(measure(skip$basis)), collapse = " or "), ": ", listed, "."))
     }
     if (lvl == "county" && as_flag(settings$benchmark_parent_union) && nrow(at) > 1) {
       picks[[length(picks) + 1]] <- list(key = at$parent, level = "county_union", share = 1, contains = TRUE,

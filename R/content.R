@@ -52,6 +52,16 @@ resolve_settings <- function(report_id = NULL, profile = NULL, library = list(),
 
 report_table <- function() read_table(root_path("config", "reports.csv"))
 
+geo_specs <- function(geography) {
+  specs <- trimws(unlist(strsplit(geography, "[+;]")))
+  specs[nzchar(specs)]
+}
+
+# A report in mode separate becomes one report per area: <report_id>-<the spec's code>.
+separate_report_id <- function(report_id, spec) {
+  paste0(report_id, "-", gsub("[^A-Za-z0-9]", "", sub("^[^:]*:", "", spec)))
+}
+
 # Expand report rows: mode "separate" turns one row listing several areas into one report
 # per area (ids "<report_id>-<geoid>"), so a list is never silently merged or split.
 expand_reports <- function(reports = report_table()) {
@@ -59,12 +69,11 @@ expand_reports <- function(reports = report_table()) {
   for (i in seq_len(nrow(reports))) {
     r <- reports[i, , drop = FALSE]
     if (!as_flag(r$enabled, TRUE)) next
-    specs <- trimws(unlist(strsplit(r$geography, "[+;]")))
-    specs <- specs[nzchar(specs)]
+    specs <- geo_specs(r$geography)
     if (r$mode == "separate") {
       for (sp in specs) {
         rr <- r
-        rr$report_id <- paste0(r$report_id, "-", gsub("[^A-Za-z0-9]", "", sub("^[^:]*:", "", sp)))
+        rr$report_id <- separate_report_id(r$report_id, sp)
         rr$geography <- sp
         rr$mode <- "single"
         rr$label <- ""
@@ -120,8 +129,9 @@ new_report <- function(report_id, flags) {
     write_table(subject_manifest(subjects, metrics), root_path(row$manifest))
   }
   write_table(rbind(reports, row[, names(reports)]), root_path("config", "reports.csv"))
+  ids <- if (row$mode == "separate") separate_report_id(report_id, geo_specs(row$geography)) else report_id
   note("Added ", report_id, " to config/reports.csv", if (nzchar(row$manifest)) paste0(" (manifest ", row$manifest, ")"),
-       ". Build it with: Rscript gr.R build ", report_id)
+       ". Build it with: ", gr_command(), " build ", paste(ids, collapse = " "))
   invisible(row)
 }
 
@@ -158,12 +168,14 @@ subject_manifest <- function(subjects, metrics) {
   }
   rows <- c(rows, list(row("appendix", "section"), row("availability", "block", "availability"),
                        row("sources", "block", "sources")))
-  records <- load_text_records()
-  for (id in names(titles)) {
-    field <- paste0(id, ".title")
-    if (!any(records$field_id == field)) records <- upsert_record(records, field, "default", titles[[id]], note = "added by gr.R new")
-  }
-  save_text_records(records)
+  with_text_lock({
+    records <- load_text_records()
+    for (id in names(titles)) {
+      field <- paste0(id, ".title")
+      if (!any(records$field_id == field)) records <- upsert_record(records, field, "default", titles[[id]], note = "added by gr.R new")
+    }
+    save_text_records(records)
+  })
   do.call(rbind, rows)
 }
 

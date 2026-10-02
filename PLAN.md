@@ -1,10 +1,10 @@
 # Plan
 
 What the project does and how to use it: README.md. The full brief: docs/REQUIREMENTS.md. How
-each source is used: docs/sources.md. The plan as it stood before 1.0, the running log of the
-sessions that built it, and the two reviews of 2026-09-29 are in docs/history/.
+each source is used: docs/sources.md. The plan as it stood before 1.0, the maintainer's working
+log (docs/history/FLIGHT_LOG.md) and the two reviews of 2026-09-29 are in docs/history/.
 
-## Status: 1.0 (2026-10-01)
+## Status: 1.0 (2026-10-02)
 
 - Catalog: 17 subjects, 83 subtopics, 126 sources, 561 metrics; 420 metrics operational from 34
   sources, the rest documented. `gr.R catalog --check` is clean; `gr.R verify` reaches every
@@ -12,8 +12,9 @@ sessions that built it, and the two reviews of 2026-09-29 are in docs/history/.
 - Reports: 11 sample configurations (13 report builds; austin-78704 is rejected on purpose), each
   built, rendered and reviewed chart by chart; profiles general, early-childhood,
   economic-development and exhaustive.
-- Checks: 416 test expectations pass offline (`gr.R test`); the editing round trip passes 10/10
-  (`demos/round_trip.R`); the warm benchmark is in the README and docs/benchmark.csv.
+- Checks: 457 test expectations pass offline (`gr.R test`, also in GitHub Actions on every
+  push); the editing round trip passes 10/10 (`demos/round_trip.R`); the warm benchmark is in the
+  README and docs/benchmark.csv.
 - The 1.0 checklist (docs/history/PLAN-before-1.0.md, "1.0 release checklist"), done:
   - A. Prune: metrics no report used removed (OEWS, PEP characteristics) or added to the
     exhaustive profile; five superseded blocks removed; one helper for the states of a
@@ -23,17 +24,28 @@ sessions that built it, and the two reviews of 2026-09-29 are in docs/history/.
   - C. Bulk runs: compose in parallel processes (`--workers`), source request rates shared among
     them (the FBI at 8 a second, its key allows 10); `gr.R cache prune`.
   - D. Docs: README limits across sources; per-source detail in docs/sources.md; this file.
-  - E. Release check, fresh benchmark, User-Agent 1.0. Open: E15, the tag.
+  - E. Release check, fresh benchmark, User-Agent 1.0; E15, the tag v1.0.0.
 - Public release review (2026-10-01): LICENSE (GPL-3.0); README quick start from a clean clone
   (cold madison-ms in Docker: 612 s, 1 GB) and keys table; data-sync moved to docs/data-sync.md;
   stricter CLI options; fixes to snapshot periods, census comparisons, compare mode, FARS, LAUS
   (DC), QCEW, the Food Access Atlas in Connecticut. FLIGHT_LOG.md has the details.
+- Second release review (2026-10-02), fixed: the gap sentence ("N points above the nation")
+  now follows the significance test like the benchmark sentence; parallel builds no longer lose
+  inline edits (content/text.csv locked from read to write); transient download failures are no
+  longer cached as missing data (building permits, ACS labels, EAVS); error text in reports is
+  plain and escaped; FEMA's statement is always printed with its data, and a 403 says how to
+  save the file from a browser; the User-Agent names the project (FEMA and the Department of
+  Labor refused the bare one); locator and historical maps work for metro areas and ZCTAs;
+  tract maps and custom modules that do not apply are left out with a reason; compare-mode
+  distributions show every area; ZCTA benchmark shares are labeled as land area; `--refresh`
+  checks its names, `--offline` applies to every command; README quick start asks for the BLS
+  contact. Git history was rewritten to drop a Cloudflare account ID and an unrelated bucket name.
 
 ## After 1.0 (not started before the tag)
 
 - Cold benchmark from an empty cache, on the Windows machine (FEMA downloads work there); README
   and docs/benchmark.csv updated with it.
-- Queue items waiting on the user: County Health Rankings (terms), MIT Election Lab (guestbook
+- Queue items waiting on the maintainer: County Health Rankings (terms), MIT Election Lab (guestbook
   download), HUD PIT/HIC (bot challenge).
 - Not built inside done sources: NCES before 2017, NDCP six-month age bands, LRAM 2010 and 2015
   editions, building permits for places before 2007, a tract use of the NHGIS historical
@@ -58,9 +70,9 @@ sessions that built it, and the two reviews of 2026-09-29 are in docs/history/.
     calls a missing variable a boundary change (metrics.R); ZCTA-county parts include water-only
     intersections (geography.R zcta_county_parts); EAVS national totals omit states without a
     note; Texas HHSC drops unmatched county names silently.
-  - Behavior: raw fetch errors (HTTP bodies) can reach a report's "What is not shown" table;
-    `batch` and `verify` exit 0 when reports or checks fail; an NHGIS extract that outlasts the
-    30-minute wait is requested again next build; map legend labels are fixed English.
+  - Behavior: `batch` and `verify` exit 0 when reports or checks fail; an NHGIS extract that
+    outlasts the 30-minute wait is requested again next build; map legend labels are fixed
+    English.
   - Memory: rebuilding the NDCP table (any edit to R/providers/childcare.R) peaks near 7.3 GB,
     since readxl parses the whole 92 MB workbook (skipping columns does not help); in Docker's
     8 GB it fits only alone. Moving NDCP into its own provider file would stop unrelated child
@@ -68,6 +80,29 @@ sessions that built it, and the two reviews of 2026-09-29 are in docs/history/.
   - Low: Docker on Linux writes root-owned files; `tar -xf` of a bundle overwrites newer cache
     files; NHGIS unzips whole archives and sends its key to the download URL the API names;
     `new --label` is ignored for mode separate; geom_errorbarh is deprecated in ggplot2 4.
+- Open findings of the second review (2026-10-02), not fixed for 1.0:
+  - Releases: latest years are set in each provider file, and some cached downloads keep their
+    name when a year is added (README "New data releases" says to use `--refresh`); one table
+    of release pins would be simpler. `%||% 2024` fallbacks for `boundary_vintage`/`acs_release`
+    repeat config/settings.csv in several providers; FARS and NCES label "2024 boundaries"
+    whatever `boundary_vintage` is.
+  - Text: a facts table marks significant differences but not untested ones (union medians);
+    medians without a bins table are not aggregable, which README "Statistics" does not say;
+    "Built 1939 or earlier" has an upper bound of 1940; fmt_moe does not shorten large dollars.
+  - CLI: `find Boulder Colorado` (unquoted) searches for the first word; `batch a a` composes a
+    report twice; a failed `preview` exits 0; outside the project root gr.R fails with "cannot
+    open file 'R/load.R'"; build.json strips the cache prefix with a regular expression (a
+    `GR_CACHE` path with regex characters keeps absolute paths).
+  - Code: duplicated helpers (FARS/NOAA county successors, the Connecticut planning-region test,
+    BEA line parsing three times, the UNDER5 ACS block in childcare.R, `pad()` defined in
+    pep.R); prefetch_acs writes cache entries without .meta.json; nhgis_extract does not check
+    for a NULL lock and names extracts with digest() rather than hash_value(); the FBI note says
+    no department matches when two do; the Food Access Atlas sums tracts missing from the
+    distance files as zero; `study_share` in compare mode is the sum of all areas (unused);
+    unknown `benchmark_levels` are ignored silently; the Lua filter's comment says text is
+    filled once, but figure captions pass through knitr hooks first.
+  - tools/data-sync-filters.txt still says "see README" (editing it forces a resync on every
+    machine; change it with the next filter change).
 - Speed: austin-core and kc-core take ~40 s each to compose warm, in providers other than the
   ACS; the block-result cache (review item 21) is undecided now that a prose edit of gary-in
   takes 36 s, of which 15 s is rendering.
